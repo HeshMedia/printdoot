@@ -4,11 +4,14 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import { CartProvider } from "@/lib/context/cart-context"
+import { UserProvider } from "@/lib/context/user-context"
+import { Toaster } from "@/components/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "PRINTDOOT - One Stop Printing",
+  title: "Printdoot - One Stop Printing",
   description: "Your one-stop shop for all printing needs",
 }
 
@@ -20,9 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <UserProvider>
+          <CartProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <Toaster />
+          </CartProvider>
+        </UserProvider>
       </body>
     </html>
   )

@@ -1,119 +1,120 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { Menu, Search, ShoppingCart, User } from "lucide-react"
+import { Menu, Search, ShoppingCart, User, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useCart } from "@/lib/context/cart-context"
+import { useUser } from "@/lib/context/user-context"
 
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true)
-      } else {
-        setIsScrolled(false)
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const { totalItems } = useCart()
+  const { user } = useUser()
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled ? "bg-white shadow-md" : "bg-background"
-      }`}
-    >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="text-xl font-bold">
-            PRINTDOOT
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between w-[90%]">
+        <div className="flex items-center gap-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+              <nav className="flex flex-col gap-4 mt-8">
+                <Link href="/" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                  Home
+                </Link>
+                <Link href="/products" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                  Products
+                </Link>
+                <Link href="/categories" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                  Categories
+                </Link>
+                <div className="border-t my-4"></div>
+                <Link href="/about" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                  About
+                </Link>
+                <Link href="/contact" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                  Contact
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="font-bold text-xl">PRINTDOOT</span>
           </Link>
 
-          {/* Search Bar - Hidden on Mobile */}
-          <div className="hidden md:flex relative max-w-md w-full mx-4">
-            <Input type="text" placeholder="Search here" className="w-full rounded-md bg-muted" />
-            <Button size="icon" variant="ghost" className="absolute right-0 top-0">
-              <Search className="h-4 w-4" />
-              <span className="sr-only">Search</span>
-            </Button>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="nav-link text-sm font-medium">
-              Home
-            </Link>
-            <Link href="/products" className="nav-link text-sm font-medium">
-              Products
-            </Link>
-            <Link href="/contacts" className="nav-link text-sm font-medium">
-              Contacts
-            </Link>
-          </nav>
-
-          {/* Icons */}
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Shopping cart</span>
-            </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <User className="h-5 w-5" />
-              <span className="sr-only">User account</span>
-            </Button>
-
-            {/* Mobile Menu Button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <div className="flex flex-col h-full py-6">
-                  <div className="mb-6">
-                    <Input type="text" placeholder="Search here" className="w-full" />
-                  </div>
-                  <nav className="flex flex-col space-y-4">
-                    <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">
-                      Home
-                    </Link>
-                    <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">
-                      Products
-                    </Link>
-                    <Link href="/contacts" className="text-lg font-medium hover:text-primary transition-colors">
-                      Contacts
-                    </Link>
-                    <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">
-                      About
-                    </Link>
-                    <Link href="/blog" className="text-lg font-medium hover:text-primary transition-colors">
-                      Blog
-                    </Link>
-                  </nav>
-                  <div className="mt-auto flex flex-col space-y-4">
-                    <Button variant="outline" className="w-full">
-                      Sign In
-                    </Button>
-                    <Button className="w-full">Sign Up</Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+          <div className="hidden md:flex md:w-[300px] lg:w-[400px]">
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input type="search" placeholder="Search here" className="w-full pl-8 bg-muted/50" />
+            </div>
           </div>
         </div>
+
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/" className="text-sm font-medium transition-colors hover:text-foreground/80">
+            Home
+          </Link>
+          <Link href="/products" className="text-sm font-medium transition-colors hover:text-foreground/80">
+            Products
+          </Link>
+          <Link href="/categories" className="text-sm font-medium transition-colors hover:text-foreground/80">
+            Categories
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+            <Search className="h-5 w-5" />
+            <span className="sr-only">Search</span>
+          </Button>
+
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative">
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+              <span className="sr-only">Cart</span>
+            </Button>
+          </Link>
+
+          {user ? (
+            <Link href="/account">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Account</span>
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" size="icon">
+                <LogIn className="h-5 w-5" />
+                <span className="sr-only">Login</span>
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
+
+      {isSearchOpen && (
+        <div className="container py-2 md:hidden">
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input type="search" placeholder="Search here" className="w-full pl-8 bg-muted/50" />
+          </div>
+        </div>
+      )}
     </header>
   )
 }

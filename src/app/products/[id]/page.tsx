@@ -1,0 +1,263 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import Image from "next/image"
+import { productsApi, type Product } from "@/lib/api/products"
+import { categoriesApi, type Category } from "@/lib/api/categories"
+import { reviewsApi, type Review } from "@/lib/api/reviews"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Star, Loader2, ChevronRight } from "lucide-react"
+import Link from "next/link"
+import ProductReviews from "@/components/product-reviews"
+
+export default function ProductDetailPage() {
+  const params = useParams()
+  const productId = params.id as string
+
+  const [product, setProduct] = useState<Product | null>(null)
+  const [category, setCategory] = useState<Category | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeImage, setActiveImage] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        setLoading(true)
+
+        // Fetch product details
+        const productData = await productsApi.getProduct(productId)
+        setProduct(productData)
+        setActiveImage(productData.main_image_url)
+
+        // Fetch categories to get customization options
+        const categories = await categoriesApi.getCategories()
+        const productCategory = categories.find((c) => c.name === productData.category_name)
+        setCategory(productCategory || null)
+
+        // Fetch product reviews
+        const reviewsData = await reviewsApi.getReviews(productId)
+        setReviews(reviewsData)
+
+        setLoading(false)
+      } catch (err) {
+        console.error("Failed to fetch product data:", err)
+        setError("Failed to load product details. Please try again.")
+        setLoading(false)
+      }
+    }
+
+    fetchProductData()
+  }, [productId])
+
+  if (loading) {
+    return (
+      <div className="container py-12 flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading product details...</span>
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className="container py-12">
+        <div className="bg-red-50 text-red-600 p-4 rounded-md">{error || "Product not found"}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container py-8">
+      {/* Breadcrumbs */}
+      <div className="flex items-center text-sm text-muted-foreground mb-6">
+        <Link href="/" className="hover:text-foreground">
+          Home
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <Link href="/products" className="hover:text-foreground">
+          Products
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <Link href={`/categories?category=${category?.id}`} className="hover:text-foreground">
+          {product.category_name}
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <span className="text-foreground">{product.name}</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        {/* Product Images */}
+        <div>
+          <div className="relative h-[400px] rounded-lg overflow-hidden mb-4">
+            <Image
+              src={activeImage || product.main_image_url || "/placeholder.svg?height=400&width=400"}
+              alt={product.name}
+              fill
+              className="object-contain"
+            />
+          </div>
+
+          {/* Thumbnails */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setActiveImage(product.main_image_url)}
+              className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${
+                activeImage === product.main_image_url ? "border-primary" : "border-transparent"
+              }`}
+            >
+              <Image
+                src={product.main_image_url || "/placeholder.svg?height=80&width=80"}
+                alt={`${product.name} - Main`}
+                fill
+                className="object-cover"
+              />
+            </button>
+
+            {product.side_images_url.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveImage(image)}
+                className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${
+                  activeImage === image ? "border-primary" : "border-transparent"
+                }`}
+              >
+                <Image
+                  src={image || "/placeholder.svg?height=80&width=80"}
+                  alt={`${product.name} - ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div>
+          <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+
+          <div className="flex items-center mb-4">
+            <div className="flex items-center">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-5 h-5 ${
+                    i < Math.floor(product.average_rating)
+                      ? "text-yellow-400 fill-yellow-400"
+                      : i < product.average_rating
+                        ? "text-yellow-400 fill-yellow-400 opacity-50"
+                        : "text-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-sm text-muted-foreground ml-2">
+              ({product.average_rating.toFixed(1)}) · {reviews.length} reviews
+            </span>
+          </div>
+
+          <div className="text-2xl font-bold mb-4">${product.price.toFixed(2)}</div>
+
+          <div className="mb-6">
+            <span
+              className={`inline-block text-sm px-3 py-1 rounded-full ${
+                product.status === "in_stock"
+                  ? "bg-green-100 text-green-800"
+                  : product.status === "out_of_stock"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {product.status === "in_stock"
+                ? "In Stock"
+                : product.status === "out_of_stock"
+                  ? "Out of Stock"
+                  : "Discontinued"}
+            </span>
+          </div>
+
+          <p className="text-muted-foreground mb-6">{product.description}</p>
+
+          {product.status === "in_stock" && (
+            <div className="space-y-4">
+              <Button size="lg" className="w-full">
+                <Link href={`/products/${product.product_id}/customize`} className="w-full">
+                  Customize Now
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Product Tabs */}
+      <Tabs defaultValue="description">
+        <TabsList className="w-full border-b">
+          <TabsTrigger value="description">Description</TabsTrigger>
+          <TabsTrigger value="customization">Customization Options</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="description" className="py-4">
+          <div className="prose max-w-none">
+            <p>{product.description}</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="customization" className="py-4">
+          {category ? (
+            <div>
+              <h3 className="text-lg font-medium mb-4">Available Customization Options</h3>
+
+              <div className="space-y-6">
+                {/* User Customization Options */}
+                <div>
+                  <h4 className="text-md font-medium mb-2">Personalization Types</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {category.user_customization_options.map((option, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full capitalize">
+                        {option}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Allowed Customizations */}
+                {Object.keys(category.allowed_customizations).length > 0 && (
+                  <div>
+                    <h4 className="text-md font-medium mb-2">Customization Options</h4>
+                    <div className="space-y-4">
+                      {Object.entries(category.allowed_customizations).map(([key, values]) => (
+                        <div key={key}>
+                          <h5 className="text-sm font-medium">{key}</h5>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {values.map((value, index) => (
+                              <span key={index} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+                                {value}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No customization options available for this product.</p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="reviews" className="py-4">
+          <ProductReviews productId={product.product_id} reviews={reviews} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+

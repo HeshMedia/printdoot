@@ -29,74 +29,77 @@ const products = [
 
 export default function BestSellers() {
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10">
-          <div>
-            <motion.h2
-              className="text-2xl md:text-3xl font-bold mb-2"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              Our
-              <br />
-              Best Sellers
-            </motion.h2>
-            <motion.p
-              className="text-muted-foreground"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              Top picks loved by
-              <br />
-              our customers!
-            </motion.p>
-          </div>
+    <section className="py-20 bg-white">
+    <div className="container mx-auto px-6 lg:px-12">
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-10 lg:gap-20 items-start">
+        
+        {/* LEFT - Text + Button */}
+        <div className="space-y-6">
+          <motion.h2
+            className="text-3xl lg:text-4xl font-extrabold leading-tight"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            Our <br /> Best Sellers
+          </motion.h2>
+  
+          <motion.p
+            className="text-muted-foreground text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Top picks loved by <br /> our customers!
+          </motion.p>
+  
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Button variant="secondary" className="group">
-              See more <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Button className="rounded-md bg-pink-100 text-black px-6 py-3 text-base hover:bg-pink-200">
+              See more
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+  
+        {/* RIGHT - Product Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product, index) => (
             <motion.div
               key={product.id}
-              className="product-card group rounded-lg overflow-hidden border bg-card"
+              className="rounded-xl overflow-hidden bg-white shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 * index }}
             >
               <Link href={`/products/${product.id}`}>
-                <div className="aspect-square relative overflow-hidden">
+                <div className="relative w-full aspect-square overflow-hidden">
                   <Image
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-medium">{product.name}</h3>
-                  <p className="text-muted-foreground">{product.price}</p>
+                  <h3 className="font-medium text-lg">{product.name}</h3>
+                  <p className="text-muted-foreground text-sm">{product.price}</p>
                 </div>
               </Link>
             </motion.div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
+  </section>
+  
   )
 }
 
