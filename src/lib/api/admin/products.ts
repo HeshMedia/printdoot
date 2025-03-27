@@ -135,5 +135,13 @@ export const productsApi = {
 
     return response.json()
   },
+
+  async getCategories(): Promise<any[]> {
+    const response = await fetch(`${config.apiUrl}/categories`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+    return response.json();
+  },
 }
 

@@ -11,7 +11,7 @@ const products = [
     id: 1,
     name: "Custom Coffee Mugs",
     price: "Rs 100.00",
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=300&h=300&fit=crop",
+    image: "/mug.png",
   },
   {
     id: 2,

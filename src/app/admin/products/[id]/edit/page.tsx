@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { productsApi, type Product } from "@/lib/api/products"
+import { productsApi, type Product } from "@/lib/api/admin/products"
 import ProductForm from "@/components/admin/products/product-form"
 
 export default function EditProductPage() {
@@ -55,7 +55,7 @@ export default function EditProductPage() {
       <h1 className="text-3xl font-bold mb-6">Edit Product: {product.name}</h1>
 
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <ProductForm initialData={product} isEditing={true} />
+        <ProductForm initialData={product} />
       </div>
     </div>
   )

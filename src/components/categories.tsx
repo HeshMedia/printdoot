@@ -15,11 +15,11 @@ const categories = [
   },
   { 
     name: "Notebooks", 
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&h=500&fit=crop" 
+    image: "/Notebook.jpg" 
   },
   { 
     name: "Notepads", 
-    image: "https://images.unsplash.com/photo-1606791422814-b32c705e3e2f?w=500&h=500&fit=crop" 
+    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&h=500&fit=crop" 
   },
   { 
     name: "Planners", 
@@ -27,11 +27,11 @@ const categories = [
   },
   { 
     name: "Highlighters", 
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&h=500&fit=crop" 
+    image: "/highlighters.jpg" 
   },
   { 
     name: "Journals", 
-    image: "https://images.unsplash.com/photo-1577375729152-4c8b5fcda381?w=500&h=500&fit=crop" 
+    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&h=500&fit=crop" 
   },
   { 
     name: "To-do Lists", 
@@ -39,7 +39,19 @@ const categories = [
   },
   { 
     name: "Sticky Notes", 
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&h=500&fit=crop" 
+    image: "/Sticky-Notes.jpg" 
+  },
+  { 
+    name: "Memo Blocks", 
+    image: "/memo.png" 
+  },
+  { 
+    name: "Erasers", 
+    image: "/erarser.png" 
+  },
+  { 
+    name: "Shapners", 
+    image: "/sharpner'.png" 
   },
 ]
 

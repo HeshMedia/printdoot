@@ -1,8 +1,7 @@
-// components/product/CategoryForm.tsx
 "use client"
 
 import { useState } from "react"
-import { categoriesApi } from "@/lib/api/admin/categories"
+import { categoriesApi, UserCustomizationOption } from "@/lib/api/admin/categories"
 import CategoryNameInput from "./CategoryNameInput"
 import UserCustomizationOptions from "./UserCustomizationOptions"
 import AllowedCustomizations from "./AllowedCustomizations"
@@ -25,7 +24,7 @@ export default function CategoryForm({ initialData, isEditing = false, onSubmit,
     user_customization_options: initialData?.user_customization_options || [],
   })
 
-  const customizationOptions = ["text", "image", "color"]
+  const customizationOptions: UserCustomizationOption[] = ["text", "image", "color"]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -35,7 +34,7 @@ export default function CategoryForm({ initialData, isEditing = false, onSubmit,
     })
   }
 
-  const handleCustomizationOptionChange = (option: string) => {
+  const handleCustomizationOptionChange = (option: UserCustomizationOption) => {
     const currentOptions = [...formData.user_customization_options]
 
     if (currentOptions.includes(option)) {
@@ -136,7 +135,7 @@ export default function CategoryForm({ initialData, isEditing = false, onSubmit,
 
       <SubmitCancelButtons
         onCancel={onCancel}
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent<HTMLFormElement>)}
         loading={loading}
         isEditing={isEditing}
         isFormInvalid={formData.user_customization_options.length === 0}
