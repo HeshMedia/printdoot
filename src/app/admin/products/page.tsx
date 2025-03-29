@@ -32,7 +32,7 @@ export default function ProductsPage() {
 
         // Fetch categories
         const categoryResponse = await categoriesApi.getCategories();
-        setCategories(categoryResponse);
+        setCategories(categoryResponse.categories);
 
         // Fetch products
         const { products, total } =
