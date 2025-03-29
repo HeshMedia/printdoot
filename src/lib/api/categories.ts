@@ -10,7 +10,7 @@ export interface Category {
 }
 
 export const categoriesApi = {
-  async getCategories(): Promise<Category[]> {
+  async getCategories(): Promise<{ total: number; categories: Category[] }> {
     const response = await fetch(`${config.apiUrl}/categories`)
     if (!response.ok) {
       throw new Error("Failed to fetch categories")
@@ -18,4 +18,3 @@ export const categoriesApi = {
     return response.json()
   },
 }
-

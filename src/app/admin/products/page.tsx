@@ -1,106 +1,104 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Plus } from "lucide-react"
-import { productsApi, type Product } from "@/lib/api/admin/products"
-import { categoriesApi, type Category } from "@/lib/api/admin/categories"
-import ProductFilters from "@/components/admin/products/ProductFilters"
-import ProductTable from "@/components/admin/products/ProductTable"
-import PaginationControls from "@/components/admin/products/PaginationControls"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { productsApi, type Product } from "@/lib/api/admin/products";
+import { categoriesApi, type Category } from "@/lib/api/admin/categories";
+import ProductFilters from "@/components/admin/products/ProductFilters";
+import ProductTable from "@/components/admin/products/ProductTable";
+import PaginationControls from "@/components/admin/products/PaginationControls";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [minPrice, setMinPrice] = useState<number | null>(null)
-  const [maxPrice, setMaxPrice] = useState<number | null>(null)
-  const [minRating, setMinRating] = useState<number | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [minRating, setMinRating] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const itemsPerPage = 10
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Fetch categories
-        const categoriesData = await categoriesApi.getCategories()
-        setCategories(categoriesData)
+        const categoryResponse = await categoriesApi.getCategories();
+        setCategories(categoryResponse);
 
         // Fetch products
-        let productsData
-        if (selectedCategory || minPrice || maxPrice || minRating) {
-          productsData = await productsApi.filterProducts({
-            category_id: selectedCategory || undefined,
-            min_price: minPrice || undefined,
-            max_price: maxPrice || undefined,
-            min_rating: minRating || undefined,
-            skip: (currentPage - 1) * itemsPerPage,
-            limit: itemsPerPage,
-          })
-        } else {
-          productsData = await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage)
-        }
+        const { products, total } =
+          selectedCategory || minPrice || maxPrice || minRating
+            ? await productsApi.filterProducts({
+                category_id: selectedCategory || undefined,
+                min_price: minPrice || undefined,
+                max_price: maxPrice || undefined,
+                min_rating: minRating || undefined,
+                skip: (currentPage - 1) * itemsPerPage,
+                limit: itemsPerPage,
+              })
+            : await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage);
 
-        // Filter by search term if provided
-        if (searchTerm) {
-          productsData = productsData.filter(
-            (product) =>
+        const filtered = searchTerm
+          ? products.filter((product) =>
               product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
               product.description.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        }
+            )
+          : products;
 
-        setProducts(productsData)
-        setTotalPages(Math.ceil(productsData.length / itemsPerPage))
-
-        setLoading(false)
+        setProducts(filtered);
+        setTotalPages(Math.ceil(total / itemsPerPage));
+        setLoading(false);
       } catch (err) {
-        setError("Failed to fetch products")
-        setLoading(false)
-        console.error(err)
+        console.error("Failed to fetch products:", err);
+        setError("Failed to fetch products.");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [currentPage, searchTerm, selectedCategory, minPrice, maxPrice, minRating])
+    fetchData();
+  }, [currentPage, searchTerm, selectedCategory, minPrice, maxPrice, minRating]);
 
   const handleDelete = async (productId: string) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await productsApi.deleteProduct(productId)
-        setProducts(products.filter((product) => product.product_id !== productId))
+        await productsApi.deleteProduct(productId);
+        setProducts((prev) => prev.filter((product) => product.product_id !== productId));
       } catch (err) {
-        console.error(err)
-        alert("Failed to delete product")
+        console.error(err);
+        alert("Failed to delete product");
       }
     }
-  }
+  };
 
   const handleFilter = () => {
-    setCurrentPage(1) // Reset to first page when filtering
-  }
+    setCurrentPage(1);
+  };
 
   const clearFilters = () => {
-    setSelectedCategory(null)
-    setMinPrice(null)
-    setMaxPrice(null)
-    setMinRating(null)
-    setCurrentPage(1)
-  }
+    setSelectedCategory(null);
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinRating(null);
+    setCurrentPage(1);
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Products</h1>
-        <Link href="/admin/products/new" className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+        <Link
+          href="/admin/products/new"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+        >
           <Plus className="w-5 h-5 mr-2" />
           Add Product
         </Link>
@@ -137,10 +135,14 @@ export default function ProductsPage() {
         ) : (
           <>
             <ProductTable products={products} handleDelete={handleDelete} />
-            <PaginationControls currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage} />
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
           </>
         )}
       </div>
     </div>
-  )
+  );
 }

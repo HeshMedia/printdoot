@@ -24,8 +24,13 @@ export interface ProductsFilterParams {
   limit?: number
 }
 
+export interface ProductsResponse {
+  total: number
+  products: Product[]
+}
+
 export const productsApi = {
-  async getProducts(skip = 0, limit = 10): Promise<Product[]> {
+  async getProducts(skip = 0, limit = 10): Promise<ProductsResponse> {
     const response = await fetch(`${config.apiUrl}/products?skip=${skip}&limit=${limit}`)
     if (!response.ok) {
       throw new Error("Failed to fetch products")
@@ -41,7 +46,7 @@ export const productsApi = {
     return response.json()
   },
 
-  async filterProducts(params: ProductsFilterParams): Promise<Product[]> {
+  async filterProducts(params: ProductsFilterParams): Promise<ProductsResponse> {
     const queryParams = new URLSearchParams()
 
     if (params.category_id) queryParams.append("category_id", params.category_id.toString())
@@ -59,4 +64,3 @@ export const productsApi = {
     return response.json()
   },
 }
-

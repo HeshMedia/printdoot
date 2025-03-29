@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Edit, Trash2 } from "lucide-react"
-import { Product } from "@/lib/api/products"
+import { Product } from "@/lib/api/admin/products"
 
 interface ProductTableProps {
   products: Product[]
@@ -23,7 +23,7 @@ export default function ProductTable({ products, handleDelete }: ProductTablePro
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {products.map((product) => (
+          {Array.isArray(products) && products.map((product) => (
             <tr key={product.product_id} className="hover:bg-gray-50">
               <td className="px-4 py-3 whitespace-nowrap">
                 <img src={product.main_image_url} alt={product.name} className="w-12 h-12 object-cover" />

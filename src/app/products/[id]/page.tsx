@@ -28,17 +28,17 @@ export default function ProductDetailPage() {
       try {
         setLoading(true)
 
-        // Fetch product details
+        // Fetch product
         const productData = await productsApi.getProduct(productId)
         setProduct(productData)
         setActiveImage(productData.main_image_url)
 
-        // Fetch categories to get customization options
-        const categories = await categoriesApi.getCategories()
-        const productCategory = categories.find((c) => c.name === productData.category_name)
-        setCategory(productCategory || null)
+        // Fetch categories and match
+        const { categories } = await categoriesApi.getCategories()
+        const matchedCategory = categories.find((c) => c.name === productData.category_name)
+        setCategory(matchedCategory || null)
 
-        // Fetch product reviews
+        // Fetch reviews
         const reviewsData = await reviewsApi.getReviews(productId)
         setReviews(reviewsData)
 
@@ -74,13 +74,9 @@ export default function ProductDetailPage() {
     <div className="container py-8">
       {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-muted-foreground mb-6">
-        <Link href="/" className="hover:text-foreground">
-          Home
-        </Link>
+        <Link href="/" className="hover:text-foreground">Home</Link>
         <ChevronRight className="h-4 w-4 mx-1" />
-        <Link href="/products" className="hover:text-foreground">
-          Products
-        </Link>
+        <Link href="/products" className="hover:text-foreground">Products</Link>
         <ChevronRight className="h-4 w-4 mx-1" />
         <Link href={`/categories?category=${category?.id}`} className="hover:text-foreground">
           {product.category_name}
@@ -90,7 +86,7 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {/* Product Images */}
+        {/* Images */}
         <div>
           <div className="relative h-[400px] rounded-lg overflow-hidden mb-4">
             <Image
@@ -101,7 +97,6 @@ export default function ProductDetailPage() {
             />
           </div>
 
-          {/* Thumbnails */}
           <div className="flex gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setActiveImage(product.main_image_url)}
@@ -110,8 +105,8 @@ export default function ProductDetailPage() {
               }`}
             >
               <Image
-                src={product.main_image_url || "/placeholder.svg?height=80&width=80"}
-                alt={`${product.name} - Main`}
+                src={product.main_image_url}
+                alt="Main"
                 fill
                 className="object-cover"
               />
@@ -126,8 +121,8 @@ export default function ProductDetailPage() {
                 }`}
               >
                 <Image
-                  src={image || "/placeholder.svg?height=80&width=80"}
-                  alt={`${product.name} - ${index + 1}`}
+                  src={image}
+                  alt={`Side ${index + 1}`}
                   fill
                   className="object-cover"
                 />
@@ -149,8 +144,8 @@ export default function ProductDetailPage() {
                     i < Math.floor(product.average_rating)
                       ? "text-yellow-400 fill-yellow-400"
                       : i < product.average_rating
-                        ? "text-yellow-400 fill-yellow-400 opacity-50"
-                        : "text-gray-300"
+                      ? "text-yellow-400 fill-yellow-400 opacity-50"
+                      : "text-gray-300"
                   }`}
                 />
               ))}
@@ -168,15 +163,11 @@ export default function ProductDetailPage() {
                 product.status === "in_stock"
                   ? "bg-green-100 text-green-800"
                   : product.status === "out_of_stock"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
               }`}
             >
-              {product.status === "in_stock"
-                ? "In Stock"
-                : product.status === "out_of_stock"
-                  ? "Out of Stock"
-                  : "Discontinued"}
+              {product.status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
             </span>
           </div>
 
@@ -194,7 +185,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Product Tabs */}
+      {/* Tabs */}
       <Tabs defaultValue="description">
         <TabsList className="w-full border-b">
           <TabsTrigger value="description">Description</TabsTrigger>
@@ -203,9 +194,7 @@ export default function ProductDetailPage() {
         </TabsList>
 
         <TabsContent value="description" className="py-4">
-          <div className="prose max-w-none">
-            <p>{product.description}</p>
-          </div>
+          <p>{product.description}</p>
         </TabsContent>
 
         <TabsContent value="customization" className="py-4">
@@ -214,7 +203,6 @@ export default function ProductDetailPage() {
               <h3 className="text-lg font-medium mb-4">Available Customization Options</h3>
 
               <div className="space-y-6">
-                {/* User Customization Options */}
                 <div>
                   <h4 className="text-md font-medium mb-2">Personalization Types</h4>
                   <div className="flex flex-wrap gap-2">
@@ -226,7 +214,6 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                {/* Allowed Customizations */}
                 {Object.keys(category.allowed_customizations).length > 0 && (
                   <div>
                     <h4 className="text-md font-medium mb-2">Customization Options</h4>
@@ -260,4 +247,3 @@ export default function ProductDetailPage() {
     </div>
   )
 }
-

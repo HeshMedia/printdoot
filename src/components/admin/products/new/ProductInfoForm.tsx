@@ -1,18 +1,40 @@
-"use client"
-import React from 'react';
+"use client";
+import React from "react";
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface ProductFormData {
+  name: string;
+  price: number;
+  category_id: number;
+  description: string;
+  status: string;
+}
 
 interface ProductInfoFormProps {
-  formData: any;
-  categories: any[];
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  formData: ProductFormData;
+  categories: Category[];
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => void;
   handleStatusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({ formData, categories, handleInputChange, handleStatusChange }) => {
+export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
+  formData,
+  categories,
+  handleInputChange,
+  handleStatusChange,
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          Product Name *
+        </label>
         <input
           type="text"
           id="name"
@@ -25,7 +47,9 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({ formData, cate
       </div>
 
       <div>
-        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+          Price *
+        </label>
         <input
           type="number"
           id="price"
@@ -40,7 +64,9 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({ formData, cate
       </div>
 
       <div>
-        <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+        <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
+          Category *
+        </label>
         <select
           id="category_id"
           name="category_id"
@@ -50,14 +76,19 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({ formData, cate
           className="w-full border rounded-md px-3 py-2"
         >
           <option value="">Select a category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
-          ))}
+          {Array.isArray(categories) &&
+            categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
         </select>
       </div>
 
       <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+          Status *
+        </label>
         <select
           id="status"
           name="status"
@@ -73,7 +104,9 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({ formData, cate
       </div>
 
       <div className="md:col-span-2">
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+          Description *
+        </label>
         <textarea
           id="description"
           name="description"

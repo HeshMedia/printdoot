@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { productsApi, type Product, type ProductsFilterParams } from "@/lib/api/products"
+import { productsApi, type Product, type ProductsFilterParams, type ProductsResponse } from "@/lib/api/products"
 import { categoriesApi, type Category } from "@/lib/api/categories"
 import ProductCard from "@/components/product-card"
 import ProductsFilter from "@/components/products-filter"
@@ -19,7 +19,6 @@ export default function ProductsPage() {
 
   const itemsPerPage = 12
 
-  // Get filter params from URL
   const categoryId = searchParams.get("category") ? Number.parseInt(searchParams.get("category")!) : undefined
   const minPrice = searchParams.get("min_price") ? Number.parseFloat(searchParams.get("min_price")!) : undefined
   const maxPrice = searchParams.get("max_price") ? Number.parseFloat(searchParams.get("max_price")!) : undefined
@@ -30,7 +29,7 @@ export default function ProductsPage() {
     const fetchCategories = async () => {
       try {
         const data = await categoriesApi.getCategories()
-        setCategories(data)
+        setCategories(data.categories)
       } catch (err) {
         console.error("Failed to fetch categories:", err)
       }
@@ -43,6 +42,7 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        setError(null)
 
         const filterParams: ProductsFilterParams = {
           category_id: categoryId,
@@ -54,24 +54,29 @@ export default function ProductsPage() {
           limit: itemsPerPage,
         }
 
-        let data: Product[]
+        let response: ProductsResponse
 
         if (Object.values(filterParams).some((value) => value !== undefined)) {
-          data = await productsApi.filterProducts(filterParams)
+          response = await productsApi.filterProducts(filterParams)
         } else {
-          data = await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage)
+          response = await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage)
         }
 
-        setProducts(data)
-
-        // For simplicity, we're setting a fixed number of pages
-        // In a real app, you would get the total count from the API
-        setTotalPages(Math.ceil(data.length / itemsPerPage))
+        if (response?.products && Array.isArray(response.products)) {
+          setProducts(response.products)
+          setTotalPages(Math.ceil(response.total / itemsPerPage))
+        } else {
+          console.error("Invalid API response format:", response)
+          setProducts([])
+          setTotalPages(1)
+        }
 
         setLoading(false)
       } catch (err) {
         console.error("Failed to fetch products:", err)
         setError("Failed to load products. Please try again.")
+        setProducts([])
+        setTotalPages(1)
         setLoading(false)
       }
     }
@@ -96,7 +101,7 @@ export default function ProductsPage() {
             </div>
           ) : error ? (
             <div className="bg-red-50 text-red-600 p-4 rounded-md">{error}</div>
-          ) : products.length === 0 ? (
+          ) : !Array.isArray(products) || products.length === 0 ? (
             <div className="text-center py-12">
               <h2 className="text-xl font-medium mb-2">No products found</h2>
               <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
@@ -109,7 +114,6 @@ export default function ProductsPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-8">
                   <nav className="flex items-center gap-1">
@@ -150,4 +154,3 @@ export default function ProductsPage() {
     </div>
   )
 }
-

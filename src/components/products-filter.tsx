@@ -13,7 +13,7 @@ interface ProductsFilterProps {
   categories: Category[]
 }
 
-export default function ProductsFilter({ categories }: ProductsFilterProps) {
+export default function ProductsFilter({ categories = [] }: ProductsFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -74,21 +74,25 @@ export default function ProductsFilter({ categories }: ProductsFilterProps) {
           <AccordionTrigger>Categories</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center">
-                  <Checkbox
-                    id={`category-${category.id}`}
-                    checked={categoryId === category.id}
-                    onCheckedChange={() => handleCategoryChange(category.id)}
-                  />
-                  <Label
-                    htmlFor={`category-${category.id}`}
-                    className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {category.name}
-                  </Label>
-                </div>
-              ))}
+              {Array.isArray(categories) && categories.length > 0 ? (
+                categories.map((category) => (
+                  <div key={category.id} className="flex items-center">
+                    <Checkbox
+                      id={`category-${category.id}`}
+                      checked={categoryId === category.id}
+                      onCheckedChange={() => handleCategoryChange(category.id)}
+                    />
+                    <Label
+                      htmlFor={`category-${category.id}`}
+                      className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {category.name}
+                    </Label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No categories available</p>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

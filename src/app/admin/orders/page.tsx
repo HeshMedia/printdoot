@@ -25,50 +25,48 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        setLoading(true)
-
-        const data = await ordersApi.getOrders({
+        setLoading(true);
+    
+        const { orders, total } = await ordersApi.getOrders({
           limit: itemsPerPage,
           offset: (currentPage - 1) * itemsPerPage,
           sort: sortOrder,
-        })
-
-        // Filter by search term if provided
-        let filteredOrders = data
+        });
+    
+        let filteredOrders = orders;
+    
         if (searchTerm) {
-          filteredOrders = data.filter(
+          filteredOrders = filteredOrders.filter(
             (order) =>
               order.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
               order.clerkId.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+          );
         }
-
-        // Filter by status if provided
+    
         if (statusFilter) {
           filteredOrders = filteredOrders.filter(
             (order) => order.status.toLowerCase() === statusFilter.toLowerCase()
-          )
+          );
         }
-
-        // Filter by date if provided
+    
         if (dateFilter) {
-          const filterDate = new Date(dateFilter)
+          const filterDate = new Date(dateFilter);
           filteredOrders = filteredOrders.filter((order) => {
-            const orderDate = new Date(order.created_at)
-            return orderDate.toDateString() === filterDate.toDateString()
-          })
+            const orderDate = new Date(order.created_at);
+            return orderDate.toDateString() === filterDate.toDateString();
+          });
         }
-
-        setOrders(filteredOrders)
-        setTotalPages(Math.ceil(filteredOrders.length / itemsPerPage))
-
-        setLoading(false)
+    
+        setOrders(filteredOrders);
+        setTotalPages(Math.ceil(total / itemsPerPage)); // use total from API
+    
+        setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch orders:", err)
-        setError("Failed to fetch orders")
-        setLoading(false)
+        console.error("Failed to fetch orders:", err);
+        setError("Failed to fetch orders");
+        setLoading(false);
       }
-    }
+    };    
 
     fetchOrders()
   }, [currentPage, searchTerm, sortOrder, statusFilter, dateFilter])

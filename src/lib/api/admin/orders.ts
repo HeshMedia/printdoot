@@ -1,51 +1,55 @@
-import { config } from "../../config"
+import { config } from "../../config";
 
-// Interface representing an individual item in an order
+// Order item within a specific order
 export interface OrderItem {
-  product_id: string // ID of the product
-  quantity: number // Quantity of the product ordered
-  selected_customizations: Record<string, string> // Customizations selected by the user (key-value pairs)
-  user_customization_type: string // Type of user-provided customization (e.g., text, image)
-  user_customization_value: string // Value of the user-provided customization
-  individual_price: number // Price of the individual item
+  product_id: string;
+  quantity: number;
+  selected_customizations: Record<string, string>;
+  user_customization_type: "text" | "image" | "color";
+  user_customization_value: string;
+  individual_price: number;
 }
 
-// Interface representing an order
+// Full order interface
 export interface Order {
-  order_id: string // Unique identifier for the order
-  clerkId: string // ID of the clerk handling the order
-  total_price: number // Total price of the order
-  status: string // Current status of the order (e.g., pending, completed)
-  created_at: string // Timestamp when the order was created
-  items: OrderItem[] // List of items in the order
-  receipt_id: number // ID of the receipt associated with the order
+  order_id: string;
+  clerkId: string;
+  total_price: number;
+  status: string;
+  created_at: string; // ISO date
+  receipt_id: number;
+  items: OrderItem[];
 }
 
-// Interface for query parameters used to fetch orders
-export interface OrdersParams {
-  limit?: number // Maximum number of orders to fetch
-  offset?: number // Number of orders to skip (for pagination)
-  sort?: "asc" | "desc" // Sorting order (ascending or descending)
+// Parameters you can send to the GET /admin/orders API
+export interface OrderQueryParams {
+  limit?: number;
+  offset?: number;
+  sort?: "asc" | "desc";
 }
 
-// API object for interacting with the orders endpoint
+// Response shape from the API
+export interface OrdersApiResponse {
+  orders: Order[];
+  total: number;
+}
+
 export const ordersApi = {
-  // Method to fetch orders from the server
-  async getOrders(params: OrdersParams = {}): Promise<Order[]> {
-    const queryParams = new URLSearchParams() // Create a URLSearchParams object to build query string
+  // ✅ Fetch all orders with optional query params
+  async getOrders(params: OrderQueryParams = {}): Promise<OrdersApiResponse> {
+    const queryParams = new URLSearchParams();
 
-    // Append query parameters if provided
-    if (params.limit) queryParams.append("limit", params.limit.toString())
-    if (params.offset) queryParams.append("offset", params.offset.toString())
-    if (params.sort) queryParams.append("sort", params.sort)
+    if (params.limit) queryParams.append("limit", params.limit.toString());
+    if (params.offset) queryParams.append("offset", params.offset.toString());
+    if (params.sort) queryParams.append("sort", params.sort);
 
-    // Make a GET request to the orders endpoint with the query string
-    const response = await fetch(`${config.apiUrl}/admin/orders?${queryParams.toString()}`)
+    const url = `${config.apiUrl}/admin/orders?${queryParams.toString()}`;
+
+    const response = await fetch(url);
     if (!response.ok) {
-      // Throw an error if the response is not successful
-      throw new Error("Failed to fetch orders")
+      throw new Error("Failed to fetch orders");
     }
-    // Parse and return the JSON response
-    return response.json()
+
+    return response.json(); // { orders, total }
   },
-}
+};
