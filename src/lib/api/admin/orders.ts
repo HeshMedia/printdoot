@@ -19,6 +19,14 @@ export interface Order {
   created_at: string; // ISO date
   receipt_id: number;
   items: OrderItem[];
+  user_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pin_code: string;
 }
 
 // Parameters you can send to the GET /admin/orders API

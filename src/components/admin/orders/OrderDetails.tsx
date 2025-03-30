@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type { Order } from "@/lib/api/admin/orders"
-import { formatDate } from "@/lib/utils/formDate"
+import type { Order } from "@/lib/api/admin/orders";
+import { formatDate } from "@/lib/utils/formDate";
 
 interface OrderDetailsProps {
-  orders: Order[]
-  expandedOrders: Record<string, boolean>
+  orders: Order[];
+  expandedOrders: Record<string, boolean>;
 }
 
 export default function OrderDetails({ orders, expandedOrders }: OrderDetailsProps) {
@@ -16,7 +16,9 @@ export default function OrderDetails({ orders, expandedOrders }: OrderDetailsPro
           expandedOrders[order.order_id] && (
             <div key={`details-${order.order_id}`} className="p-4 bg-gray-50 border-t border-gray-200">
               <h3 className="text-lg font-medium mb-4">Order Details</h3>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {/* Order Info */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700">Order Information</h4>
                   <p className="text-sm text-gray-600">Order ID: #{order.order_id}</p>
@@ -25,17 +27,28 @@ export default function OrderDetails({ orders, expandedOrders }: OrderDetailsPro
                   <p className="text-sm text-gray-600">Receipt ID: {order.receipt_id}</p>
                 </div>
 
+                {/* Customer Info */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700">Customer Information</h4>
-                  <p className="text-sm text-gray-600">Customer ID: {order.clerkId}</p>
+                  <p className="text-sm text-gray-600">Name: {order.user_name}</p>
+                  <p className="text-sm text-gray-600">Email: {order.email}</p>
+                  <p className="text-sm text-gray-600">Phone: {order.phone_number}</p>
                 </div>
 
+                {/* Shipping Info */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700">Payment Information</h4>
-                  <p className="text-sm text-gray-600">Total: ${order.total_price.toFixed(2)}</p>
+                  <h4 className="text-sm font-medium text-gray-700">Shipping Address</h4>
+                  <p className="text-sm text-gray-600">{order.address}</p>
+                  <p className="text-sm text-gray-600">
+                    {order.city}, {order.state}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {order.country} - {order.pin_code}
+                  </p>
                 </div>
               </div>
 
+              {/* Order Items Table */}
               <h4 className="text-sm font-medium text-gray-700 mb-2">Order Items</h4>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -80,5 +93,5 @@ export default function OrderDetails({ orders, expandedOrders }: OrderDetailsPro
           )
       )}
     </>
-  )
+  );
 }
