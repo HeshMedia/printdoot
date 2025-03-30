@@ -7,8 +7,7 @@ import { CustomizationOptions } from "@/components/admin/products/new/Customizat
 import { ProductImagesForm } from "@/components/admin/products/new/ProductImagesForm";
 import { FormButtons } from "@/components/admin/products/new/FormButtons";
 import { productsApi } from "@/lib/api/admin/products";
-import { categoriesApi } from "@/lib/api/admin/categories";
-import { Category } from "@/lib/api/admin/categories";
+import { categoriesApi, Category } from "@/lib/api/admin/categories";
 
 interface ProductFormProps {
   initialData?: any;
@@ -16,11 +15,13 @@ interface ProductFormProps {
 
 export default function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
+
   const [step, setStep] = useState(1);
   const [productId, setProductId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(initialData?.main_image_url || null);
@@ -39,27 +40,46 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await categoriesApi.getCategories(); // ✅ Use categoriesApi
-        setCategories(res.categories || []); // ✅ Extract categories array
-      } catch (err) {
+        const res = await categoriesApi.getCategories();
+        setCategories(res.categories || []);
+      } catch {
         setError("Failed to fetch categories.");
       }
     };
-
     fetchCategories();
   }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    if (name === "price") {
-      setFormData({ ...formData, [name]: Number.parseFloat(value) });
-    } else if (name === "category_id") {
-      setFormData({ ...formData, [name]: Number.parseInt(value, 10) });
-    } else {
-      setFormData({ ...formData, [name]: value });
+  const removeMainImage = () => {
+    setMainImage(null);
+    setMainImagePreview(null);
+  };
+  
+
+  const handleAddCustomizationField = () => {
+    const updated = { ...formData.customization_options };
+    let newKeyIndex = 1;
+    let newKey = `option_${newKeyIndex}`;
+  
+    // Ensure new key doesn't exist yet
+    while (updated.hasOwnProperty(newKey)) {
+      newKeyIndex++;
+      newKey = `option_${newKeyIndex}`;
     }
+  
+    updated[newKey] = [];
+    setFormData({ ...formData, customization_options: updated });
+  };
+  
+  const handleRemoveCustomizationField = (key: string) => {
+    const updated = { ...formData.customization_options };
+    delete updated[key];
+    setFormData({ ...formData, customization_options: updated });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const parsedValue = name === "price" ? parseFloat(value) : name === "category_id" ? parseInt(value, 10) : value;
+    setFormData({ ...formData, [name]: parsedValue });
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -83,15 +103,19 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     }
   };
 
+  const removeSideImage = (index: number) => {
+    setSideImages((prev) => prev.filter((_, i) => i !== index));
+    setSideImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleCustomizationChange = (key: string, value: string) => {
-    const options = { ...formData.customization_options };
+    const updated = { ...formData.customization_options };
     if (!value.trim()) {
-      delete options[key];
+      delete updated[key];
     } else {
-      const values = value.split(",").map((v) => v.trim());
-      options[key] = values;
+      updated[key] = value.split(",").map((v) => v.trim());
     }
-    setFormData({ ...formData, customization_options: options });
+    setFormData({ ...formData, customization_options: updated });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,54 +134,59 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       }
       setStep(2);
     } catch (err) {
-      setError(initialData ? "Failed to update product." : "Failed to create product.");
+      setError("Failed to save product.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+ const handleImageUpload = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  setUploadProgress(0);
 
-    if (productId && mainImage) {
-      try {
-        await productsApi.uploadProductImages(productId, mainImage, sideImages);
-        setStep(3);
-        setTimeout(() => router.push("/admin/products"), 500);
-      } catch {
-        setError("Failed to upload images.");
-      } finally {
-        setLoading(false);
-      }
+  if (!productId || !mainImage) {
+    setError("Main image is required.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    // Simulate progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress > 80) clearInterval(interval);
+      else setUploadProgress(progress);
+    }, 100);
+
+    if (initialData) {
+      await productsApi.updateProductImages(productId, mainImage, sideImages); // 🆕 update
     } else {
-      setError("Please upload a main image before submitting.");
-      setLoading(false);
+      await productsApi.uploadProductImages(productId, mainImage, sideImages); // ✅ upload
     }
-  };
 
-  const handleCancel = () => {
-    router.back();
-  };
+    setUploadProgress(100);
+    setStep(3);
+
+    setTimeout(() => router.push("/admin/products"), 800);
+  } catch (err) {
+    setError("Failed to upload images.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleCancel = () => router.back();
 
   return (
     <form onSubmit={step === 1 ? handleSubmit : handleImageUpload} className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded">{error}</div>}
 
-      <div className="flex justify-between">
-        <div className="text-sm">
-          <strong>Step {step}:</strong>{" "}
-          {step === 1
-            ? "Product Information"
-            : step === 2
-            ? "Upload Images"
-            : "Images Uploaded Successfully"}
-        </div>
+      <div className="flex justify-between items-center text-sm">
+        <strong>Step {step}:</strong>{" "}
+        {step === 1 ? "Product Info" : step === 2 ? "Upload Images" : "Upload Complete"}
       </div>
 
       {step === 1 && (
@@ -169,11 +198,15 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             handleStatusChange={handleStatusChange}
           />
           <CustomizationOptions
-            customizationOptions={formData.customization_options}
-            handleCustomizationChange={handleCustomizationChange}
-            addCustomizationField={() => {}}
-            removeCustomizationField={() => {}}
-          />
+  customizationOptions={formData.customization_options}
+  handleCustomizationChange={handleCustomizationChange}
+  addCustomizationField={handleAddCustomizationField}
+  removeCustomizationField={handleRemoveCustomizationField}
+  allowedCustomizations={
+    categories.find((c) => c.id === formData.category_id)?.allowed_customizations || {}
+  }
+/>
+
           <FormButtons loading={loading} isEditing={!!initialData} handleCancel={handleCancel} />
         </>
       )}
@@ -185,22 +218,35 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             sideImagePreviews={sideImagePreviews}
             handleMainImageChange={handleMainImageChange}
             handleSideImagesChange={handleSideImagesChange}
-            removeSideImage={() => {}}
+            removeSideImage={removeSideImage}
+            removeMainImage={removeMainImage}
           />
+          {uploadProgress > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          )}
           <FormButtons loading={loading} isEditing={!!initialData} handleCancel={handleCancel} />
         </>
       )}
 
       {step === 1 && productId && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-          {initialData
-            ? "Product updated successfully! You can now update images if needed."
-            : <>Product created successfully! Your product ID is: <strong>{productId}</strong>. Now, proceed to upload images.</>}
+        <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded">
+          {initialData ? (
+            "Product updated. You can now upload images."
+          ) : (
+            <>
+              Product created! ID: <strong>{productId}</strong>. Proceed to upload images.
+            </>
+          )}
         </div>
       )}
 
       {step === 3 && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+        <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded">
           Images uploaded successfully!
         </div>
       )}

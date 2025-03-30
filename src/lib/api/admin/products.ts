@@ -33,6 +33,19 @@ export interface ProductsFilterParams {
   limit?: number;
 }
 
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1]; // remove the data:image/...;base64, prefix
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
 export const productsApi = {
   // ✅ Used for basic product fetching
   async getProducts(skip = 0, limit = 10): Promise<{ products: Product[]; total: number }> {
@@ -113,28 +126,72 @@ export const productsApi = {
   },
 
   // ✅ Upload product images
-  async uploadProductImages(productId: string, mainImage: File, sideImages?: File[]): Promise<Product> {
-    const formData = new FormData();
-    formData.append("main_image", mainImage);
+  async uploadProductImages(productId: string, mainImage: File, sideImages: File[] = []): Promise<Product> {
+    try {
+      const mainImageBase64 = await fileToBase64(mainImage);
+      const mainImageExtension = mainImage.name.split(".").pop() || "jpg";
 
-    if (sideImages && sideImages.length > 0) {
-      sideImages.forEach((image) => {
-        formData.append("side_images", image);
+      const sideImagesBase64 = await Promise.all(sideImages.map(fileToBase64));
+      const sideImagesExtensions = sideImages.map((img) => img.name.split(".").pop() || "jpg");
+
+      const payload = {
+        main_image: mainImageBase64,
+        main_image_extension: mainImageExtension,
+        side_images: sideImagesBase64,
+        side_images_extensions: sideImagesExtensions,
+      };
+
+      const response = await fetch(`${config.apiUrl}/admin/products/${productId}/images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to upload product images");
+      }
+
+      return response.json();
+    } catch (err) {
+      throw new Error("Image upload error: " + (err instanceof Error ? err.message : String(err)));
     }
+  },
 
+  // ✅ Update product images (used in edit page)
+  async updateProductImages(productId: string, mainImage: File, sideImages: File[] = []): Promise<Product> {
+    // Same as above, but use PUT method
+    const mainImageBase64 = await fileToBase64(mainImage);
+    const mainImageExtension = mainImage.name.split(".").pop() || "jpg";
+    const sideImagesBase64 = await Promise.all(sideImages.map(fileToBase64));
+    const sideImagesExtensions = sideImages.map((img) => img.name.split(".").pop() || "jpg");
+  
+    const payload = {
+      main_image: mainImageBase64,
+      main_image_extension: mainImageExtension,
+      side_images: sideImagesBase64,
+      side_images_extensions: sideImagesExtensions,
+    };
+  
     const response = await fetch(`${config.apiUrl}/admin/products/${productId}/images`, {
-      method: "POST",
-      body: formData,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
     });
-
+  
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || "Failed to upload product images");
+      throw new Error(error.detail || "Failed to update product images");
     }
-
+  
     return response.json();
-  },
+  },  
 
   // ✅ Get categories (optional helper in product forms)
   async getCategories(): Promise<any[]> {
