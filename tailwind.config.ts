@@ -18,6 +18,8 @@ module.exports = {
     },
     extend: {
       colors: {
+        btncolor: "hsl(var(--btncolor))",
+        btnhover: "hsl(var(--btnhover))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

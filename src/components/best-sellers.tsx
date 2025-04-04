@@ -61,7 +61,7 @@ export default function BestSellers() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Button className="rounded-md bg-pink-100 text-black px-6 py-3 text-base hover:bg-pink-200">
+            <Button className="rounded-md bg-btncolor text-black px-6 py-3 text-base hover:bg-btnhover">
               See more
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

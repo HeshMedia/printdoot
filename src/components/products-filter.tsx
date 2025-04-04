@@ -169,7 +169,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
       </Accordion>
 
       <div className="mt-6 space-y-2">
-        <Button onClick={applyFilters} className="w-full">
+        <Button onClick={applyFilters} className="w-full bg-btncolor text-black hover:bg-btnhover">
           Apply Filters
         </Button>
         <Button onClick={clearFilters} variant="outline" className="w-full">

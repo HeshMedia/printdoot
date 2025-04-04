@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import { formatDate } from "@/lib/utils/formDate"
 import { getStatusColor } from "@/lib/utils/getStatusColor"
 import type { Order } from "@/lib/api/admin/orders"
+import Link from "next/link"
 
 interface OrderTableProps {
   orders: Order[]
@@ -32,7 +33,11 @@ export default function OrderTable({ orders, expandedOrders, toggleOrderExpand }
         <tbody className="bg-white divide-y divide-gray-200">
           {orders.map((order) => (
             <tr key={order.order_id} className="hover:bg-gray-50">
-              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#{order.order_id}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                <Link href={`/admin/orders/${order.order_id}`} className="hover:underline">
+                  #{order.order_id}
+                </Link>
+              </td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{order.clerkId}</td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatDate(order.created_at)}</td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${order.total_price.toFixed(2)}</td>

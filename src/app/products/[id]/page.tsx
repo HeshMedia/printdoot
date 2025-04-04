@@ -175,7 +175,7 @@ export default function ProductDetailPage() {
 
           {product.status === "in_stock" && (
             <div className="space-y-4">
-              <Button size="lg" className="w-full">
+              <Button size="lg" className="w-full bg-btncolor text-black hover:bg-btnhover">
                 <Link href={`/products/${product.product_id}/customize`} className="w-full">
                   Customize Now
                 </Link>

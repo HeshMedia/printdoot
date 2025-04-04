@@ -60,4 +60,63 @@ export const ordersApi = {
 
     return response.json(); // { orders, total }
   },
+   // Fetch a single order by its ID from the API
+   async getOrderById(order_id: string): Promise<Order> {
+    const url = `https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod/${order_id}`;
+    const options = {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    };
+
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error("Failed to fetch order details");
+    }
+
+    const data = await response.json();
+    return data; // Return the order details from the API
+  },
+
+  // ✅ Generate a PDF report for all orders, with an optional date filter
+  async generateOrdersPdf(from_date?: string): Promise<string> {
+    const queryParams = from_date ? `?from_date=${from_date}` : '';
+    const url = `${config.apiUrl}/admin/orders/pdf${queryParams}`;
+
+    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    if (!response.ok) {
+      throw new Error("Failed to generate orders PDF");
+    }
+
+    const data = await response.json();
+    return data.base64Pdf; // base64 encoded PDF string
+  },
+
+  // ✅ Generate a PDF report for orders from the last X days
+  async generateRecentOrdersPdf(days: number = 30): Promise<string> {
+    const queryParams = `?days=${days}`;
+    const url = `${config.apiUrl}/admin/orders/pdf/recent${queryParams}`;
+
+    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    if (!response.ok) {
+      throw new Error("Failed to generate recent orders PDF");
+    }
+
+    const data = await response.json();
+    return data.base64Pdf; // base64 encoded PDF string
+  },
+
+  // ✅ Generate a PDF report for a single order by its ID
+  async generateSingleOrderPdf(order_id: string): Promise<string> {
+    const url = `${config.apiUrl}/admin/orders/${order_id}/pdf`;
+
+    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    if (!response.ok) {
+      throw new Error("Failed to generate single order PDF");
+    }
+
+    const data = await response.json();
+    return data.base64Pdf; // base64 encoded PDF string
+  },
+
+  
 };
