@@ -4,7 +4,7 @@ import { LayoutDashboard, Package, ShoppingBag, Tag, Settings, LogOut } from "lu
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
         <div className="p-6">
@@ -36,8 +36,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <main className="flex-1 min-h-screen overflow-x-hidden p-6">
+        {children}
+      </main>
     </div>
   )
 }
+
 

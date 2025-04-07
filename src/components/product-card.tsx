@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
           <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{product.description}</p>
           <div className="mt-auto pt-4 flex items-center justify-between">
-            <span className="font-semibold">${product.price.toFixed(2)}</span>
+            <span className="font-semibold">₹{product.price.toFixed(2)}</span>
             <span
               className={`text-xs px-2 py-1 rounded-full ${
                 product.status === "in_stock"

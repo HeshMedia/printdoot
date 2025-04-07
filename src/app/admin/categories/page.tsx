@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Edit, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Edit, ChevronDown, ChevronUp, X } from "lucide-react";
 import { categoriesApi, type Category } from "@/lib/api/admin/categories";
 import CategoryForm from "@/components/admin/category-form";
 
@@ -12,6 +12,7 @@ export default function CategoriesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({});
+  const [modalImage, setModalImage] = useState<{ src: string; name: string } | null>(null);
 
   const fetchCategories = async () => {
     try {
@@ -98,18 +99,34 @@ export default function CategoriesPage() {
           <div className="divide-y divide-gray-200">
             {categories.map((category) => (
               <div key={category.id} className="p-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium">{category.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {category.user_customization_options.length} customization option(s)
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start space-x-4">
+                    {category.image_url && (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="w-16 h-16 object-cover rounded-md border cursor-pointer"
+                        onClick={() => setModalImage({ src: category.image_url!, name: category.name })}
+                      />
+                    )}
+                    <div>
+                      <h3 className="text-lg font-medium">{category.name}</h3>
+                      <p className="text-sm text-gray-500">
+                        {category.user_customization_options.length} customization option(s)
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button onClick={() => setEditingCategory(category)} className="text-blue-600 hover:text-blue-800">
+                    <button
+                      onClick={() => setEditingCategory(category)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
                       <Edit className="w-5 h-5" />
                     </button>
-                    <button onClick={() => toggleExpand(category.id)} className="text-gray-600 hover:text-gray-800">
+                    <button
+                      onClick={() => toggleExpand(category.id)}
+                      className="text-gray-600 hover:text-gray-800"
+                    >
                       {expandedCategories[category.id] ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (
@@ -125,7 +142,10 @@ export default function CategoriesPage() {
                       <h4 className="text-sm font-medium text-gray-700 mb-2">User Customization Options</h4>
                       <div className="flex flex-wrap gap-2">
                         {category.user_customization_options.map((option, index) => (
-                          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          >
                             {option}
                           </span>
                         ))}
@@ -163,6 +183,25 @@ export default function CategoriesPage() {
           </div>
         )}
       </div>
+
+      {modalImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 max-w-3xl w-full relative">
+            <button
+              onClick={() => setModalImage(null)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-black"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-lg font-semibold mb-4">{modalImage.name}</h2>
+            <img
+              src={modalImage.src}
+              alt={modalImage.name}
+              className="w-full max-h-[80vh] object-contain rounded-md"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

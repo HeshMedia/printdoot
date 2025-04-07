@@ -5,7 +5,7 @@ export interface OrderItem {
   product_id: string;
   quantity: number;
   selected_customizations: Record<string, string>;
-  user_customization_type: "text" | "image" | "color";
+  user_customization_type: "text" | "image" | "color" | "logo";
   user_customization_value: string;
   individual_price: number;
 }
@@ -106,17 +106,21 @@ export const ordersApi = {
   },
 
   // ✅ Generate a PDF report for a single order by its ID
-  async generateSingleOrderPdf(order_id: string): Promise<string> {
+  async generateSingleOrderPdf(order_id: string): Promise<{ pdf_data: string; filename: string }> {
     const url = `${config.apiUrl}/admin/orders/${order_id}/pdf`;
-
-    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+  
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+  
     if (!response.ok) {
       throw new Error("Failed to generate single order PDF");
     }
-
-    const data = await response.json();
-    return data.base64Pdf; // base64 encoded PDF string
-  },
+  
+    return response.json(); 
+  }
+  
 
   
 };

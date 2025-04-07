@@ -30,7 +30,7 @@ export default function ProductTable({ products, handleDelete }: ProductTablePro
               </td>
               <td className="px-4 py-3 whitespace-nowrap">{product.name}</td>
               <td className="px-4 py-3 whitespace-nowrap">{product.category_name}</td>
-              <td className="px-4 py-3 whitespace-nowrap">${product.price.toFixed(2)}</td>
+              <td className="px-4 py-3 whitespace-nowrap">₹{product.price.toFixed(2)}</td>
               <td className="px-4 py-3 whitespace-nowrap">
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full bg-${product.status === "in_stock" ? "green" : "red"}-100 text-${product.status === "in_stock" ? "green" : "red"}-800`}>
                   {product.status === "in_stock" ? "In Stock" : "Out of Stock"}
