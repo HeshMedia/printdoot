@@ -1,6 +1,17 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { LayoutDashboard, Package, ShoppingBag, Tag, Settings, LogOut } from "lucide-react"
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Tag,
+  LogOut,
+  Star,
+  Zap,
+  TrendingUp,
+  ShoppingCart,
+  Heart,
+} from "lucide-react"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -27,6 +38,41 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <ShoppingBag className="w-5 h-5 mr-3" />
             Orders
           </Link>
+
+          {/* Featured Sections */}
+          <div className="border-t border-gray-200 my-4"></div>
+          <div className="px-6 py-2 text-sm font-medium text-gray-500">FEATURED SECTIONS</div>
+
+          <Link
+            href="/admin/featured/bestselling"
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+          >
+            <Star className="w-5 h-5 mr-3" />
+            Bestselling
+          </Link>
+          <Link href="/admin/featured/onsale" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
+            <Zap className="w-5 h-5 mr-3" />
+            On Sale
+          </Link>
+          <Link href="/admin/featured/trending" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
+            <TrendingUp className="w-5 h-5 mr-3" />
+            Trending
+          </Link>
+          <Link
+            href="/admin/featured/newarrivals"
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+          >
+            <ShoppingCart className="w-5 h-5 mr-3" />
+            New Arrivals
+          </Link>
+          <Link
+            href="/admin/featured/shopbyneed"
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+          >
+            <Heart className="w-5 h-5 mr-3" />
+            Shop By Need
+          </Link>
+
           <div className="border-t border-gray-200 my-4"></div>
           <Link href="/logout" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
             <LogOut className="w-5 h-5 mr-3" />
@@ -36,11 +82,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen overflow-x-hidden p-6">
-        {children}
-      </main>
+      <main className="flex-1 min-h-screen overflow-x-hidden p-6">{children}</main>
     </div>
   )
 }
-
 

@@ -1,99 +1,106 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { ordersApi, type Order } from "@/lib/api/admin/orders"
-import OrderFilters from "@/components/admin/orders/OrderFilters"
-import OrderTable from "@/components/admin/orders/OrderTable"
-import OrderDetails from "@/components/admin/orders/OrderDetails"
-import PaginationControls from "@/components/admin/orders/PaginationControls"
+import { useState, useEffect } from "react";
+import { ordersApi, type Order } from "@/lib/api/admin/orders";
+import OrderFilters from "@/components/admin/orders/OrderFilters";
+import OrderTable from "@/components/admin/orders/OrderTable";
+import OrderDetails from "@/components/admin/orders/OrderDetails";
+import PaginationControls from "@/components/admin/orders/PaginationControls";
+import DownloadOrdersPdf from "@/components/admin/orders/DownloadOrdersPdf"; // Import the new component
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
-  const [showFilters, setShowFilters] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string | null>(null)
-  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const itemsPerPage = 10
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
+
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-    
+
         const { orders, total } = await ordersApi.getOrders({
           limit: itemsPerPage,
           offset: (currentPage - 1) * itemsPerPage,
           sort: sortOrder,
         });
-    
-        let filteredOrders = orders;
-    
+
+        let filtered = orders;
+
         if (searchTerm) {
-          filteredOrders = filteredOrders.filter(
+          filtered = filtered.filter(
             (order) =>
               order.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
               order.clerkId.toLowerCase().includes(searchTerm.toLowerCase())
           );
         }
-    
+
         if (statusFilter) {
-          filteredOrders = filteredOrders.filter(
+          filtered = filtered.filter(
             (order) => order.status.toLowerCase() === statusFilter.toLowerCase()
           );
         }
-    
+
         if (dateFilter) {
           const filterDate = new Date(dateFilter);
-          filteredOrders = filteredOrders.filter((order) => {
+          filtered = filtered.filter((order) => {
             const orderDate = new Date(order.created_at);
             return orderDate.toDateString() === filterDate.toDateString();
           });
         }
-    
-        setOrders(filteredOrders);
-        setTotalPages(Math.ceil(total / itemsPerPage)); // use total from API
-    
+
+        setOrders(filtered);
+        setTotalPages(Math.ceil(total / itemsPerPage));
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch orders:", err);
         setError("Failed to fetch orders");
         setLoading(false);
       }
-    };    
+    };
 
-    fetchOrders()
-  }, [currentPage, searchTerm, sortOrder, statusFilter, dateFilter])
+    fetchOrders();
+  }, [currentPage, searchTerm, sortOrder, statusFilter, dateFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setCurrentPage(1) // Reset to first page when searching
-  }
+    e.preventDefault();
+    setCurrentPage(1);
+  };
 
   const toggleOrderExpand = (orderId: string) => {
     setExpandedOrders((prev) => ({
       ...prev,
       [orderId]: !prev[orderId],
-    }))
-  }
+    }));
+  };
 
   const clearFilters = () => {
-    setStatusFilter(null)
-    setDateFilter(null)
-    setCurrentPage(1)
-  }
+    setStatusFilter(null);
+    setDateFilter(null);
+    setCurrentPage(1);
+  };
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Orders</h1>
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+      
+
+
         <OrderFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -108,6 +115,7 @@ export default function OrdersPage() {
           clearFilters={clearFilters}
           handleSearch={handleSearch}
         />
+
 
         {loading ? (
           <div className="p-8 text-center">
@@ -137,6 +145,10 @@ export default function OrdersPage() {
           </>
         )}
       </div>
+      <div className="mt-6">
+        
+      <DownloadOrdersPdf setError={setError} /> 
+      </div>
     </div>
-  )
+  );
 }

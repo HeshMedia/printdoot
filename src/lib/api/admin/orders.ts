@@ -42,6 +42,11 @@ export interface OrdersApiResponse {
   total: number;
 }
 
+interface GeneratePdfResponse {
+  pdf_data: string;
+  filename: string;
+}
+
 export const ordersApi = {
   // ✅ Fetch all orders with optional query params
   async getOrders(params: OrderQueryParams = {}): Promise<OrdersApiResponse> {
@@ -60,8 +65,9 @@ export const ordersApi = {
 
     return response.json(); // { orders, total }
   },
-   // Fetch a single order by its ID from the API
-   async getOrderById(order_id: string): Promise<Order> {
+
+  // ✅ Fetch a single order by its ID from the API
+  async getOrderById(order_id: string): Promise<Order> {
     const url = `https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod/${order_id}`;
     const options = {
       method: "GET",
@@ -74,53 +80,68 @@ export const ordersApi = {
     }
 
     const data = await response.json();
-    return data; // Return the order details from the API
+    return data;
   },
 
-  // ✅ Generate a PDF report for all orders, with an optional date filter
-  async generateOrdersPdf(from_date?: string): Promise<string> {
+  async generateOrdersPdf(from_date?: string): Promise<GeneratePdfResponse> {
     const queryParams = from_date ? `?from_date=${from_date}` : '';
     const url = `${config.apiUrl}/admin/orders/pdf${queryParams}`;
 
-    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
     if (!response.ok) {
       throw new Error("Failed to generate orders PDF");
     }
 
     const data = await response.json();
-    return data.base64Pdf; // base64 encoded PDF string
+    return data;  // Assuming this returns { pdf_data, filename }
   },
 
   // ✅ Generate a PDF report for orders from the last X days
-  async generateRecentOrdersPdf(days: number = 30): Promise<string> {
+  async generateRecentOrdersPdf(days: number = 30): Promise<GeneratePdfResponse> {
     const queryParams = `?days=${days}`;
     const url = `${config.apiUrl}/admin/orders/pdf/recent${queryParams}`;
 
-    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
     if (!response.ok) {
       throw new Error("Failed to generate recent orders PDF");
     }
 
     const data = await response.json();
-    return data.base64Pdf; // base64 encoded PDF string
+    return data;  // Assuming this returns { pdf_data, filename }
   },
 
   // ✅ Generate a PDF report for a single order by its ID
-  async generateSingleOrderPdf(order_id: string): Promise<{ pdf_data: string; filename: string }> {
+  async generateSingleOrderPdf(order_id: string): Promise<GeneratePdfResponse> {
     const url = `${config.apiUrl}/admin/orders/${order_id}/pdf`;
-  
+
     const response = await fetch(url, {
       method: "GET",
       headers: { Accept: "application/json" },
     });
-  
+
     if (!response.ok) {
       throw new Error("Failed to generate single order PDF");
     }
-  
-    return response.json(); 
-  }
-  
 
-  
+    const data = await response.json();
+    return data;  // Assuming this returns { pdf_data, filename }
+  },
 };
+
+// Utility function: Blob → Base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject("Failed to convert blob to base64");
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+}

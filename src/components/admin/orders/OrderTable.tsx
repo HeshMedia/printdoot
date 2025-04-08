@@ -1,6 +1,6 @@
+// Order table
 "use client"
 
-import { ChevronDown, ChevronUp } from "lucide-react"
 import { formatDate } from "@/lib/utils/formDate"
 import { getStatusColor } from "@/lib/utils/getStatusColor"
 import type { Order } from "@/lib/api/admin/orders"
@@ -18,12 +18,10 @@ export default function OrderTable({ orders, expandedOrders, toggleOrderExpand }
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            {["Order ID", "Customer", "Date", "Total", "Status", "Items", "Actions"].map((heading) => (
+            {["Order ID", "Customer", "Date", "Total", "Status", "Items"].map((heading) => (
               <th
                 key={heading}
-                className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                  heading === "Actions" ? "text-center" : ""
-                }`}
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 {heading}
               </th>
@@ -47,11 +45,6 @@ export default function OrderTable({ orders, expandedOrders, toggleOrderExpand }
                 </span>
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{order.items.length}</td>
-              <td className="px-4 py-3 whitespace-nowrap text-center">
-                <button onClick={() => toggleOrderExpand(order.order_id)} className="text-gray-600 hover:text-gray-900">
-                  {expandedOrders[order.order_id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>
