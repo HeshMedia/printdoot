@@ -14,7 +14,7 @@ const HeroSection = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prevImage) => (prevImage + 1) % images.length);
-    }, 10000); // Change every 5 seconds for a more relaxed pace
+    }, 5000); // Change every 5 seconds for a more relaxed pace
     return () => clearInterval(interval);
   }, []);
 
