@@ -1,79 +1,55 @@
+// components/HeroSection.tsx
 "use client"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { motion } from "framer-motion"
+const images = [
+  "/print-d.webp",
+  "/printdoot1.webp",
+];
 
-export default function HeroSection() {
-  const [searchQuery, setSearchQuery] = useState("")
+const HeroSection = () => {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prevImage) => (prevImage + 1) % images.length);
+    }, 10000); // Change every 5 seconds for a more relaxed pace
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="flex items-center justify-center mt-5">
-    <section className="w-[90%] bg-primary py-12 md:py-16 lg:py-20 overflow-hidden pl-10 rounded-3xl">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-6">
-            <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              One Stop
-              <br />
-              Printing
-            </motion.h1>
-            <motion.div
-              className="flex space-x-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <div className="text-lg md:text-xl font-medium">
-                <span className="block">50+</span>
-                <span className="text-sm text-muted-foreground">Products</span>
-              </div>
-              <div className="w-px bg-border"></div>
-              <div className="text-lg md:text-xl font-medium">
-                <span className="block">100+</span>
-                <span className="text-sm text-muted-foreground">Customers</span>
-              </div>
-            </motion.div>
-            <motion.div
-              className="relative max-w-md"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Input
-                type="text"
-                placeholder="What are you looking for?"
-                className="pr-10 bg-white"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button size="icon" className="absolute right-0 top-0 rounded-l-none" variant="ghost">
-                <Search className="h-4 w-4" />
-                <span className="sr-only">Search</span>
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* right side */}
-          <div className="relative h-[300px] md:h-[400px]">
-            <Image
-              src="/printdoot-hero.png"
-              alt="Description of the image"
-              layout="fill"
-              objectFit="cover"
+    <div className="flex flex-col items-center justify-center mt-8 mb-8">
+      <section className="relative w-[90vw] sm:w-[90vw] rounded-3xl h-[400px] sm:h-[600px] overflow-hidden shadow-lg">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={currentImage}
+            className="absolute inset-0"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              transition: {
+                opacity: { duration: 1.2, ease: "easeOut" },
+                scale: { duration: 1.5, ease: "easeOut" }
+              }
+            }}
+            exit={{ 
+              opacity: 0,
+              transition: { duration: 2, ease: "easeIn" }
+            }}
+          >
+            <img
+              src={images[currentImage]}
+              alt="Hero Image"
+              className="w-full h-full object-cover"
             />
-          </div>
-        </div>
-      </div>
-    </section>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+          </motion.div>
+        </AnimatePresence>
+      </section>
     </div>
-  )
-}
+  );
+};
+
+export default HeroSection;
