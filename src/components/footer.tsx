@@ -115,7 +115,11 @@ export default function Footer() {
 
         <div className="border-t border-border/40 mt-12 pt-8 text-center">
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} All Rights Reserved | Terms of Use | PRINTDOOT
+          © {new Date().getFullYear()} All Rights Reserved | PRINTDOOT 
+        </p>
+        <br></br>
+        <p className="text-xs text-muted-foreground italic">
+          Website made and maintained by <Link href="https://heshmedia.in"><span className="hover:underline">Hesh Media</span></Link> 
         </p>
         </div>
       </div>
