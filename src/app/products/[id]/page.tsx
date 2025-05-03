@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
-import { productsApi, type Product } from "@/lib/api/products"
+import { productsApi, type Product, type BulkPrice } from "@/lib/api/products"
 import { categoriesApi, type Category } from "@/lib/api/categories"
 import { reviewsApi, type Review } from "@/lib/api/reviews"
 import { Button } from "@/components/ui/button"
@@ -28,17 +28,14 @@ export default function ProductDetailPage() {
       try {
         setLoading(true)
 
-        // Fetch product
         const productData = await productsApi.getProduct(productId)
         setProduct(productData)
         setActiveImage(productData.main_image_url)
 
-        // Fetch categories and match
         const { categories } = await categoriesApi.getCategories()
         const matchedCategory = categories.find((c) => c.name === productData.category_name)
         setCategory(matchedCategory || null)
 
-        // Fetch reviews
         const reviewsData = await reviewsApi.getReviews(productId)
         setReviews(reviewsData)
 
@@ -65,14 +62,13 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <div className="container py-12">
-        <div className="bg-red-50 text-red-600 p-4 rounded-md">{error || "Product not found"}</div>
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl">{error || "Product not found"}</div>
       </div>
     )
   }
 
   return (
     <div className="container py-8">
-      {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-muted-foreground mb-6">
         <Link href="/" className="hover:text-foreground">Home</Link>
         <ChevronRight className="h-4 w-4 mx-1" />
@@ -86,9 +82,8 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {/* Images */}
         <div>
-          <div className="relative h-[400px] rounded-lg overflow-hidden mb-4">
+          <div className="relative h-[400px] rounded-xl overflow-hidden mb-4">
             <Image
               src={activeImage || product.main_image_url || "/placeholder.svg?height=400&width=400"}
               alt={product.name}
@@ -98,31 +93,17 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2">
-            <button
-              onClick={() => setActiveImage(product.main_image_url)}
-              className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${
-                activeImage === product.main_image_url ? "border-primary" : "border-transparent"
-              }`}
-            >
-              <Image
-                src={product.main_image_url}
-                alt="Main"
-                fill
-                className="object-cover"
-              />
-            </button>
-
-            {product.side_images_url.map((image, index) => (
+            {[product.main_image_url, ...product.side_images_url].map((image, index) => (
               <button
                 key={index}
                 onClick={() => setActiveImage(image)}
-                className={`relative w-20 h-20 rounded-md overflow-hidden border-2 ${
+                className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 ${
                   activeImage === image ? "border-primary" : "border-transparent"
                 }`}
               >
                 <Image
                   src={image}
-                  alt={`Side ${index + 1}`}
+                  alt={`Image ${index + 1}`}
                   fill
                   className="object-cover"
                 />
@@ -131,33 +112,30 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Product Info */}
         <div>
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
 
           <div className="flex items-center mb-4">
-            <div className="flex items-center">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-5 h-5 ${
-                    i < Math.floor(product.average_rating)
-                      ? "text-yellow-400 fill-yellow-400"
-                      : i < product.average_rating
-                      ? "text-yellow-400 fill-yellow-400 opacity-50"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                className={`w-5 h-5 ${
+                  i < Math.floor(product.average_rating)
+                    ? "text-yellow-400 fill-yellow-400"
+                    : i < product.average_rating
+                    ? "text-yellow-400 fill-yellow-400 opacity-50"
+                    : "text-gray-300"
+                }`}
+              />
+            ))}
             <span className="text-sm text-muted-foreground ml-2">
               ({product.average_rating.toFixed(1)}) · {reviews.length} reviews
             </span>
           </div>
 
-          <div className="text-2xl font-bold mb-4">₹{product.price.toFixed(2)}</div>
+          <div className="text-2xl font-bold mb-2">₹{product.price.toFixed(2)}</div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <span
               className={`inline-block text-sm px-3 py-1 rounded-full ${
                 product.status === "in_stock"
@@ -171,21 +149,39 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          <p className="text-muted-foreground mb-6">{product.description}</p>
+          <p className="text-muted-foreground mb-4">{product.description}</p>
+          
+            <div className="text-sm text-muted-foreground mb-2">
+              <strong>Dimensions:</strong>{" "}
+              {product.dimensions
+                ? `${product.dimensions.length} x ${product.dimensions.breadth} x ${product.dimensions.height} cm`
+                : "Not specified"}
+            </div>
+
+
+          {product.bulk_prices?.length > 0 && (
+            <div className="text-sm text-muted-foreground mb-6">
+              <strong>Bulk Prices:</strong>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                {product.bulk_prices.map((bp: BulkPrice, index: number)=> (
+                  <li key={index}>
+                    {bp.quantity} units: ₹{bp.price.toFixed(2)} 
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {product.status === "in_stock" && (
-            <div className="space-y-4">
-              <Button size="lg" className="w-full bg-btncolor text-black hover:bg-btnhover">
-                <Link href={`/products/${product.product_id}/customize`} className="w-full">
-                  Customize Now
-                </Link>
-              </Button>
-            </div>
+            <Button size="lg" className="w-full bg-btncolor text-black hover:bg-btnhover">
+              <Link href={`/products/${product.product_id}/customize`} className="w-full">
+                Customize Now
+              </Link>
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="description">
         <TabsList className="w-full border-b">
           <TabsTrigger value="description">Description</TabsTrigger>
@@ -201,7 +197,6 @@ export default function ProductDetailPage() {
           {category ? (
             <div>
               <h3 className="text-lg font-medium mb-4">Available Customization Options</h3>
-
               <div className="space-y-6">
                 <div>
                   <h4 className="text-md font-medium mb-2">Personalization Types</h4>

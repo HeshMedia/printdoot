@@ -211,7 +211,7 @@ export default function ShopByNeedPage() {
       ) : needs.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
               <p className="text-gray-500">No need categories found. Add your first need category to get started.</p>
             </div>
           </CardContent>

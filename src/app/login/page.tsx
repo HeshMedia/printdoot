@@ -56,7 +56,7 @@ export default function LoginPage() {
   return (
     <div className="container py-12">
       <div className="max-w-md mx-auto">
-        <div className="bg-white p-8 rounded-lg shadow-sm">
+        <div className="bg-white p-8 rounded-xl shadow-sm">
           <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
 
           <form onSubmit={handleLogin} className="space-y-4">

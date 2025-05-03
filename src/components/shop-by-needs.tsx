@@ -84,7 +84,7 @@ export default function ShopByNeedSection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 * i }}
               >
-                <div className="aspect-[3/4] bg-gray-200 rounded-lg"></div>
+                <div className="aspect-[3/4] bg-gray-200 rounded-xl"></div>
               </motion.div>
             ))}
           </div>
@@ -144,7 +144,7 @@ export default function ShopByNeedSection() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: 0.1 * i }}
                     >
-                      <div className="aspect-[3/4] bg-gray-200 rounded-lg"></div>
+                      <div className="aspect-[3/4] bg-gray-200 rounded-xl"></div>
                     </motion.div>
                   ))}
                 </div>
@@ -169,7 +169,7 @@ export default function ShopByNeedSection() {
                     >
                       <Link href={`/products/${product.product_id}`}>
                         <Card className="h-full transition-all duration-200 hover:shadow-lg border-0">
-                          <div className="aspect-[3/4] relative overflow-hidden rounded-lg">
+                          <div className="aspect-[3/4] relative overflow-hidden rounded-xl">
                             <Image
                               src={product.main_image_url || "/placeholder.svg"}
                               alt={product.name}

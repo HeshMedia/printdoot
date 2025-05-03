@@ -174,7 +174,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
               </Button>
             </form>
           ) : (
-            <div className="bg-muted p-4 rounded-md">
+            <div className="bg-muted p-4 rounded-xl">
               <p className="text-sm mb-2">Please log in to write a review.</p>
               <Button asChild variant="outline">
                 <Link href="/login">Log In</Link>

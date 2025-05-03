@@ -40,7 +40,7 @@ export default function RecentOrdersTable() {
   }, []);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white p-6 rounded-xl shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Recent Orders</h2>
         <Link href="/admin/orders" className="text-blue-600 hover:underline text-sm">

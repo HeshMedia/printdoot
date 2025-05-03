@@ -55,7 +55,7 @@ export default function OrderConfirmationPage() {
   if (error || !order) {
     return (
       <div className="container py-12">
-        <div className="bg-red-50 text-red-600 p-4 rounded-md">{error || "Order not found"}</div>
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl">{error || "Order not found"}</div>
       </div>
     )
   }
@@ -63,7 +63,7 @@ export default function OrderConfirmationPage() {
   return (
     <div className="container py-8">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white p-8 rounded-lg shadow-sm mb-8 text-center">
+        <div className="bg-white p-8 rounded-xl shadow-sm mb-8 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
           <p className="text-muted-foreground mb-6">
@@ -73,7 +73,7 @@ export default function OrderConfirmationPage() {
           <div className="text-sm text-muted-foreground">Placed on {formatDate(order.created_at)}</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Order Details</h2>
           </div>
@@ -99,7 +99,7 @@ export default function OrderConfirmationPage() {
             <div className="divide-y">
               {order.items.map((item, index) => (
                 <div key={index} className="py-4 flex gap-4">
-                  <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
                     {/* Placeholder for item image */}
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                       <span className="text-xs">{item.product_id}</span>

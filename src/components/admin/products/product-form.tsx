@@ -35,7 +35,16 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     description: initialData?.description || "",
     customization_options: initialData?.customization_options || {},
     status: initialData?.status || "in_stock",
+    dimensions: initialData?.dimensions || { length: 0, breadth: 0, height: 0 },
+    bulk_prices: initialData?.bulk_prices || [
+      { min_quantity: 0, max_quantity: 0, price: 0 }
+    ],
+    
+    material: initialData?.material || "",
+    weight: initialData?.weight || 0,
+
   });
+  
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -53,6 +62,45 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     setMainImage(null);
     setMainImagePreview(null);
   };
+
+  const handleDimensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({
+      ...prev,
+      dimensions: {
+        ...prev.dimensions,
+        [name]: parseFloat(value),
+      },
+    }));
+  };
+  
+  const handleBulkPriceChange = (
+    index: number,
+    field: "min_quantity" | "max_quantity" | "price",
+    value: string
+  ) => {
+    const updated = [...formData.bulk_prices];
+    updated[index][field] = parseFloat(value);
+    setFormData((prev: any) => ({
+      ...prev,
+      bulk_prices: updated,
+    }));
+  };
+  const addBulkPrice = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      bulk_prices: [...prev.bulk_prices, { min_quantity: 0, max_quantity: 0, price: 0 }],
+    }));
+  };
+  
+  
+  const removeBulkPrice = (index: number) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      bulk_prices: prev.bulk_prices.filter((_: any, i: number) => i !== index),
+    }));
+  };
+  
   
 
   const handleAddCustomizationField = () => {
@@ -76,12 +124,29 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     setFormData({ ...formData, customization_options: updated });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    const parsedValue = name === "price" ? parseFloat(value) : name === "category_id" ? parseInt(value, 10) : value;
-    setFormData({ ...formData, [name]: parsedValue });
+    const parsedValue =
+      name === "price"
+        ? parseFloat(value)
+        : name === "category_id"
+        ? parseInt(value, 10)
+        : value;
+  
+    setFormData((prev: any) => {
+      if (name === "category_id") {
+        return {
+          ...prev,
+          [name]: parsedValue,
+          customization_options: {} // ✅ reset customization when category changes
+        };
+      }
+      return { ...prev, [name]: parsedValue };
+    });
   };
-
+  
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData({ ...formData, status: e.target.value });
   };
@@ -108,15 +173,17 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     setSideImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleCustomizationChange = (key: string, value: string) => {
+  const handleCustomizationChange = (key: string, values: string[]) => {
     const updated = { ...formData.customization_options };
-    if (!value.trim()) {
+    if (!values.length) {
       delete updated[key];
     } else {
-      updated[key] = value.split(",").map((v) => v.trim());
+      updated[key] = values;
     }
     setFormData({ ...formData, customization_options: updated });
   };
+  
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,34 +248,38 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const handleCancel = () => router.back();
 
   return (
-    <form onSubmit={step === 1 ? handleSubmit : handleImageUpload} className="space-y-6">
-      {error && <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded">{error}</div>}
+    <form onSubmit={step === 1 ? handleSubmit : handleImageUpload} className="space-y-6 rounded-xl">
+      {error && <div className="bg-red-100 border border-red-300 text-red-700  px-4 py-2 rounded-xl">{error}</div>}
 
-      <div className="flex justify-between items-center text-sm">
-        <strong>Step {step}:</strong>{" "}
+      <div className="flex justify-between items-center rounded-xl italic text-gray-500 text-sm">
+        <strong>Step {step}</strong>{" "}
         {step === 1 ? "Product Info" : step === 2 ? "Upload Images" : "Upload Complete"}
       </div>
 
       {step === 1 && (
-        <>
+        <div className="rounded-xl">
           <ProductInfoForm
             formData={formData}
             categories={categories}
             handleInputChange={handleInputChange}
             handleStatusChange={handleStatusChange}
+            handleDimensionChange={handleDimensionChange} // ✅ NEW
+            handleBulkPriceChange={handleBulkPriceChange} // ✅ NEW
+            addBulkPrice={addBulkPrice}                   // ✅ NEW
+            removeBulkPrice={removeBulkPrice}             // ✅ NEW
           />
           <CustomizationOptions
-  customizationOptions={formData.customization_options}
-  handleCustomizationChange={handleCustomizationChange}
-  addCustomizationField={handleAddCustomizationField}
-  removeCustomizationField={handleRemoveCustomizationField}
-  allowedCustomizations={
-    categories.find((c) => c.id === formData.category_id)?.allowed_customizations || {}
-  }
-/>
+            customizationOptions={formData.customization_options}
+            handleCustomizationChange={handleCustomizationChange}
+            removeCustomizationField={handleRemoveCustomizationField}
+            allowedCustomizations={
+              categories.find((c) => c.id === formData.category_id)?.allowed_customizations || {}
+            }
+          />
+
 
           <FormButtons loading={loading} isEditing={!!initialData} handleCancel={handleCancel} />
-        </>
+        </div>
       )}
 
       {step === 2 && (

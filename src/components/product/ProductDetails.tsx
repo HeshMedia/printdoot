@@ -19,7 +19,7 @@ export default function ProductDetails({
   handleAddToCart,
 }: ProductDetailsProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-4">Product Details</h2>
 
       <div className="mb-4">

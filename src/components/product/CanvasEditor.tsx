@@ -75,7 +75,7 @@
 //   }, [productImageUrl])
 
 //   return (
-//     <div className="border rounded-md mb-4 flex items-center justify-center" style={{ height: "500px" }}>
+//     <div className="border rounded-xl mb-4 flex items-center justify-center" style={{ height: "500px" }}>
 //       <canvas ref={canvasRef} />
 //     </div>
 //   )

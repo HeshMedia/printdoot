@@ -66,7 +66,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm">
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
       <Accordion type="multiple" defaultValue={["categories", "price", "rating", "sort"]}>
@@ -100,7 +100,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
         <AccordionItem value="price">
           <AccordionTrigger>Price Range</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-4">
+            <div className="space-y-6 p-2">
               <Slider
                 defaultValue={[priceRange[0], priceRange[1]]}
                 min={0}
@@ -109,8 +109,8 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
                 onValueChange={handlePriceChange}
               />
               <div className="flex justify-between text-sm">
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
+                <span>₹{priceRange[0]}</span>
+                <span>₹{priceRange[1]}</span>
               </div>
             </div>
           </AccordionContent>

@@ -21,7 +21,7 @@ export default function SubmitCancelButtons({
       <button
         type="button"
         onClick={onCancel}
-        className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+        className="px-4 py-2 border rounded-xl text-gray-700 hover:bg-gray-50"
       >
         Cancel
       </button>
@@ -29,7 +29,7 @@ export default function SubmitCancelButtons({
         type="submit"
         disabled={loading || isFormInvalid}
         onClick={onSubmit}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? "Saving..." : isEditing ? "Update Category" : "Create Category"}
       </button>

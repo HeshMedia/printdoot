@@ -40,7 +40,7 @@ export default function AllowedCustomizations({
                   value={values.join(", ")}
                   onChange={(e) => onChange(key, e.target.value)}
                   placeholder="Enter values separated by commas"
-                  className="w-full border rounded-md px-3 py-2"
+                  className="w-full border rounded-xl px-3 py-2"
                 />
               </div>
               <button

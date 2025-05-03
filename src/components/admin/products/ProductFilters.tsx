@@ -27,13 +27,13 @@ export default function ProductFilters({
   minRating, setMinRating, handleFilter, clearFilters
 }: ProductFiltersProps) {
   return (
-    <div className="p-4 border-b">
+    <div className="p-4 border-b rounded-xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <form onSubmit={(e) => { e.preventDefault(); }} className="relative w-full md:w-64">
           <input
             type="text"
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 border rounded-md"
+            className="w-full pl-10 pr-4 py-2 border rounded-xl"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -54,7 +54,7 @@ export default function ProductFilters({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={selectedCategory || ""}
               onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
             >
@@ -71,7 +71,7 @@ export default function ProductFilters({
             <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
             <input
               type="number"
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={minPrice || ""}
               onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : null)}
               min="0"
@@ -80,10 +80,10 @@ export default function ProductFilters({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+            <label className="block text-sm font-medium text-gray-700  mb-1">Max Price</label>
             <input
               type="number"
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={maxPrice || ""}
               onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
               min="0"
@@ -95,7 +95,7 @@ export default function ProductFilters({
             <label className="block text-sm font-medium text-gray-700 mb-1">Min Rating</label>
             <input
               type="number"
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={minRating || ""}
               onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : null)}
               min="0"
@@ -105,12 +105,12 @@ export default function ProductFilters({
           </div>
 
           <div className="md:col-span-4 flex justify-end gap-2">
-            <button onClick={clearFilters} className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
+            <button onClick={clearFilters} className="px-4 py-2 border rounded-xl text-gray-600 hover:bg-gray-50">
               Clear
             </button>
             <button
               onClick={handleFilter}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
             >
               Apply Filters
             </button>

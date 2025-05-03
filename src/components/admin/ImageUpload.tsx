@@ -55,7 +55,7 @@ export default function ImageUpload({ value, extension, onChange, onReset }: Ima
       <label className="block text-sm font-medium text-gray-700 mb-1">Category Image</label>
 
       <div
-        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition relative"
+        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition relative"
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
         onClick={() => document.getElementById("image-upload")?.click()}
@@ -70,7 +70,7 @@ export default function ImageUpload({ value, extension, onChange, onReset }: Ima
             <img
               src={`data:image/${extension};base64,${value}`}
               alt="Preview"
-              className="max-w-xs rounded-md shadow-md"
+              className="max-w-xs rounded-xl shadow-md"
             />
             <button
               type="button"

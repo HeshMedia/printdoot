@@ -31,7 +31,7 @@ export default function PaginationControls({
                     <span className="font-medium">{resultsCount}</span> results
                 </p>
                 {/* Navigation controls for pagination */}
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
                     {/* Button to navigate to the previous page */}
                     <button
                         onClick={() => setCurrentPage(currentPage - 1)}

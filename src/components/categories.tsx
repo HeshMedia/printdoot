@@ -80,7 +80,7 @@ export default function Categories() {
               transition={{ duration: 0.3, delay: 0.05 * index }}
             >
               <Link href={`/categories/${category.name.toLowerCase().replace(/\s+/g, "-")}`} className="w-full">
-                <div className="aspect-square relative mb-3 overflow-hidden rounded-lg border">
+                <div className="aspect-square relative mb-3 overflow-hidden rounded-xl border">
                   <Image
                     src={category.image || "/placeholder.svg"}
                     alt={category.name}

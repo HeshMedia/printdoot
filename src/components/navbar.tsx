@@ -48,7 +48,7 @@ export default function Navbar() {
           </Sheet>
 
             <Link href="/" className="flex items-center space-x-2">
-            <img src="/logo.png" alt="PRINTDOOT Logo" className="w-[12rem]" />
+              <img src="/logo.png" alt="PRINTDOOT Logo" className="w-[12rem]" />
             </Link>
 
           <div className="hidden md:flex md:w-[300px] lg:w-[400px]">

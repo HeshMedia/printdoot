@@ -6,12 +6,29 @@ interface Category {
   name: string;
 }
 
+export interface BulkPrice {
+  min_quantity: number;
+  max_quantity: number;
+  price: number;
+}
+
+export interface Dimensions {
+  length: number;
+  breadth: number;
+  height: number;
+}
+
+
 interface ProductFormData {
   name: string;
   price: number;
   category_id: number;
   description: string;
   status: string;
+  dimensions: Dimensions;
+  bulk_prices: BulkPrice[];
+  material: string;
+  weight: number;
 }
 
 interface ProductInfoFormProps {
@@ -21,6 +38,10 @@ interface ProductInfoFormProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => void;
   handleStatusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleDimensionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBulkPriceChange: (index: number, field: "min_quantity" | "max_quantity" | "price", value: string) => void;
+  addBulkPrice: () => void;
+  removeBulkPrice: (index: number) => void;
 }
 
 export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
@@ -28,9 +49,14 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
   categories,
   handleInputChange,
   handleStatusChange,
+  handleDimensionChange,
+  handleBulkPriceChange,
+  addBulkPrice,
+  removeBulkPrice,
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 rounded-xl gap-6">
+      {/* Name */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
           Product Name *
@@ -42,10 +68,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           required
           value={formData.name}
           onChange={handleInputChange}
-          className="w-full border rounded-md px-3 py-2"
+          className="w-full border rounded-xl px-3 py-2"
         />
       </div>
 
+      {/* Price */}
       <div>
         <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
           Price *
@@ -59,10 +86,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           step="0.01"
           value={formData.price}
           onChange={handleInputChange}
-          className="w-full border rounded-md px-3 py-2"
+          className="w-full border rounded-xl px-3 py-2"
         />
       </div>
 
+      {/* Category */}
       <div>
         <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
           Category *
@@ -73,9 +101,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           required
           value={formData.category_id}
           onChange={handleInputChange}
-          className="w-full border rounded-md px-3 py-2"
+          className="w-full border border-gray-300 rounded-xl px-3 py-2 text-gray-700"
         >
-          <option value="">Select a category</option>
+          <option value="" disabled hidden className="text-gray-400 italic text-sm">
+            Select a category
+          </option>
           {Array.isArray(categories) &&
             categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -85,6 +115,8 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
         </select>
       </div>
 
+
+      {/* Status */}
       <div>
         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
           Status *
@@ -95,14 +127,111 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           required
           value={formData.status}
           onChange={handleStatusChange}
-          className="w-full border rounded-md px-3 py-2"
+          className="w-full border border-gray-300 rounded-xl px-3 py-2 text-gray-700"
         >
+          <option value="" disabled hidden className="text-gray-400">
+            Select a status
+          </option>
           <option value="in_stock">In Stock</option>
           <option value="out_of_stock">Out of Stock</option>
           <option value="discontinued">Discontinued</option>
         </select>
       </div>
 
+      {/* Dimensions */}
+      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {["Length ", "Breadth", "Height"].map((dim) => (
+          <div key={dim}>
+            <label className="block text-sm font-medium text-gray-700 ">{dim} <span className="italic text-xs">(in cm)</span> *</label>
+            <input
+              type="number"
+              name={dim}
+              value={formData.dimensions[dim as keyof Dimensions]}
+              onChange={handleDimensionChange}
+              className="mt-1 block w-full border border-gray-300 rounded-xl p-2"
+              step="any"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Bulk Prices */}
+      <div className="md:col-span-2 mt-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Bulk Prices *</label>
+        {formData.bulk_prices.map((bp, index) => (
+          <div key={index} className="flex gap-2 items-center mb-2">
+           <input
+              type="number"
+              placeholder="Min Qty"
+              value={bp.min_quantity === 0 ? "" : bp.min_quantity}
+              onChange={(e) => handleBulkPriceChange(index, "min_quantity", e.target.value)}
+              className="w-1/3 border p-2 rounded-xl"
+            />
+
+            <input
+              type="number"
+              placeholder="Max Qty"
+              value={bp.max_quantity === 0 ? "" : bp.max_quantity}
+              onChange={(e) => handleBulkPriceChange(index, "max_quantity", e.target.value)}
+              className="w-1/3 border p-2 rounded-xl"
+            />
+
+            <input
+              type="number"
+              placeholder="Price per piece"
+              value={bp.price === 0 ? "" : bp.price}
+              onChange={(e) => handleBulkPriceChange(index, "price", e.target.value)}
+              className="w-1/3 border p-2 rounded-xl"
+            />
+
+
+            {formData.bulk_prices.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeBulkPrice(index)}
+                className="text-red-500 font-bold text-lg"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={addBulkPrice} className="mt-2 text-blue-600 font-medium">
+          + Add More
+        </button>
+      </div>
+
+      {/* Material */}
+      <div>
+        <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">Material *</label>
+        <input
+          type="text"
+          id="material"
+          name="material"
+          required
+          value={formData.material}
+          onChange={handleInputChange}
+          className="w-full border rounded-xl px-3 py-2"
+        />
+      </div>
+
+      {/* Weight */}
+      <div>
+        <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">Weight (gms) *</label>
+        <input
+          type="number"
+          id="weight"
+          name="weight"
+          required
+          min="0"
+          value={formData.weight}
+          onChange={handleInputChange}
+          className="w-full border rounded-xl px-3 py-2"
+        />
+      </div>
+
+
+      {/* Description */}
       <div className="md:col-span-2">
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
           Description *
@@ -114,7 +243,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           rows={4}
           value={formData.description}
           onChange={handleInputChange}
-          className="w-full border rounded-md px-3 py-2"
+          className="w-full border rounded-xl px-3 py-2"
         />
       </div>
     </div>

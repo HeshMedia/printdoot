@@ -97,14 +97,14 @@ export default function ProductsPage() {
         <h1 className="text-3xl font-bold">Products</h1>
         <Link
           href="/admin/products/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center"
         >
           <Plus className="w-5 h-5 mr-2" />
           Add Product
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <ProductFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

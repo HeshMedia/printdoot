@@ -86,14 +86,14 @@ export default function OrderDetailsPage() {
               {order.items.map((item, index) => (
                 <div
                   key={index}
-                  className="border bg-gray-50 rounded-lg shadow-sm p-4 flex flex-col md:flex-row gap-6 items-start md:items-center"
+                  className="border bg-gray-50 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-6 items-start md:items-center"
                 >
                   {(item.user_customization_type === "image" || item.user_customization_type === "logo") &&
                   item.user_customization_value.startsWith("http") ? (
                     <img
                       src={item.user_customization_value}
                       alt="Customization Preview"
-                      className="w-40 h-40 object-contain rounded-md border bg-white"
+                      className="w-40 h-40 object-contain rounded-xl border bg-white"
                     />
                   ) : null}
 
@@ -122,7 +122,7 @@ export default function OrderDetailsPage() {
           <div className="text-right pt-4">
             <button
               onClick={downloadOrderPdf}
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition"
             >
               📄 Download Order PDF
             </button>

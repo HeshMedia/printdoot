@@ -193,7 +193,7 @@ export default function AdminDashboard() {
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">Bestselling Section Preview</h2>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-xl overflow-hidden">
                 <BestsellingSection />
               </div>
             </CardContent>
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">On-Sale Section Preview</h2>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-xl overflow-hidden">
                 <OnsaleSection />
               </div>
             </CardContent>
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">Shop By Need Section Preview</h2>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-xl overflow-hidden">
                 <ShopByNeedSection />
               </div>
             </CardContent>

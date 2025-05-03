@@ -13,9 +13,9 @@ export default function CustomizationPreview({
   saveCustomization,
 }: CustomizationPreviewProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-4">Customization Preview</h2>
-      <div className="border rounded-md mb-4 flex items-center justify-center" style={{ height: "500px" }}>
+      <div className="border rounded-xl mb-4 flex items-center justify-center" style={{ height: "500px" }}>
         <img src={productImageUrl} alt="Product Preview" className="object-cover" />
       </div>
 

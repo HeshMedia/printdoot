@@ -21,7 +21,7 @@ export default function CustomizationOptions({
   handleColorChange,
 }: CustomizationOptionsProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-4">Product Options</h2>
 
       {/* Customizations */}

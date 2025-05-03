@@ -115,7 +115,7 @@ export default function CartPage() {
       <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
       {items.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+        <div className="bg-white p-8 rounded-xl shadow-sm text-center">
           <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
           <p className="text-muted-foreground mb-6">Looks like you haven't added any items to your cart yet.</p>
@@ -126,7 +126,7 @@ export default function CartPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-6 border-b">
                 <h2 className="text-xl font-semibold">Cart Items ({items.length})</h2>
               </div>
@@ -134,7 +134,7 @@ export default function CartPage() {
               <div className="divide-y">
                 {items.map((item, index) => (
                   <div key={index} className="p-6 flex flex-col sm:flex-row gap-4">
-                    <div className="relative w-24 h-24 rounded-md overflow-hidden flex-shrink-0">
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
                       {item.customPreviewUrl ? (
                         <Image
                           src={item.customPreviewUrl || "/placeholder.svg"}
@@ -240,7 +240,7 @@ export default function CartPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm sticky top-20">
+            <div className="bg-white p-6 rounded-xl shadow-sm sticky top-20">
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
               <div className="space-y-2 mb-4">
