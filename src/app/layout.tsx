@@ -7,6 +7,7 @@ import Footer from "@/components/footer"
 import { CartProvider } from "@/lib/context/cart-context"
 import { UserProvider } from "@/lib/context/user-context"
 import { Toaster } from "@/components/toaster"
+import { WhatsApp } from "@/components/floatingwhatsapp"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
           <CartProvider>
             <Navbar />
             <main>{children}</main>
+            <WhatsApp/>
             <Footer />
             <Toaster />
           </CartProvider>

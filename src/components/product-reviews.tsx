@@ -195,9 +195,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
             {reviews.map((review) => (
               <div key={review.id} className="border-b pb-6">
                 <div className="flex items-center mb-2">
-                  <div className="bg-muted w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                    <User className="w-5 h-5" />
-                  </div>
+                 
                   <div>
                     <div className="font-medium">{review.user_name}</div>
                     <div className="flex items-center">
