@@ -8,6 +8,8 @@ import { CartProvider } from "@/lib/context/cart-context"
 import { UserProvider } from "@/lib/context/user-context"
 import { Toaster } from "@/components/toaster"
 import { WhatsApp } from "@/components/floatingwhatsapp"
+import { TextBanner } from "@/components/layout/TextBanner"
+import { TextBannerProvider } from "@/lib/context/text-banner-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,11 +28,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <UserProvider>
           <CartProvider>
-            <Navbar />
-            <main>{children}</main>
-            <WhatsApp/>
-            <Footer />
-            <Toaster />
+            <TextBannerProvider>
+              <TextBanner />
+              <Navbar />
+              <main>{children}</main>
+              <WhatsApp/>
+              <Footer />
+              <Toaster />
+            </TextBannerProvider>
           </CartProvider>
         </UserProvider>
       </body>

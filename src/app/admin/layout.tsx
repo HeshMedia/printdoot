@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Heart,
   Ticket,
+  PanelBottomDashed,
 } from "lucide-react"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -54,6 +55,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           >
             <Star className="w-5 h-5 mr-3" />
             Bestselling
+          </Link>
+          <Link
+            href="/admin/featured/text-banner"
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+          >
+            <PanelBottomDashed className="w-5 h-5 mr-3" />
+            Text Banner
           </Link>
           <Link href="/admin/featured/onsale" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
             <Zap className="w-5 h-5 mr-3" />

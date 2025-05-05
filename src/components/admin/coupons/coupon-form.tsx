@@ -37,7 +37,6 @@ export default function CouponForm({
   const [isFocused, setIsFocused] = useState(false);
 
   // Initialize form data based on whether we're editing or creating
-  // Note: active status is included for both create and edit now
   const [formData, setFormData] = useState<CouponCreate | CouponUpdate>(
     isEditing && initialData
       ? {
