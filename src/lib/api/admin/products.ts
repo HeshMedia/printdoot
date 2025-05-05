@@ -16,13 +16,29 @@ export interface Product {
   name: string;
   price: number;
   description: string;
-  average_rating: number;
-  status: ProductStatus;
+  status: "in_stock" | "out_of_stock" | "discontinued";
   main_image_url: string;
   side_images_url: string[];
   category_name: string;
-}
+  average_rating: number;
 
+  // ✅ Add these
+  dimensions: {
+    length: number;
+    breadth: number;
+    height: number;
+  };
+  bulk_prices: {
+    min_quantity: number;
+    max_quantity: number;
+    price: number;
+  }[];
+
+  weight: number;
+  material: string;
+  customization_options?: Record<string, Record<string, string>>;
+
+}
 export interface ProductsFilterParams {
   category_id?: number;
   min_price?: number;
@@ -33,7 +49,8 @@ export interface ProductsFilterParams {
   limit?: number;
 }
 
-const fileToBase64 = (file: File): Promise<string> => {
+// Helper functions exported so they can be used in components
+export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -44,6 +61,29 @@ const fileToBase64 = (file: File): Promise<string> => {
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(file);
   });
+};
+
+// Helper function to convert image URL to base64
+export const urlToBase64 = async (url: string): Promise<{ base64: string; extension: string }> => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        const extension = url.split('.').pop() || 'jpg';
+        resolve({ base64, extension });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error converting URL to base64:', error);
+    throw new Error('Failed to convert image URL to base64');
+  }
 };
 
 export const productsApi = {
@@ -104,7 +144,8 @@ export const productsApi = {
       },
       body: JSON.stringify(product),
     });
-
+    console.log("Update product response:", response);
+    console.log("Update product body:", JSON.stringify(product));
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || "Failed to update product");
@@ -192,6 +233,80 @@ export const productsApi = {
   
     return response.json();
   },  
+
+  // New method that directly accepts base64 data for image updates
+  async updateProductImagesFromBase64(
+    productId: string, 
+    mainImageBase64: string, 
+    mainImageExtension: string, 
+    sideImagesBase64: string[] = [], 
+    sideImagesExtensions: string[] = []
+  ): Promise<Product> {
+    try {
+      const payload = {
+        main_image: mainImageBase64,
+        main_image_extension: mainImageExtension,
+        side_images: sideImagesBase64,
+        side_images_extensions: sideImagesExtensions,
+      };
+
+      const response = await fetch(`${config.apiUrl}/admin/products/${productId}/images`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update product images");
+      }
+
+      return response.json();
+    } catch (err) {
+      throw new Error("Image update error: " + (err instanceof Error ? err.message : String(err)));
+    }
+  },
+
+  // Method to update only side images without touching the main image
+  async updateSideImagesOnly(
+    productId: string, 
+    sideImages: File[] = []
+  ): Promise<Product> {
+    try {
+      const sideImagesBase64 = await Promise.all(sideImages.map(fileToBase64));
+      const sideImagesExtensions = sideImages.map((img) => img.name.split(".").pop() || "jpg");
+
+      const payload = {
+        // Send empty string for main image to indicate we're not updating it
+        main_image: "",
+        main_image_extension: "",
+        side_images: sideImagesBase64,
+        side_images_extensions: sideImagesExtensions,
+        update_side_images_only: true // Special flag for backend to know we're only updating side images
+      };
+
+      const response = await fetch(`${config.apiUrl}/admin/products/${productId}/images/side`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update side images");
+      }
+
+      return response.json();
+    } catch (err) {
+      throw new Error("Side images update error: " + (err instanceof Error ? err.message : String(err)));
+    }
+  },
 
   // ✅ Get categories (optional helper in product forms)
   async getCategories(): Promise<any[]> {

@@ -1,6 +1,7 @@
 import { config } from "../config"
 
 export type ProductStatus = "in_stock" | "out_of_stock" | "discontinued"
+
 export interface Product {
   product_id: string;
   name: string;
@@ -19,20 +20,20 @@ export interface Product {
     height: number;
   };
   bulk_prices: {
-    quantity: number;
+    min_quantity: number;
+    max_quantity: number;
     price: number;
   }[];
 
   weight: number;
   material: string;
-  
-  customization_options?: Record<string, string[]>;
+  customization_options?: Record<string, Record<string, string>>;
 
 }
 
-
 export type BulkPrice = {
-  quantity: number;
+  min_quantity: number;
+  max_quantity: number;
   price: number;
 };
 

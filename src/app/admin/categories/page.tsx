@@ -111,9 +111,7 @@ export default function CategoriesPage() {
                     )}
                     <div>
                       <h3 className="text-lg font-medium">{category.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {category.user_customization_options.length} customization option(s)
-                      </p>
+                      
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -141,14 +139,7 @@ export default function CategoriesPage() {
                     <div className="mb-4">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">User Customization Options</h4>
                       <div className="flex flex-wrap gap-2">
-                        {category.user_customization_options.map((option, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                          >
-                            {option}
-                          </span>
-                        ))}
+                        
                       </div>
                     </div>
 
@@ -161,7 +152,7 @@ export default function CategoriesPage() {
                           {Object.entries(category.allowed_customizations).map(([key, values]) => (
                             <div key={key}>
                               <span className="text-sm font-medium">{key}:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
+                              {/* <div className="flex flex-wrap gap-1 mt-1">
                                 {values.map((value, index) => (
                                   <span
                                     key={index}
@@ -170,7 +161,7 @@ export default function CategoriesPage() {
                                     {value}
                                   </span>
                                 ))}
-                              </div>
+                              </div> */}
                             </div>
                           ))}
                         </div>

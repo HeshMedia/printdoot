@@ -16,6 +16,7 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         const data = await productsApi.getProduct(productId)
+        console.log("Fetched product:", data)
         setProduct(data)
       } catch (err) {
         console.error("Failed to fetch product:", err)

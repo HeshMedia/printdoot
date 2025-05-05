@@ -7,17 +7,16 @@ export type UserCustomizationOption = "text" | "image" | "color";
 export interface CategoryCreateInput {
   name: string;
   allowed_customizations?: Record<string, string[]>;
-  user_customization_options: UserCustomizationOption[];
   image: string;               // base64 string
   image_extension: string;     // file extension, e.g., "png", "jpg"
 }
+
 
 // Returned Category object from API
 export interface Category {
   id: number;
   name: string;
-  allowed_customizations: Record<string, string[]>;
-  user_customization_options: UserCustomizationOption[];
+  allowed_customizations: Record<string, Record<string, string>>;
   image_url: string;             // base64 image string
 }
 

@@ -18,11 +18,12 @@ export interface Dimensions {
   height: number;
 }
 
-
 interface ProductFormData {
+  product_id: string; 
   name: string;
   price: number;
   category_id: number;
+  category_name?: string;
   description: string;
   status: string;
   dimensions: Dimensions;
@@ -44,6 +45,7 @@ interface ProductInfoFormProps {
   removeBulkPrice: (index: number) => void;
 }
 
+
 export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
   formData,
   categories,
@@ -54,8 +56,27 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
   addBulkPrice,
   removeBulkPrice,
 }) => {
+  const dimFields: (keyof Dimensions)[] = ["length", "breadth", "height"];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 rounded-xl gap-6">
+      
+      {/* Product ID */}
+      <div>
+        <label htmlFor="product_id" className="block text-sm font-medium text-gray-700 mb-1">
+          Product ID *
+        </label>
+        <input
+          type="text"
+          id="product_id"
+          name="product_id"
+          value={formData.product_id || ""}
+          onChange={handleInputChange}
+          className="w-full border rounded-xl px-3 py-2"
+          placeholder=""
+        />
+      </div>
+
+      
       {/* Name */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -84,10 +105,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           required
           min="0"
           step="0.01"
-          value={formData.price}
+          value={formData.price === 0 ? "" : formData.price}
           onChange={handleInputChange}
           className="w-full border rounded-xl px-3 py-2"
         />
+
       </div>
 
       {/* Category */}
@@ -104,7 +126,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           className="w-full border border-gray-300 rounded-xl px-3 py-2 text-gray-700"
         >
           <option value="" disabled hidden className="text-gray-400 italic text-sm">
-            Select a category
+            {formData.category_name || "Select a category"}
           </option>
           {Array.isArray(categories) &&
             categories.map((category) => (
@@ -140,19 +162,22 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
 
       {/* Dimensions */}
       <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {["Length ", "Breadth", "Height"].map((dim) => (
+      {dimFields.map((dim) => (
           <div key={dim}>
-            <label className="block text-sm font-medium text-gray-700 ">{dim} <span className="italic text-xs">(in cm)</span> *</label>
+            <label className="block text-sm font-medium text-gray-700 ">
+              {dim.charAt(0).toUpperCase() + dim.slice(1)} <span className="italic text-xs">(in cm)</span> *
+            </label>
             <input
               type="number"
               name={dim}
-              value={formData.dimensions[dim as keyof Dimensions]}
+              value={formData.dimensions[dim] === 0 ? "" : formData.dimensions[dim] }
               onChange={handleDimensionChange}
               className="mt-1 block w-full border border-gray-300 rounded-xl p-2"
               step="any"
             />
           </div>
         ))}
+
       </div>
 
       {/* Bulk Prices */}
@@ -224,7 +249,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           name="weight"
           required
           min="0"
-          value={formData.weight}
+          value={formData.weight === 0 ? "" : formData.weight}
           onChange={handleInputChange}
           className="w-full border rounded-xl px-3 py-2"
         />

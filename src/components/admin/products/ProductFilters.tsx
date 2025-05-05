@@ -1,6 +1,7 @@
 "use client"
 
-import { Filter, Search } from "lucide-react"
+import { Filter, MinusCircle, Search } from "lucide-react"
+import { useState } from "react"
 
 interface ProductFiltersProps {
   searchTerm: string
@@ -24,16 +25,16 @@ export default function ProductFilters({
   searchTerm, setSearchTerm, showFilters, setShowFilters,
   categories, selectedCategory, setSelectedCategory, 
   minPrice, setMinPrice, maxPrice, setMaxPrice, 
-  minRating, setMinRating, handleFilter, clearFilters
+  minRating, setMinRating, clearFilters, handleFilter
 }: ProductFiltersProps) {
   return (
-    <div className="p-4 border-b rounded-xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <form onSubmit={(e) => { e.preventDefault(); }} className="relative w-full md:w-64">
+    <div className="p-4 border rounded-t-xl shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <form onSubmit={(e) => { e.preventDefault(); }} className="relative w-full md:w-64 lg:w-auto lg:flex-grow">
           <input
             type="text"
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 border rounded-xl"
+            className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-500 focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -42,81 +43,78 @@ export default function ProductFilters({
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap"
         >
           <Filter className="w-4 h-4 mr-2" />
           {showFilters ? "Hide Filters" : "Show Filters"}
         </button>
       </div>
 
-      {showFilters && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select
-              className="w-full border rounded-xl px-3 py-2"
-              value={selectedCategory || ""}
-              onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Filters section with transition */}
+      <div 
+        className={`
+          overflow-hidden transition-all duration-300 ease-in-out 
+          ${showFilters ? "max-h-20 opacity-100 mt-4" : "max-h-0 opacity-0"}
+        `}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500 focus:outline-none w-[140px]"
+            value={selectedCategory || ""}
+            onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+            aria-label="Category"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
-            <input
-              type="number"
-              className="w-full border rounded-xl px-3 py-2"
-              value={minPrice || ""}
-              onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : null)}
-              min="0"
-              step="0.01"
-            />
-          </div>
+          <input
+            type="number"
+            placeholder="Min Price"
+            className="w-[120px] border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500 focus:outline-none"
+            value={minPrice || ""}
+            onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : null)}
+            min="0"
+            step="0.01"
+            aria-label="Minimum Price"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700  mb-1">Max Price</label>
-            <input
-              type="number"
-              className="w-full border rounded-xl px-3 py-2"
-              value={maxPrice || ""}
-              onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
-              min="0"
-              step="0.01"
-            />
-          </div>
+          <input
+            type="number"
+            placeholder="Max Price"
+            className="w-[120px] border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500 focus:outline-none"
+            value={maxPrice || ""}
+            onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
+            min="0"
+            step="0.01"
+            aria-label="Maximum Price"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Rating</label>
-            <input
-              type="number"
-              className="w-full border rounded-xl px-3 py-2"
-              value={minRating || ""}
-              onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : null)}
-              min="0"
-              max="5"
-              step="0.1"
-            />
-          </div>
+          <input
+            type="number"
+            placeholder="Min Rating"
+            className="w-[120px] border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500 focus:outline-none"
+            value={minRating || ""}
+            onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : null)}
+            min="0"
+            max="5"
+            step="0.1"
+            aria-label="Minimum Rating"
+          />
 
-          <div className="md:col-span-4 flex justify-end gap-2">
-            <button onClick={clearFilters} className="px-4 py-2 border rounded-xl text-gray-600 hover:bg-gray-50">
-              Clear
-            </button>
-            <button
-              onClick={handleFilter}
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-            >
-              Apply Filters
-            </button>
-          </div>
+          <button 
+            onClick={clearFilters} 
+            className="px-3 py-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-1.5 text-sm"
+          >
+            <MinusCircle size={14} className="text-gray-500" />
+            Clear
+          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

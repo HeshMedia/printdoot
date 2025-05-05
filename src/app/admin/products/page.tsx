@@ -10,7 +10,9 @@ import ProductTable from "@/components/admin/products/ProductTable";
 import PaginationControls from "@/components/admin/products/PaginationControls";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]); // All products from API
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]); // Products after search filtering
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]); // Products for current page
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export default function ProductsPage() {
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minRating, setMinRating] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   const itemsPerPage = 10;
 
@@ -34,7 +37,7 @@ export default function ProductsPage() {
         const categoryResponse = await categoriesApi.getCategories();
         setCategories(categoryResponse.categories);
 
-        // Fetch products
+        // Fetch products with filters except search term
         const { products, total } =
           selectedCategory || minPrice || maxPrice || minRating
             ? await productsApi.filterProducts({
@@ -42,20 +45,28 @@ export default function ProductsPage() {
                 min_price: minPrice || undefined,
                 max_price: maxPrice || undefined,
                 min_rating: minRating || undefined,
-                skip: (currentPage - 1) * itemsPerPage,
-                limit: itemsPerPage,
               })
-            : await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage);
+            : await productsApi.getProducts(0, 1000); // Get all products for frontend search
 
-        const filtered = searchTerm
+        setAllProducts(products);
+        setTotalCount(total);
+
+        // Apply client-side search filter
+        const searchFiltered = searchTerm
           ? products.filter((product) =>
               product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
               product.description.toLowerCase().includes(searchTerm.toLowerCase())
             )
           : products;
 
-        setProducts(filtered);
-        setTotalPages(Math.ceil(total / itemsPerPage));
+        setFilteredProducts(searchFiltered);
+        setTotalPages(Math.ceil(searchFiltered.length / itemsPerPage));
+        
+        // Calculate products for the current page
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        setDisplayedProducts(searchFiltered.slice(start, end));
+        
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -65,13 +76,61 @@ export default function ProductsPage() {
     };
 
     fetchData();
-  }, [currentPage, searchTerm, selectedCategory, minPrice, maxPrice, minRating]);
+  }, [selectedCategory, minPrice, maxPrice, minRating]);
+
+  // Handle search term changes
+  useEffect(() => {
+    // Apply search filter to all products
+    const searchFiltered = searchTerm
+      ? allProducts.filter((product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : allProducts;
+
+    setFilteredProducts(searchFiltered);
+    setTotalPages(Math.ceil(searchFiltered.length / itemsPerPage));
+    
+    // Reset to first page when search changes
+    setCurrentPage(1);
+    
+    // Calculate products for the first page
+    setDisplayedProducts(searchFiltered.slice(0, itemsPerPage));
+  }, [searchTerm, allProducts]);
+
+  // Update displayed products when page changes
+  useEffect(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    setDisplayedProducts(filteredProducts.slice(start, end));
+  }, [currentPage, filteredProducts]);
 
   const handleDelete = async (productId: string) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await productsApi.deleteProduct(productId);
-        setProducts((prev) => prev.filter((product) => product.product_id !== productId));
+        
+        // Update all product lists
+        const updatedProducts = allProducts.filter((product) => product.product_id !== productId);
+        setAllProducts(updatedProducts);
+        
+        const updatedFiltered = filteredProducts.filter((product) => product.product_id !== productId);
+        setFilteredProducts(updatedFiltered);
+        
+        setTotalPages(Math.ceil(updatedFiltered.length / itemsPerPage));
+        
+        // Recalculate displayed products
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        setDisplayedProducts(updatedFiltered.slice(start, end));
+        
+        // If the current page is now empty and not the first page, go back one page
+        if (
+          currentPage > 1 &&
+          updatedFiltered.length <= (currentPage - 1) * itemsPerPage
+        ) {
+          setCurrentPage(currentPage - 1);
+        }
       } catch (err) {
         console.error(err);
         alert("Failed to delete product");
@@ -88,6 +147,7 @@ export default function ProductsPage() {
     setMinPrice(null);
     setMaxPrice(null);
     setMinRating(null);
+    setSearchTerm("");
     setCurrentPage(1);
   };
 
@@ -130,16 +190,22 @@ export default function ProductsPage() {
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">{error}</div>
-        ) : products.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <div className="p-8 text-center text-gray-600">No products found.</div>
         ) : (
           <>
-            <ProductTable products={products} handleDelete={handleDelete} />
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+            <ProductTable products={displayedProducts} handleDelete={handleDelete} />
+            <div className="px-4 py-5 border-t">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
+              <div className="text-center text-sm text-gray-500 mt-2">
+                Showing {displayedProducts.length} of {filteredProducts.length} products
+                {searchTerm && ` matching "${searchTerm}"`}
+              </div>
+            </div>
           </>
         )}
       </div>

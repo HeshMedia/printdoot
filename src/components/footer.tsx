@@ -115,7 +115,7 @@ export default function Footer() {
 
         <div className="border-t border-border/40 mt-12 pt-8 text-center">
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} All Rights Reserved | PRINTDOOT 
+          © {new Date().getFullYear()} All Rights Reserved | Printdoot
         </p>
         <br></br>
         <p className="text-xs text-muted-foreground italic">

@@ -11,6 +11,7 @@ import {
   TrendingUp,
   ShoppingCart,
   Heart,
+  Ticket,
 } from "lucide-react"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -37,6 +38,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin/orders" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
             <ShoppingBag className="w-5 h-5 mr-3" />
             Orders
+          </Link>
+          <Link href="/admin/coupons" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
+            <Ticket className="w-5 h-5 mr-3" />
+            Coupons
           </Link>
 
           {/* Featured Sections */}
@@ -74,7 +79,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <div className="border-t border-gray-200 my-4"></div>
-          <Link href="/logout" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
+
+          <Link href="/logout" className="flex items-center px-6 py-3 text-red-600 hover:bg-red-50">
             <LogOut className="w-5 h-5 mr-3" />
             Logout
           </Link>
@@ -82,7 +88,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen overflow-x-hidden p-6">{children}</main>
+      <div className="flex-1 p-8 overflow-auto">{children}</div>
     </div>
   )
 }

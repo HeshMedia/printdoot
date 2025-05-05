@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 interface ProductImagesFormProps {
   mainImagePreview: string | null;
@@ -125,24 +126,31 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
           </div>
 
           {sideImagePreviews.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {sideImagePreviews.map((preview, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={preview}
-                    alt={`Side ${index + 1}`}
-                    className="h-20 w-20 object-cover rounded-xl"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeSideImage(index)}
-                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                    aria-label="Remove image"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+              {sideImagePreviews.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {sideImagePreviews.map((preview, index) => (
+                    <div key={index} className="relative w-20 h-20 ">
+                    <Image
+                      src={preview}
+                      alt={`Side ${index + 1}`}
+                      width={80}
+                      height={80}
+                      className="object-cover rounded-xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSideImage(index)}
+                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             </div>
           )}
         </div>

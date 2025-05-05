@@ -25,12 +25,12 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         // Fetch products
-        const productRes = await fetch("https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod/products")
+        const productRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
         const productData = await productRes.json()
         setProductCount(productData.total || 0)
 
         // Fetch orders
-        const orderRes = await fetch("https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod/admin/orders")
+        const orderRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/orders`)
         const orderData = await orderRes.json()
         setOrderCount(orderData.total || 0)
 
@@ -42,13 +42,13 @@ export default function AdminDashboard() {
         setRevenue(totalRevenue)
 
         // Fetch categories
-        const categoryRes = await fetch("https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod/categories")
+        const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
         const categoryData = await categoryRes.json()
         setCategoryCount(categoryData.total || 0)
 
         // Fetch featured section counts
         try {
-          const bestsellingRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/bestselling`)
+          const bestsellingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bestselling`)
           const bestsellingData = await bestsellingRes.json()
           setBestsellingCount(bestsellingData.products?.length || 0)
         } catch (error) {
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
         }
 
         try {
-          const onsaleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/onsale`)
+          const onsaleRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onsale`)
           const onsaleData = await onsaleRes.json()
           setOnsaleCount(onsaleData.products?.length || 0)
         } catch (error) {
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
         }
 
         try {
-          const shopByNeedRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/shopbyneed`)
+          const shopByNeedRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/shopbyneed`)
           const shopByNeedData = await shopByNeedRes.json()
           setNeedsCount(shopByNeedData.needs?.length || 0)
         } catch (error) {

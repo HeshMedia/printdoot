@@ -6,6 +6,7 @@ import { productsApi, type Product, type ProductsFilterParams, type ProductsResp
 import { categoriesApi, type Category } from "@/lib/api/categories"
 import ProductCard from "@/components/product-card"
 import ProductsFilter from "@/components/products-filter"
+import { PaginationControl } from "@/components/ui/pagination-control"
 import { Loader2 } from "lucide-react"
 
 export default function ProductsPage() {
@@ -16,6 +17,7 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
 
   const itemsPerPage = 12
 
@@ -64,11 +66,15 @@ export default function ProductsPage() {
 
         if (response?.products && Array.isArray(response.products)) {
           setProducts(response.products)
-          setTotalPages(Math.ceil(response.total / itemsPerPage))
+          setTotalProducts(response.total || 0)
+          const pages = Math.max(1, Math.ceil((response.total || 0) / itemsPerPage))
+          console.log(`Total products: ${response.total}, Pages: ${pages}`)
+          setTotalPages(pages)
         } else {
           console.error("Invalid API response format:", response)
           setProducts([])
           setTotalPages(1)
+          setTotalProducts(0)
         }
 
         setLoading(false)
@@ -77,12 +83,19 @@ export default function ProductsPage() {
         setError("Failed to load products. Please try again.")
         setProducts([])
         setTotalPages(1)
+        setTotalProducts(0)
         setLoading(false)
       }
     }
 
     fetchProducts()
   }, [categoryId, minPrice, maxPrice, minRating, sortBy, currentPage])
+
+  const handlePageChange = (page: number) => {
+    console.log(`Changing to page ${page}`)
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="container py-8">
@@ -94,13 +107,13 @@ export default function ProductsPage() {
         </div>
 
         <div className="lg:col-span-3">
-          {loading ? (
+          {loading && currentPage === 1 ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-2">Loading products...</span>
             </div>
           ) : error ? (
-            <div className="bg-red-50 text-red-600 p-4 rounded-md">{error}</div>
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl">{error}</div>
           ) : !Array.isArray(products) || products.length === 0 ? (
             <div className="text-center py-12">
               <h2 className="text-xl font-medium mb-2">No products found</h2>
@@ -113,38 +126,25 @@ export default function ProductsPage() {
                   <ProductCard key={product.product_id} product={product} />
                 ))}
               </div>
-
-              {totalPages > 1 && (
+              
+              {loading && currentPage > 1 && (
                 <div className="flex justify-center mt-8">
-                  <nav className="flex items-center gap-1">
-                    <button
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 rounded border disabled:opacity-50"
-                    >
-                      Previous
-                    </button>
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
 
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1 rounded ${
-                          currentPage === page ? "bg-primary text-primary-foreground" : "border hover:bg-muted"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1 rounded border disabled:opacity-50"
-                    >
-                      Next
-                    </button>
-                  </nav>
+              {/* Always show pagination control as long as we have products */}
+              {!loading && products.length > 0 && (
+                <div className="mt-8">
+                  <PaginationControl 
+                    currentPage={currentPage}
+                    totalPages={Math.max(1, totalPages)}
+                    onPageChange={handlePageChange}
+                    loading={loading}
+                  />
+                  <div className="text-center text-sm text-gray-500 mt-2">
+                    Showing {products.length} of {totalProducts} products
+                  </div>
                 </div>
               )}
             </>

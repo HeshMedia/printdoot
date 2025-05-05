@@ -10,13 +10,13 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/products/${product.product_id}`}>
-      <div className="product-card h-full flex flex-col">
+      <div className="product-card rounded-xl h-full flex flex-col">
         <div className="relative h-48 overflow-hidden">
           <Image
             src={product.main_image_url || "/placeholder.svg?height=300&width=300"}
             alt={product.name}
             fill
-            className="object-cover"
+            className="object-cover rounded-xl"
           />
         </div>
         <div className="p-4 flex-1 flex flex-col">

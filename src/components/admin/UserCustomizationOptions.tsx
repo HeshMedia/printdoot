@@ -1,4 +1,3 @@
-// components/product/UserCustomizationOptions.tsx
 "use client"
 
 import { UserCustomizationOption } from "@/lib/api/admin/categories"
