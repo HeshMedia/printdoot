@@ -87,8 +87,10 @@ export const urlToBase64 = async (url: string): Promise<{ base64: string; extens
 };
 
 export const productsApi = {
+  
+  
   // ✅ Used for basic product fetching
-  async getProducts(skip = 0, limit = 10): Promise<{ products: Product[]; total: number }> {
+  async getProducts(skip = 0, limit = 0): Promise<{ products: Product[]; total: number }> {
     const response = await fetch(`${config.apiUrl}/products?skip=${skip}&limit=${limit}`);
     if (!response.ok) throw new Error("Failed to fetch products");
     return response.json(); // returns { products, total }

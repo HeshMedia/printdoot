@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { categoriesApi, type Category } from "@/lib/api/admin/categories"
 import { productsApi, type Product } from "@/lib/api/admin/products"
 import { CouponResponse, CouponCreate, CouponUpdate } from "@/lib/api/admin/coupons"
-import { Loader2, AlertTriangle } from "lucide-react"
+import { Loader2, AlertTriangle, Search } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface CouponFormProps {
@@ -27,11 +27,14 @@ export default function CouponForm({
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [productSearchQuery, setProductSearchQuery] = useState("")
   const [loadingDropdowns, setLoadingDropdowns] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<number[]>(initialData?.applicable_categories || [])
   const [selectedProducts, setSelectedProducts] = useState<string[]>(initialData?.applicable_products || [])
   const [expiryDate, setExpiryDate] = useState<string>("")
+  const [isFocused, setIsFocused] = useState(false);
 
   // Initialize form data based on whether we're editing or creating
   // Note: active status is included for both create and edit now
@@ -47,7 +50,7 @@ export default function CouponForm({
         }
       : {
           code: "",
-          discount_percentage: 10,
+          discount_percentage: 0,
           applicable_categories: undefined,
           applicable_products: undefined,
           active: 1, // Default to active
@@ -73,29 +76,47 @@ export default function CouponForm({
   }, [initialData])
 
   // Fetch categories and products for dropdowns
+// In your CouponForm component, modify the fetchData function in the useEffect:
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoadingDropdowns(true)
+      setFetchError(null)
+      
+      // Fetch categories
+      const categoriesData = await categoriesApi.getCategories()
+      setCategories(categoriesData.categories || [])
+      
+      // Fetch all products (up to 1000) like in the Products page
+      const productsData = await productsApi.getProducts(0, 1000) // Fetch up to 1000 products
+      setProducts(productsData.products || [])
+      setFilteredProducts(productsData.products || [])
+    } catch (err) {
+      console.error("Failed to fetch form data:", err)
+      setFetchError("Failed to load categories and products. Please refresh to try again.")
+    } finally {
+      setLoadingDropdowns(false)
+    }
+  }
+  
+  fetchData()
+}, [])
+
+  // Filter products based on search query
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoadingDropdowns(true)
-        setFetchError(null)
-        
-        // Fetch categories
-        const categoriesData = await categoriesApi.getCategories()
-        setCategories(categoriesData.categories || [])
-        
-        // Fetch products
-        const productsData = await productsApi.getProducts()
-        setProducts(productsData.products || [])
-      } catch (err) {
-        console.error("Failed to fetch form data:", err)
-        setFetchError("Failed to load categories and products. Please refresh to try again.")
-      } finally {
-        setLoadingDropdowns(false)
-      }
+    if (!productSearchQuery.trim()) {
+      setFilteredProducts(products)
+      return
     }
     
-    fetchData()
-  }, [])
+    const query = productSearchQuery.toLowerCase()
+    const filtered = products.filter(product => 
+      product.name.toLowerCase().includes(query) || 
+      product.description?.toLowerCase().includes(query)
+    )
+    setFilteredProducts(filtered)
+  }, [productSearchQuery, products])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target
@@ -278,7 +299,7 @@ export default function CouponForm({
               type="number"
               min="1"
               max="100"
-              value={formData.discount_percentage}
+              value={formData.discount_percentage || ""}
               onChange={handleInputChange}
               required
               className="pr-10"
@@ -296,11 +317,13 @@ export default function CouponForm({
           </Label>
           <Input
             id="expires_at"
-            type="date"
-            value={expiryDate}
+            type={isFocused ? "date" : "text"}
+            value={expiryDate || ""}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(expiryDate ? true : false)}
             onChange={handleExpiryDateChange}
             className="mt-1"
-            min={today} // Prevent setting past dates
+            min={today}
           />
           <p className="text-xs text-gray-500 mt-1">
             Leave blank for no expiry date.
@@ -344,7 +367,7 @@ export default function CouponForm({
                       id={`category-${category.id}`}
                       checked={selectedCategories.includes(category.id)}
                       onChange={() => handleCategoryChange(category.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <Label
                       htmlFor={`category-${category.id}`}
@@ -363,21 +386,34 @@ export default function CouponForm({
             </p>
           </div>
 
-          {/* Applicable Products */}
+          {/* Applicable Products with Search Bar */}
           <div>
             <Label className="text-sm font-medium text-gray-700 block mb-2">
               Applicable Products
             </Label>
+            
+            {/* Search input */}
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={productSearchQuery}
+                onChange={(e) => setProductSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
             <div className="space-y-2 max-h-60 overflow-y-auto p-2 border rounded-xl">
-              {products.length > 0 ? (
-                products.map((product) => (
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
                   <div key={product.product_id} className="flex items-center">
                     <input
                       type="checkbox"
                       id={`product-${product.product_id}`}
                       checked={selectedProducts.includes(product.product_id)}
                       onChange={() => handleProductChange(product.product_id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <Label
                       htmlFor={`product-${product.product_id}`}
@@ -387,6 +423,8 @@ export default function CouponForm({
                     </Label>
                   </div>
                 ))
+              ) : productSearchQuery ? (
+                <p className="text-sm text-gray-500 p-2">No products match your search.</p>
               ) : (
                 <p className="text-sm text-gray-500 p-2">No products available.</p>
               )}
@@ -394,6 +432,11 @@ export default function CouponForm({
             <p className="text-xs text-gray-500 mt-1">
               Leave all unchecked to apply to all products.
             </p>
+            {filteredProducts.length > 0 && productSearchQuery && (
+              <p className="text-xs text-blue-600 mt-1">
+                Showing {filteredProducts.length} of {products.length} products
+              </p>
+            )}
           </div>
         </div>
       )}

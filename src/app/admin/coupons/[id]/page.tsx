@@ -115,7 +115,7 @@ export default function CouponDetailsPage() {
           className="mr-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Coupons
+ 
         </Button>
         <h1 className="text-3xl font-bold flex-1">Coupon Details</h1>
       </div>

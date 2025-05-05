@@ -72,10 +72,10 @@ export default function EditCouponPage() {
         <Button 
           variant="outline" 
           onClick={() => router.push(`/admin/coupons/${id}`)}
-          className="mr-4"
+          className="mr-4 "
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Coupon Details
+          <ArrowLeft className="h-4 w-4 " />
+   
         </Button>
         <h1 className="text-3xl font-bold flex-1">Edit Coupon</h1>
       </div>
