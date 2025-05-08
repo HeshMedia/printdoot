@@ -22,8 +22,7 @@ export default function NewArrivalsPage() {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      // Note: You need to implement the get method for new arrivals in your API
-      const data = await fetch(`${PUBLIC_BASE_URL}/newarrivals`).then((res) => res.json())
+      const data = await newarrivalsApi.get()
       setProducts(data.products)
     } catch (error) {
       console.error("Error fetching new arrivals products:", error)
@@ -65,8 +64,7 @@ export default function NewArrivalsPage() {
   const handleRemoveProduct = async (productId: string) => {
     setIsLoading(true)
     try {
-      // Note: You need to implement the remove method for new arrivals in your API
-      await fetch(`${BASE_URL}/newarrivals/${productId}`, { method: "DELETE" })
+      await newarrivalsApi.remove(productId)
       toast({
         title: "Success",
         description: "Product removed from new arrivals section",

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { categoriesApi, Category } from "@/lib/api/admin/categories";
+import Image from "next/image";
 
 const BrowseCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -50,10 +51,12 @@ const BrowseCategories = () => {
                 {/* Image */}
                 <div className="w-full h-52 bg-gray-100 flex items-center justify-center">
                   {category.image_url ? (
-                    <img
+                    <Image
                       src={category.image_url}
                       alt={category.name}
                       className="w-full h-full object-cover"
+                      width={200}
+                      height={200}
                     />
                   ) : (
                     <span className="text-gray-400 text-sm">No image</span>

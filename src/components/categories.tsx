@@ -111,7 +111,7 @@ export default function Categories() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Link 
-                    href={`/categories/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={`/products?category=${category.id}`}
                     className="group"
                     onMouseEnter={() => setActiveCategory(category.name)}
                     onMouseLeave={() => setActiveCategory(null)}

@@ -22,8 +22,7 @@ export default function TrendingPage() {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      // Note: You need to implement the get method for trending in your API
-      const data = await fetch(`${PUBLIC_BASE_URL}/trending`).then((res) => res.json())
+      const data = await trendingApi.get()
       setProducts(data.products)
     } catch (error) {
       console.error("Error fetching trending products:", error)
@@ -65,8 +64,7 @@ export default function TrendingPage() {
   const handleRemoveProduct = async (productId: string) => {
     setIsLoading(true)
     try {
-      // Note: You need to implement the remove method for trending in your API
-      await fetch(`${BASE_URL}/trending/${productId}`, { method: "DELETE" })
+      await trendingApi.remove(productId)
       toast({
         title: "Success",
         description: "Product removed from trending section",

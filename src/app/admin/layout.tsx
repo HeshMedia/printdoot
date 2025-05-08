@@ -13,6 +13,7 @@ import {
   Heart,
   Ticket,
   PanelBottomDashed,
+  Image as ImageIcon
 } from "lucide-react"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -62,6 +63,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           >
             <PanelBottomDashed className="w-5 h-5 mr-3" />
             Text Banner
+          </Link>
+          <Link
+            href="/admin/featured/image-banner"
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+          >
+            <ImageIcon className="w-5 h-5 mr-3" />
+            Image Banner
           </Link>
           <Link href="/admin/featured/onsale" className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100">
             <Zap className="w-5 h-5 mr-3" />

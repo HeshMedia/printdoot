@@ -16,8 +16,8 @@ export default function BestSellers() {
     const fetchProducts = async () => {
       try {
         const data = await bestsellingApi.get()
-        // Take only 6 products
-        setProducts(data.products.slice(0, 6))
+        // Take only 4 products
+        setProducts(data.products.slice(0, 4))
       } catch (error) {
         console.error("Error fetching bestselling products:", error)
       } finally {
@@ -29,24 +29,24 @@ export default function BestSellers() {
   }, [])
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-6 sm:py-10 bg-white">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-4 sm:mb-6">
           <motion.div
-            className="w-full max-w-lg text-center mb-3"
+            className="w-full max-w-lg text-center mb-2 sm:mb-3"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl font-bold mb-2">Bestselling Products</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Bestselling Products</h2>
             <div className="flex items-center justify-center w-full">
-              <div className="h-1 w-16 bg-[#60B5FF] rounded-full mx-2"></div>
-              <div className="h-1 w-32 bg-[#60B5FF] opacity-50 rounded-full"></div>
+              <div className="h-1 w-12 sm:w-16 bg-[#60B5FF] rounded-full mx-2"></div>
+              <div className="h-1 w-24 sm:w-32 bg-[#60B5FF] opacity-50 rounded-full"></div>
             </div>
           </motion.div>
           <motion.p
-            className="text-gray-600 max-w-md text-center mb-5 text-sm"
+            className="text-gray-600 max-w-md text-center mb-3 sm:mb-5 text-xs sm:text-sm"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -56,11 +56,11 @@ export default function BestSellers() {
           </motion.p>
         </div>
 
-        {/* Product Grid - Reduced size with more compact spacing */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        {/* Product Grid - Optimized for 4 products */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4">
           {isLoading
-            ? Array(6).fill(0).map((_, i) => (
-                <div key={i} className="animate-pulse rounded-xl bg-gray-100 h-44"></div>
+            ? Array(4).fill(0).map((_, i) => (
+                <div key={i} className="animate-pulse rounded-xl bg-gray-100 h-36 sm:h-44"></div>
               ))
             : products.map((product, index) => (
                 <motion.div
@@ -77,6 +77,7 @@ export default function BestSellers() {
                         src={product.main_image_url || "/placeholder.svg"}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       
@@ -102,14 +103,14 @@ export default function BestSellers() {
                     </div>
                     
                     <div className="p-2">
-                      <h3 className="font-medium text-sm line-clamp-1 group-hover:text-[#60B5FF] transition-colors">{product.name}</h3>
+                      <h3 className="font-medium text-xs sm:text-sm line-clamp-1 group-hover:text-[#60B5FF] transition-colors">{product.name}</h3>
                       <div className="flex justify-between items-center mt-1">
-                        <span className="font-bold text-[#60B5FF] text-sm">
+                        <span className="font-bold text-[#60B5FF] text-xs sm:text-sm">
                           ₹{product.price.toFixed(2)}
                         </span>
                         <div className="flex items-center">
-                          <Star className="h-3 w-3 fill-yellow-400 stroke-yellow-400 mr-0.5" />
-                          <span className="text-xs">{product.average_rating.toFixed(1)}</span>
+                          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-yellow-400 stroke-yellow-400 mr-0.5" />
+                          <span className="text-[10px] sm:text-xs">{product.average_rating.toFixed(1)}</span>
                         </div>
                       </div>
                     </div>
@@ -118,21 +119,21 @@ export default function BestSellers() {
               ))}
         </div>
 
-        {/* Explore Button - More compact */}
+        {/* Explore Button - Fixed position to always be visible */}
         <motion.div
-          className="flex justify-center mt-6"
+          className="flex justify-center mt-3 sm:mt-6 sticky bottom-4 sm:relative sm:bottom-0 z-10"
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Button 
-            className="rounded-full bg-[#60B5FF] hover:bg-[#4da8f7] text-white px-6 py-2 text-sm flex items-center group"
+            className="rounded-full bg-[#60B5FF] hover:bg-[#4da8f7] text-white px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm flex items-center group shadow-md sm:shadow-none"
             asChild
           >
             <Link href="/featured/bestselling">
               Explore All Bestsellers
-              <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="ml-1 sm:ml-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Button>
         </motion.div>

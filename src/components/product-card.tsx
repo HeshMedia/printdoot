@@ -16,6 +16,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={product.main_image_url || "/placeholder.svg?height=300&width=300"}
             alt={product.name}
             fill
+            priority
             className="object-cover rounded-xl"
           />
         </div>
