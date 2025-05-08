@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/lib/context/cart-context"
 import { useUser } from "@/lib/context/user-context"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -47,9 +53,9 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
 
-            <Link href="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="PRINTDOOT Logo" className="w-[12rem]" />
-            </Link>
+          <Link href="/" className="flex items-center space-x-2">
+            <img src="/logo.png" alt="PRINTDOOT Logo" className="w-[12rem]" />
+          </Link>
 
           <div className="hidden md:flex md:w-[300px] lg:w-[400px]">
             <div className="relative w-full">
@@ -77,32 +83,59 @@ export default function Navbar() {
             <span className="sr-only">Search</span>
           </Button>
 
-          <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-              <span className="sr-only">Cart</span>
-            </Button>
-          </Link>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/cart">
+                  <Button variant="ghost" size="icon" className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {totalItems > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {totalItems}
+                      </span>
+                    )}
+                    <span className="sr-only">Cart</span>
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-black">Shopping Cart</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {user ? (
-            <Link href="/account">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
-              </Button>
-            </Link>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/account">
+                    <Button variant="ghost" size="icon">
+                      <User className="h-5 w-5" />
+                      <span className="sr-only">Account</span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>My Account</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
-            <Link href="/login">
-              <Button variant="ghost" size="icon">
-                <LogIn className="h-5 w-5" />
-                <span className="sr-only">Login</span>
-              </Button>
-            </Link>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/login">
+                    <Button variant="ghost" size="icon">
+                      <LogIn className="h-5 w-5" />
+                      <span className="sr-only">Login</span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-black">Sign In</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
@@ -118,4 +151,3 @@ export default function Navbar() {
     </header>
   )
 }
-

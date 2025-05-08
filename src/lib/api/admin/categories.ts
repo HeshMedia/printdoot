@@ -36,7 +36,8 @@ export const categoriesApi = {
       throw new Error("Failed to fetch categories");
     }
 
-    return response.json(); // expected: { categories: [...], total: number }
+    console.log ("Categories response:", response);
+    return response.json();
   },
 
   /**

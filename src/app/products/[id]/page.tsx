@@ -349,42 +349,42 @@ export default function ProductDetailPage() {
         </TabsContent>
 
         {hasCustomization && category && (
-  <TabsContent value="customization" className="p-6 rounded-b-lg">
-    <h3 className="text-lg font-medium mb-4">Available Options</h3>
-    {Object.entries(category.allowed_customizations).map(([key, opts]) => (
-      <div key={key} className="mb-4">
-        <h5 className="block text-sm font-semibold text-gray-700 capitalize">{key}</h5>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {Object.entries(opts).map(([value, extraValue], i) => (
-            <div
-              key={i}
-              className="group relative px-3 py-1 rounded-full text-sm border transition-all duration-200 bg-gray-100 text-gray-700 border-gray-300 cursor-pointer"
-            >
-              {key.toLowerCase() === "color" ? (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: extraValue as string }}
-                  />
-                  <span>{value}</span>
-                </div>
-              ) : key.toLowerCase() === "size" ? (
-                <div className="flex flex-col items-center transition-all duration-200 group-hover:scale-110">
-                  <span className="font-medium">{value}</span>
-                  <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {extraValue}
-                  </span>
-                </div>
-              ) : (
-                <span>{value}</span>
-              )}
+        <TabsContent value="customization" className="p-6 rounded-b-lg">
+          <h3 className="text-lg font-medium mb-4">Available Options</h3>
+          {Object.entries(category.allowed_customizations).map(([key, opts]) => (
+            <div key={key} className="mb-4">
+              <h5 className="block text-sm font-semibold text-gray-700 capitalize">{key}</h5>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {Object.entries(opts).map(([value, extraValue], i) => (
+                  <div
+                    key={i}
+                    className="group relative px-3 py-1 rounded-full text-sm border transition-all duration-200 bg-gray-100 text-gray-700 border-gray-300 cursor-pointer"
+                  >
+                    {key.toLowerCase() === "color" ? (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-4 h-4 rounded-full border"
+                          style={{ backgroundColor: extraValue as string }}
+                        />
+                        <span>{value}</span>
+                      </div>
+                    ) : key.toLowerCase() === "size" ? (
+                      <div className="flex flex-col items-center transition-all duration-200 group-hover:scale-110">
+                        <span className="font-medium">{value}</span>
+                        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {extraValue}
+                        </span>
+                      </div>
+                    ) : (
+                      <span>{value}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
-        </div>
-      </div>
-    ))}
-  </TabsContent>
-)}
+        </TabsContent>
+      )}
 
         <TabsContent value="reviews" className="p-6 rounded-xl">
           <ProductReviews productId={product.product_id} reviews={reviews} />

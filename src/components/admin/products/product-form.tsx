@@ -7,7 +7,7 @@ import { ProductInfoForm } from "@/components/admin/products/new/ProductInfoForm
 import { CustomizationOptions } from "@/components/admin/products/new/CustomizationOptions";
 import { ProductImagesForm } from "@/components/admin/products/new/ProductImagesForm";
 import { FormButtons } from "@/components/admin/products/new/FormButtons";
-import { productsApi, fileToBase64, urlToBase64 } from "@/lib/api/admin/products";
+import { productsApi,  urlToBase64 } from "@/lib/api/admin/products";
 import { categoriesApi, Category } from "@/lib/api/admin/categories";
 
 interface ProductFormProps {
@@ -101,6 +101,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       },
     }));
   };
+
 
   const handleBulkPriceChange = (
     index: number,
@@ -278,25 +279,73 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           // If a new main image was selected, use the file directly
           await productsApi.updateProductImages(productId || initialData.product_id, mainImage, sideImages);
         } else if (mainImagePreview) {
-          // If we're using the existing images from cloudfront, just proceed without uploading
-          // This prevents CORS issues when trying to fetch the images for base64 conversion
-          if (initialData.main_image_url && !sideImages.length) {
-            // Skip image upload if we're using existing cloudfront images and not adding new side images
-            setUploadProgress(100);
-            clearInterval(interval);
-            setStep(3);
-            setTimeout(() => router.push("/admin/products"), 800);
-            return;
-          }
-          
-          // If adding new side images only, update just those
-          if (sideImages.length > 0) {
-            try {
-              await productsApi.updateSideImagesOnly(productId || initialData.product_id, sideImages);
-            } catch (err) {
-              console.error("Failed to update side images:", err);
-              throw new Error("Failed to update side images. Please try again.");
+          // If we're using the existing image from cloudfront, convert URL to base64
+          try {
+            // Convert the cloudfront URL to base64
+            const mainImageData = await urlToBase64(mainImagePreview);
+            
+            // Handle side images - convert existing URLs to base64, use files directly for new ones
+            let processedSideImages: File[] = [];
+            let sideImagesBase64: string[] = [];
+            let sideImagesExtensions: string[] = [];
+            
+            // Process side images - for each preview, check if it's a new file or an existing URL
+            for (let i = 0; i < sideImagePreviews.length; i++) {
+              const preview = sideImagePreviews[i];
+              // Check if this is one of our newly added files
+              const correspondingFile = sideImages.find((_, index) => 
+                sideImagePreviews.indexOf(preview) === index && 
+                preview.startsWith('blob:') // blob URLs are from new files
+              );
+              
+              if (correspondingFile) {
+                // This is a new file, add it to processed files
+                processedSideImages.push(correspondingFile);
+              } else {
+                // This is an existing URL, convert to base64
+                const sideImageData = await urlToBase64(preview);
+                sideImagesBase64.push(sideImageData.base64);
+                sideImagesExtensions.push(sideImageData.extension);
+              }
             }
+            
+            if (processedSideImages.length > 0) {
+              // If we have new side image files, use the updateProductImages method
+              if (mainImage) {
+                // If main image is a File object
+                await productsApi.updateProductImages(productId || initialData.product_id, mainImage, processedSideImages);
+              } else {
+                // If main image is a URL converted to base64
+                await productsApi.updateProductImagesFromBase64(
+                  productId || initialData.product_id,
+                  mainImageData.base64,
+                  mainImageData.extension,
+                  sideImagesBase64,
+                  sideImagesExtensions
+                );
+              }
+            } else if (sideImagesBase64.length > 0) {
+              // If we only have existing URLs for side images
+              await productsApi.updateProductImagesFromBase64(
+                productId || initialData.product_id,
+                mainImageData.base64,
+                mainImageData.extension,
+                sideImagesBase64,
+                sideImagesExtensions
+              );
+            } else {
+              // If we're only updating the main image
+              await productsApi.updateProductImagesFromBase64(
+                productId || initialData.product_id,
+                mainImageData.base64,
+                mainImageData.extension,
+                [],
+                []
+              );
+            }
+          } catch (err) {
+            console.error("Failed to convert image URL to base64:", err);
+            throw new Error("Failed to process images. Please try uploading them directly.");
           }
         } else {
           setError("Main image is required.");

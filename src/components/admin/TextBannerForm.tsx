@@ -119,7 +119,7 @@ export function TextBannerForm({ banner, isEditing = false, onSuccess }: TextBan
         onSuccess()
       } else {
         // Navigate back to list page
-        router.push("/admin/text-banners")
+        router.push("/admin/featured/text-banner")
       }
       
     } catch (err) {

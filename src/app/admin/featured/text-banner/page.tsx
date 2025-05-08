@@ -64,14 +64,14 @@ export default function TextBannersPage() {
             disabled={isLoading || isRefreshing}
             className="relative"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`h-4 w-4  ${isRefreshing ? "animate-spin" : ""}`} />
+          
           </Button>
           
           <Button asChild>
             <Link href="/admin/featured/text-banner/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Banner
+              <Plus className="h-4 w-4 " />
+             
             </Link>
           </Button>
         </div>

@@ -1,20 +1,24 @@
 import { config } from "../config"
+import { Category } from "@/lib/api/admin/categories"
 
-export type UserCustomizationOption = "text" | "image" | "color"
 
-export interface Category {
-  id: number
-  name: string
-  allowed_customizations: Record<string, string[]>
-  user_customization_options: UserCustomizationOption[]
-}
+
 
 export const categoriesApi = {
-  async getCategories(): Promise<{ total: number; categories: Category[] }> {
-    const response = await fetch(`${config.apiUrl}/categories`)
+  /**
+   * Fetch the list of categories from the server
+   * GET /categories
+   */
+  async getCategories(): Promise<{ categories: Category[]; total: number }> {
+    const response = await fetch(`${config.apiUrl}/categories`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+
     if (!response.ok) {
-      throw new Error("Failed to fetch categories")
+      throw new Error("Failed to fetch categories");
     }
-    return response.json()
+
+    return response.json();
   },
 }
