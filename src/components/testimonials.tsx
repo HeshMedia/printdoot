@@ -7,20 +7,20 @@ import { motion } from "framer-motion"
 const testimonials = [
   {
     id: 1,
-    name: "John Doe",
+    name: "Tushi Dhingra",
     role: "abcd",
     rating: 4.5,
     content:
-      "Jorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.",
+      "User-friendly platform with great customer support. \n Printdoot made it incredibly easy to design and order custom items. Their design tools are intuitive, and when I had a question about image resolution, the support team responded quickly and helpfully. The final products looked exactly how I envisioned them!",
     avatar: "/placeholder.svg?height=100&width=100",
   },
   {
     id: 2,
-    name: "John Doe",
+    name: "AshBoi Soni",
     role: "abcd",
     rating: 5,
     content:
-      "Jorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.",
+      "🌟 Amazing quality and seamless experience!\n I ordered a set of custom mugs and t-shirts from Printdoot, and I’m genuinely impressed with the print clarity and fabric quality. The customization process was super easy, and everything arrived right on time. Highly recommended for personal gifts or small business branding!",
     avatar: "/placeholder.svg?height=100&width=100",
   },
 ]
@@ -54,14 +54,7 @@ export default function Testimonials() {
               <p className="mb-6 text-foreground/80">{testimonial.content}</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                    <Image
-                      src={testimonial.avatar || "/placeholder.svg"}
-                      alt={testimonial.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+               
                   <div>
                     <h4 className="font-medium">{testimonial.name}</h4>
                     <p className="text-sm text-muted-foreground">{testimonial.role}</p>
