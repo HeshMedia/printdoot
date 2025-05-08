@@ -1,14 +1,16 @@
 import { config } from "../config"
-import { Category } from "@/lib/api/admin/categories"
 
-
+// Returned Category object from API
+export interface Category {
+  id: number;
+  name: string;
+  allowed_customizations: Record<string, Record<string, string>>;
+  image_url: string;            
+}
 
 
 export const categoriesApi = {
-  /**
-   * Fetch the list of categories from the server
-   * GET /categories
-   */
+
   async getCategories(): Promise<{ categories: Category[]; total: number }> {
     const response = await fetch(`${config.apiUrl}/categories`, {
       method: "GET",
