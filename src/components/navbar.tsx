@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, Search, ShoppingCart, User, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,7 +55,14 @@ export default function Navbar() {
           </Sheet>
 
           <Link href="/" className="flex items-center space-x-2">
-            <img src="/logo.png" alt="PRINTDOOT Logo" className="w-[12rem]" />
+            <Image 
+              src="/logo.png" 
+              alt="PRINTDOOT Logo" 
+              width={192}
+              height={48}
+              style={{ height: 'auto' }}
+              priority
+            />
           </Link>
 
           <div className="hidden md:flex md:w-[300px] lg:w-[400px]">

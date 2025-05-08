@@ -7,7 +7,9 @@ import { categoriesApi, type Category } from "@/lib/api/categories"
 import ProductCard from "@/components/product-card"
 import ProductsFilter from "@/components/products-filter"
 import { PaginationControl } from "@/components/ui/pagination-control"
-import { Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
+import { FilterX, SlidersHorizontal, Loader2 } from "lucide-react"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -18,6 +20,7 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalProducts, setTotalProducts] = useState(0)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const itemsPerPage = 12
 
@@ -26,6 +29,10 @@ export default function ProductsPage() {
   const maxPrice = searchParams.get("max_price") ? Number.parseFloat(searchParams.get("max_price")!) : undefined
   const minRating = searchParams.get("min_rating") ? Number.parseFloat(searchParams.get("min_rating")!) : undefined
   const sortBy = searchParams.get("sort_by") || undefined
+
+  const hasActiveFilters = categoryId !== undefined || minPrice !== undefined || 
+                          maxPrice !== undefined || minRating !== undefined || 
+                          sortBy !== undefined
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -99,10 +106,42 @@ export default function ProductsPage() {
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Products</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl font-bold">Products</h1>
+        
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          {hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                window.location.href = "/products";
+              }}
+              className="flex items-center gap-1"
+            >
+              <FilterX size={16} />
+              <span>Clear</span>
+            </Button>
+          )}
+          
+          <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="block lg:hidden">
+                <SlidersHorizontal size={16} className="mr-2" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[85%] sm:max-w-md overflow-y-auto">
+              <div className="py-6 pr-6">
+                <ProductsFilter categories={categories} closeSheet={() => setIsFilterOpen(false)} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1">
+        <div className="hidden lg:block lg:col-span-1">
           <ProductsFilter categories={categories} />
         </div>
 
@@ -133,7 +172,6 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              {/* Always show pagination control as long as we have products */}
               {!loading && products.length > 0 && (
                 <div className="mt-8">
                   <PaginationControl 

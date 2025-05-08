@@ -8,7 +8,7 @@ const testimonials = [
   {
     id: 1,
     name: "Tushi Dhingra",
-    role: "abcd",
+    role: "250 ka sasta Backend Developer",
     rating: 4.5,
     content:
       "User-friendly platform with great customer support. \n Printdoot made it incredibly easy to design and order custom items. Their design tools are intuitive, and when I had a question about image resolution, the support team responded quickly and helpfully. The final products looked exactly how I envisioned them!",
@@ -17,7 +17,7 @@ const testimonials = [
   {
     id: 2,
     name: "AshBoi Soni",
-    role: "abcd",
+    role: "Chuda hua Backend Developer",
     rating: 5,
     content:
       "🌟 Amazing quality and seamless experience!\n I ordered a set of custom mugs and t-shirts from Printdoot, and I’m genuinely impressed with the print clarity and fabric quality. The customization process was super easy, and everything arrived right on time. Highly recommended for personal gifts or small business branding!",

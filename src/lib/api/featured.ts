@@ -163,7 +163,36 @@ export const trendingApi = {
 
     return response.json();
   },
-  // ... get and remove methods
+  
+  get: async (limit = 6, skip = 0): Promise<FeaturedProductsResponse> => {
+    const url = `${PUBLIC_BASE_URL}/trending?limit=${limit}&skip=${skip}`;
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trending products');
+    }
+
+    return response.json();
+  },
+
+  remove: async (productId: string): Promise<void> => {
+    const url = `${BASE_URL}/trending/${productId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to remove trending product');
+    }
+
+    if (response.status !== 204) {
+      return response.json();
+    }
+  },
 };
 
 // Newarrivals API (same pattern)
@@ -186,7 +215,36 @@ export const newarrivalsApi = {
 
     return response.json();
   },
-  // ... get and remove methods
+  
+  get: async (limit = 6, skip = 0): Promise<FeaturedProductsResponse> => {
+    const url = `${PUBLIC_BASE_URL}/newarrivals?limit=${limit}&skip=${skip}`;
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch new arrivals products');
+    }
+
+    return response.json();
+  },
+
+  remove: async (productId: string): Promise<void> => {
+    const url = `${BASE_URL}/newarrivals/${productId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to remove new arrivals product');
+    }
+
+    if (response.status !== 204) {
+      return response.json();
+    }
+  },
 };
 
 // ShopByNeed API

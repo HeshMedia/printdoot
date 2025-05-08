@@ -27,7 +27,8 @@ export default function ShopByNeedSection() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [page, setPage] = useState(0)
   const [totalProducts, setTotalProducts] = useState(0)
-  const limit = 6
+  // Adjusting to show more products in a row
+  const limit = 8
 
   useEffect(() => {
     const fetchNeeds = async () => {
@@ -181,14 +182,14 @@ export default function ShopByNeedSection() {
                   </div>
 
                   {isLoadingProducts ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {Array(4).fill(0).map((_, i) => (
-                        <div key={i} className="animate-pulse bg-gray-100 rounded-xl h-64 aspect-[3/4]"></div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+                      {Array(8).fill(0).map((_, i) => (
+                        <div key={i} className="animate-pulse bg-gray-100 rounded-xl h-40 sm:h-48 md:h-52"></div>
                       ))}
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-6">
                         {products.length === 0 ? (
                           <div className="col-span-full text-center py-8">
                             <p className="text-gray-500">No products found for this need.</p>
@@ -209,6 +210,7 @@ export default function ShopByNeedSection() {
                                     src={product.main_image_url || "/placeholder.svg"}
                                     alt={product.name}
                                     fill
+                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                                   />
                                   
@@ -220,28 +222,28 @@ export default function ShopByNeedSection() {
                                   </div>
                                   
                                   {/* Quick action overlay */}
-                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                                     <motion.button 
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.95 }}
-                                      className="bg-white rounded-full p-2"
+                                      className="bg-white rounded-full p-1.5"
                                       aria-label="Quick view"
                                     >
-                                      <Eye className="h-4 w-4 text-gray-800" />
+                                      <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-800" />
                                     </motion.button>
                                     <motion.button 
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.95 }}
-                                      className="bg-[#8A4FFF] rounded-full p-2"
+                                      className="bg-[#8A4FFF] rounded-full p-1.5"
                                       aria-label="Add to cart"
                                     >
-                                      <ShoppingCart className="h-4 w-4 text-white" />
+                                      <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                                     </motion.button>
                                   </div>
                                 </div>
                                 
-                                <div className="p-3">
-                                  <h3 className="font-medium text-sm line-clamp-1 group-hover:text-[#8A4FFF] transition-colors">
+                                <div className="p-2 sm:p-3">
+                                  <h3 className="font-medium text-xs sm:text-sm line-clamp-1 group-hover:text-[#8A4FFF] transition-colors">
                                     {product.name}
                                   </h3>
                                   
@@ -250,27 +252,27 @@ export default function ShopByNeedSection() {
                                     {[1, 2, 3, 4, 5].map((star) => (
                                       <Star
                                         key={star}
-                                        className={`h-3 w-3 ${
+                                        className={`h-2.5 w-2.5 sm:h-3 sm:w-3 ${
                                           star <= Math.round(product.average_rating)
                                             ? "text-yellow-400 fill-yellow-400"
                                             : "text-gray-300"
                                         }`}
                                       />
                                     ))}
-                                    <span className="text-xs text-gray-500 ml-1">
+                                    <span className="text-[10px] sm:text-xs text-gray-500 ml-1">
                                       ({product.average_rating.toFixed(1)})
                                     </span>
                                   </div>
                                   
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="font-bold text-[#8A4FFF]">
+                                  <div className="flex justify-between items-center mt-1 sm:mt-2">
+                                    <span className="font-bold text-[#8A4FFF] text-xs sm:text-sm">
                                       ₹{product.price.toFixed(2)}
                                     </span>
                                     <Button 
                                       size="sm" 
-                                      className="h-7 bg-[#8A4FFF] hover:bg-[#7A3FEF] text-white rounded-full text-xs"
+                                      className="h-6 sm:h-7 px-2 sm:px-3 bg-[#8A4FFF] hover:bg-[#7A3FEF] text-white rounded-full text-[10px] sm:text-xs"
                                     >
-                                      Add to Cart
+                                      Add
                                     </Button>
                                   </div>
                                 </div>
@@ -279,78 +281,78 @@ export default function ShopByNeedSection() {
                           ))
                         )}
                       </div>
-
-                      {/* Pagination controls */}
-                      {totalProducts > limit && (
-                        <div className="flex justify-center items-center mt-8 gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(0)}
-                            disabled={page === 0}
-                            className="h-8 w-8"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            <ChevronLeft className="h-4 w-4 -ml-2" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(page - 1)}
-                            disabled={page === 0}
-                            className="h-8 w-8"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </Button>
-                          
-                          <div className="flex items-center mx-2">
-                            <span className="text-sm font-medium">
-                              Page {page + 1} of {totalPages}
-                            </span>
-                          </div>
-                          
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(page + 1)}
-                            disabled={(page + 1) * limit >= totalProducts}
-                            className="h-8 w-8"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(totalPages - 1)}
-                            disabled={(page + 1) * limit >= totalProducts}
-                            className="h-8 w-8"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                            <ChevronRight className="h-4 w-4 -ml-2" />
-                          </Button>
-                        </div>
-                      )}
-
-                      {products.length > 0 && (
-                        <motion.div
-                          className="flex justify-center mt-8"
-                          initial={{ opacity: 0, y: 15 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.5, delay: 0.3 }}
-                        >
-                          <Button 
-                            className="rounded-full bg-[#8A4FFF] hover:bg-[#7A3FEF] text-white px-6 py-2 text-sm flex items-center group"
-                            asChild
-                          >
-                            <Link href={`/featured/shopbyneed`}>
-                              View All {need.need} Products
-                              <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                            </Link>
-                          </Button>
-                        </motion.div>
-                      )}
                     </>
+                  )}
+
+                  {/* Pagination controls */}
+                  {totalProducts > limit && (
+                    <div className="flex justify-center items-center mt-8 gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handlePageChange(0)}
+                        disabled={page === 0}
+                        className="h-8 w-8"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4 -ml-2" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page === 0}
+                        className="h-8 w-8"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="flex items-center mx-2">
+                        <span className="text-sm font-medium">
+                          Page {page + 1} of {totalPages}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={(page + 1) * limit >= totalProducts}
+                        className="h-8 w-8"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handlePageChange(totalPages - 1)}
+                        disabled={(page + 1) * limit >= totalProducts}
+                        className="h-8 w-8"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4 -ml-2" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {products.length > 0 && (
+                    <motion.div
+                      className="flex justify-center mt-8"
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      <Button 
+                        className="rounded-full bg-[#8A4FFF] hover:bg-[#7A3FEF] text-white px-6 py-2 text-sm flex items-center group"
+                        asChild
+                      >
+                        <Link href={`/featured/shopbyneed`}>
+                          View All {need.need} Products
+                          <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        </Link>
+                      </Button>
+                    </motion.div>
                   )}
                 </>
               )}
