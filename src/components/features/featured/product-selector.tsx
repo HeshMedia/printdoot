@@ -95,7 +95,7 @@ export function ProductSelector({ onAddProducts, isLoading }: ProductSelectorPro
             src={row.original.main_image_url || "/placeholder.svg?height=48&width=48"}
             alt={row.original.name}
             fill
-            className="object-cover rounded-md"
+            className="object-cover rounded-xl"
           />
         </div>
       ),

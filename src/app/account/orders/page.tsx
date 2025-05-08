@@ -57,7 +57,7 @@ export default function AccountOrdersPage() {
   if (!user) {
     return (
       <div className="container py-12">
-        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md mb-4">Please log in to view your orders.</div>
+        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl mb-4">Please log in to view your orders.</div>
         <Button asChild>
           <Link href="/login">Log In</Link>
         </Button>
@@ -69,10 +69,10 @@ export default function AccountOrdersPage() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Your Orders</h1>
 
-      {error && <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6">{error}</div>}
+      {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6">{error}</div>}
 
       {orders.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+        <div className="bg-white p-8 rounded-xl shadow-sm text-center">
           <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
           <p className="text-muted-foreground mb-6">You haven't placed any orders yet.</p>
           <Button asChild>
@@ -80,7 +80,7 @@ export default function AccountOrdersPage() {
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Order History</h2>
           </div>

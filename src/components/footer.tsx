@@ -1,5 +1,5 @@
 "use client"
-
+import Image from "next/image"
 import Link from "next/link"
 import { Facebook, Instagram, Twitter } from "lucide-react"
 import { motion } from "framer-motion"
@@ -16,21 +16,21 @@ export default function Footer() {
             transition={{ duration: 0.5 }}
           >
             <Link href="/" className="text-xl font-bold mb-6 inline-block">
-              PRINTDOOT
+              <Image src="/logo.png" alt="PRINTDOOT Logo" width={170} height={150} />
             </Link>
             <div className="flex space-x-4 mt-4">
-              <Link href="#" className="social-icon rounded-full border p-2">
+              <Link href="https://www.facebook.com/p/Printdoot-100068049822961/?_rdr" className="social-icon rounded-full border p-2">
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
               </Link>
-              <Link href="#" className="social-icon rounded-full border p-2">
+              <Link href="https://www.instagram.com/printdoot/" className="social-icon rounded-full border p-2">
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
               </Link>
-              <Link href="#" className="social-icon rounded-full border p-2">
+              {/* <Link href="#" className="social-icon rounded-full border p-2">
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
-              </Link>
+              </Link> */}
             </div>
           </motion.div>
 
@@ -114,9 +114,13 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border/40 mt-12 pt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            {new Date().getFullYear()} all Right Reserved Term of use PRINTDOOT
-          </p>
+        <p className="text-sm text-muted-foreground">
+          © {new Date().getFullYear()} All Rights Reserved | Printdoot
+        </p>
+        <br></br>
+        <p className="text-xs text-muted-foreground italic">
+          Website made and maintained by <Link href="https://heshmedia.in"><span className="hover:underline">Hesh Media</span></Link> 
+        </p>
         </div>
       </div>
     </footer>

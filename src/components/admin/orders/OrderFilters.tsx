@@ -30,7 +30,7 @@ export default function OrderFilters({
           <input
             type="text"
             placeholder="Search orders..."
-            className="w-full pl-10 pr-4 py-2 border rounded-md"
+            className="w-full pl-10 pr-4 py-2 border rounded-xl"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -54,7 +54,7 @@ export default function OrderFilters({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <select
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={statusFilter || ""}
               onChange={(e) => setStatusFilter(e.target.value || null)}
             >
@@ -71,14 +71,14 @@ export default function OrderFilters({
             <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
             <input
               type="date"
-              className="w-full border rounded-md px-3 py-2"
+              className="w-full border rounded-xl px-3 py-2"
               value={dateFilter || ""}
               onChange={(e) => setDateFilter(e.target.value || null)}
             />
           </div>
 
           <div className="flex items-end">
-            <button onClick={clearFilters} className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
+            <button onClick={clearFilters} className="px-4 py-2 border rounded-xl text-gray-600 hover:bg-gray-50">
               Clear Filters
             </button>
           </div>

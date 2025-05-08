@@ -3,16 +3,40 @@ import { config } from "../config"
 export type ProductStatus = "in_stock" | "out_of_stock" | "discontinued"
 
 export interface Product {
-  product_id: string
-  name: string
-  price: number
-  description: string
-  average_rating: number
-  status: ProductStatus
-  main_image_url: string
-  side_images_url: string[]
-  category_name: string
+  product_id: string;
+  name: string;
+  price: number;
+  description: string;
+  status: "in_stock" | "out_of_stock" | "discontinued";
+  main_image_url: string;
+  side_images_url: string[];
+  category_name: string;
+  average_rating: number;
+
+  // ✅ Add these
+  dimensions: {
+    length: number;
+    breadth: number;
+    height: number;
+  };
+  bulk_prices: {
+    min_quantity: number;
+    max_quantity: number;
+    price: number;
+  }[];
+
+  weight: number;
+  material: string;
+  customization_options?: Record<string, Record<string, string>>;
+
 }
+
+export type BulkPrice = {
+  min_quantity: number;
+  max_quantity: number;
+  price: number;
+};
+
 
 export interface ProductsFilterParams {
   category_id?: number

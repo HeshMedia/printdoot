@@ -31,7 +31,7 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10 }: DataT
 
   return (
     <div>
-      <div className="rounded-md border">
+      <div className="rounded-xl border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import type { Category } from "@/lib/api/categories"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import type { Category } from "@/lib/api/categories"
 
 interface ProductsFilterProps {
   categories: Category[]
@@ -28,13 +28,34 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
     searchParams.get("min_rating") ? Number.parseFloat(searchParams.get("min_rating")!) : undefined,
   )
   const [sortBy, setSortBy] = useState<string | undefined>(searchParams.get("sort_by") || undefined)
+  
+  // Apply filters whenever a filter changes
+  useEffect(() => {
+    applyFilters()
+  }, [categoryId, minRating, sortBy])
+  
+  // Price range has a separate effect to avoid applying on every slider movement
+  const [isSliderChanging, setIsSliderChanging] = useState(false)
+  useEffect(() => {
+    // Only apply price filter when slider stops moving (debounce)
+    if (!isSliderChanging) {
+      applyFilters()
+    }
+  }, [priceRange, isSliderChanging])
 
   const handleCategoryChange = (id: number) => {
     setCategoryId(categoryId === id ? undefined : id)
   }
 
   const handlePriceChange = (value: number[]) => {
+    setIsSliderChanging(true)
     setPriceRange([value[0], value[1]])
+    
+    // Stop slider changing status after a short delay
+    clearTimeout((window as any).priceChangeTimeout)
+    ;(window as any).priceChangeTimeout = setTimeout(() => {
+      setIsSliderChanging(false)
+    }, 300)
   }
 
   const handleRatingChange = (rating: number) => {
@@ -46,13 +67,37 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
   }
 
   const applyFilters = () => {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams(searchParams.toString())
 
-    if (categoryId) params.set("category", categoryId.toString())
-    if (priceRange[0] > 0) params.set("min_price", priceRange[0].toString())
-    if (priceRange[1] < 1000) params.set("max_price", priceRange[1].toString())
-    if (minRating) params.set("min_rating", minRating.toString())
-    if (sortBy) params.set("sort_by", sortBy)
+    if (categoryId) {
+      params.set("category", categoryId.toString())
+    } else {
+      params.delete("category")
+    }
+    
+    if (priceRange[0] > 0) {
+      params.set("min_price", priceRange[0].toString())
+    } else {
+      params.delete("min_price")
+    }
+    
+    if (priceRange[1] < 1000) {
+      params.set("max_price", priceRange[1].toString())
+    } else {
+      params.delete("max_price")
+    }
+    
+    if (minRating) {
+      params.set("min_rating", minRating.toString())
+    } else {
+      params.delete("min_rating")
+    }
+    
+    if (sortBy) {
+      params.set("sort_by", sortBy)
+    } else {
+      params.delete("sort_by")
+    }
 
     router.push(`/products?${params.toString()}`)
   }
@@ -66,7 +111,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="bg-white p-4 rounded-xl shadow-sm">
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
       <Accordion type="multiple" defaultValue={["categories", "price", "rating", "sort"]}>
@@ -81,6 +126,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
                       id={`category-${category.id}`}
                       checked={categoryId === category.id}
                       onCheckedChange={() => handleCategoryChange(category.id)}
+                      className="rounded-full"
                     />
                     <Label
                       htmlFor={`category-${category.id}`}
@@ -100,7 +146,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
         <AccordionItem value="price">
           <AccordionTrigger>Price Range</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-4">
+            <div className="space-y-6 p-2">
               <Slider
                 defaultValue={[priceRange[0], priceRange[1]]}
                 min={0}
@@ -109,8 +155,8 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
                 onValueChange={handlePriceChange}
               />
               <div className="flex justify-between text-sm">
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
+                <span>₹{priceRange[0]}</span>
+                <span>₹{priceRange[1]}</span>
               </div>
             </div>
           </AccordionContent>
@@ -126,6 +172,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
                     id={`rating-${rating}`}
                     checked={minRating === rating}
                     onCheckedChange={() => handleRatingChange(rating)}
+                    className="rounded-full"
                   />
                   <Label
                     htmlFor={`rating-${rating}`}
@@ -154,6 +201,7 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
                     id={`sort-${option.value}`}
                     checked={sortBy === option.value}
                     onCheckedChange={() => handleSortChange(option.value)}
+                    className="rounded-full"
                   />
                   <Label
                     htmlFor={`sort-${option.value}`}
@@ -169,11 +217,8 @@ export default function ProductsFilter({ categories = [] }: ProductsFilterProps)
       </Accordion>
 
       <div className="mt-6 space-y-2">
-        <Button onClick={applyFilters} className="w-full bg-btncolor text-black hover:bg-btnhover">
-          Apply Filters
-        </Button>
         <Button onClick={clearFilters} variant="outline" className="w-full">
-          Clear Filters
+          Clear All Filters
         </Button>
       </div>
     </div>

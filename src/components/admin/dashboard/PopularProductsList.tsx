@@ -58,7 +58,7 @@ export default function PopularProductsList() {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white p-6 rounded-xl shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Popular Products</h2>
         <Link href="/admin/products" className="text-blue-600 hover:underline text-sm">
@@ -69,9 +69,9 @@ export default function PopularProductsList() {
         {products.map((product) => (
           <div
             key={product.product_id}
-            className="flex items-center p-3 hover:bg-gray-50 rounded-lg"
+            className="flex items-center p-3 hover:bg-gray-50 rounded-xl"
           >
-            <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden">
+            <div className="w-12 h-12 bg-gray-200 rounded-xl overflow-hidden">
               <img
                 src={product.main_image_url}
                 alt={product.name}

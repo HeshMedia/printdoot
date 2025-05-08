@@ -19,7 +19,7 @@ export default function CategoryNameInput({ value, onChange }: CategoryNameInput
         required
         value={value}
         onChange={onChange}
-        className="w-full border rounded-md px-3 py-2"
+        className="w-full border rounded-xl px-3 py-2"
       />
     </div>
   )

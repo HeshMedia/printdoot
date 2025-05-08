@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  categoriesApi,
-  UserCustomizationOption,
-} from "@/lib/api/admin/categories";
+import { categoriesApi } from "@/lib/api/admin/categories";
 import CategoryNameInput from "./CategoryNameInput";
-import UserCustomizationOptions from "./UserCustomizationOptions";
 import AllowedCustomizations from "./AllowedCustomizations";
 import SubmitCancelButtons from "./SubmitCancelButtons";
 import ImageUpload from "./ImageUpload";
@@ -30,16 +26,9 @@ export default function CategoryForm({
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     allowed_customizations: initialData?.allowed_customizations || {},
-    user_customization_options: initialData?.user_customization_options || [],
     image: "",
     image_extension: "",
   });
-
-  const customizationOptions: UserCustomizationOption[] = [
-    "text",
-    "image",
-    "color",
-  ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,25 +36,6 @@ export default function CategoryForm({
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleCustomizationOptionChange = (option: UserCustomizationOption) => {
-    setFormData((prev) => {
-      const currentOptions = [...prev.user_customization_options];
-      if (currentOptions.includes(option)) {
-        return {
-          ...prev,
-          user_customization_options: currentOptions.filter(
-            (opt) => opt !== option
-          ),
-        };
-      } else {
-        return {
-          ...prev,
-          user_customization_options: [...currentOptions, option],
-        };
-      }
-    });
   };
 
   const handleCustomizationChange = (key: string, value: string) => {
@@ -149,18 +119,12 @@ export default function CategoryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
           {error}
         </div>
       )}
 
       <CategoryNameInput value={formData.name} onChange={handleInputChange} />
-
-      <UserCustomizationOptions
-        options={customizationOptions}
-        selectedOptions={formData.user_customization_options}
-        onChange={handleCustomizationOptionChange}
-      />
 
       <AllowedCustomizations
         customizations={formData.allowed_customizations}
@@ -168,6 +132,7 @@ export default function CategoryForm({
         onAdd={addCustomizationField}
         onRemove={removeCustomizationField}
       />
+
       <ImageUpload
         value={formData.image}
         extension={formData.image_extension}
@@ -192,7 +157,7 @@ export default function CategoryForm({
         }
         loading={loading}
         isEditing={isEditing}
-        isFormInvalid={formData.user_customization_options.length === 0}
+        isFormInvalid={formData.name.trim() === ""}
       />
     </form>
   );

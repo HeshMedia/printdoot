@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
-
 interface ProductImagesFormProps {
   mainImagePreview: string | null;
   sideImagePreviews: string[];
@@ -29,13 +29,13 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Main Image
           </label>
-          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-md px-6 pt-5 pb-6 flex justify-center items-center">
+          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-xl px-6 pt-5 pb-6 flex justify-center items-center">
             {mainImagePreview ? (
               <div className="space-y-2 text-center">
                 <img
                   src={mainImagePreview}
                   alt="Main Preview"
-                  className="mx-auto h-40 w-40 object-cover rounded-md"
+                  className="mx-auto h-40 w-40 object-cover rounded-xl"
                 />
                 <button
                   type="button"
@@ -64,7 +64,7 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
                 <div className="flex text-sm text-gray-600 justify-center items-center gap-1">
                   <label
                     htmlFor="main-image-upload"
-                    className="cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
+                    className="cursor-pointer bg-white rounded-xl font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
                   >
                     <span>Upload a file</span>
                     <input
@@ -89,7 +89,7 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Side Images
           </label>
-          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-md px-6 pt-5 pb-6 text-center">
+          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-xl px-6 pt-5 pb-6 text-center">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               stroke="currentColor"
@@ -107,7 +107,7 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
             <div className="flex text-sm text-gray-600 justify-center items-center gap-1 mt-2">
               <label
                 htmlFor="side-images-upload"
-                className="cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
+                className="cursor-pointer bg-white rounded-xl font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
               >
                 <span>Upload files</span>
                 <input
@@ -126,24 +126,31 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
           </div>
 
           {sideImagePreviews.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {sideImagePreviews.map((preview, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={preview}
-                    alt={`Side ${index + 1}`}
-                    className="h-20 w-20 object-cover rounded-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeSideImage(index)}
-                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                    aria-label="Remove image"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+              {sideImagePreviews.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {sideImagePreviews.map((preview, index) => (
+                    <div key={index} className="relative w-20 h-20 ">
+                    <Image
+                      src={preview}
+                      alt={`Side ${index + 1}`}
+                      width={80}
+                      height={80}
+                      className="object-cover rounded-xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSideImage(index)}
+                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             </div>
           )}
         </div>

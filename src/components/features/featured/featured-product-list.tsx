@@ -51,7 +51,7 @@ export function FeaturedProductList({
             src={row.original.main_image_url || "/placeholder.svg?height=48&width=48"}
             alt={row.original.name}
             fill
-            className="object-cover rounded-md"
+            className="object-cover rounded-xl"
           />
         </div>
       ),
@@ -111,7 +111,7 @@ export function FeaturedProductList({
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+      <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
         <p className="text-gray-500">{emptyMessage}</p>
       </div>
     )

@@ -57,7 +57,7 @@ export default function CategoriesPage() {
             setEditingCategory(null);
             setIsFormOpen((prev) => !prev);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center"
         >
           <Plus className="w-5 h-5 mr-2" />
           Add Category
@@ -65,14 +65,14 @@ export default function CategoriesPage() {
       </div>
 
       {isFormOpen && !editingCategory && (
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Create New Category</h2>
           <CategoryForm onSubmit={handleCreateCategory} onCancel={() => setIsFormOpen(false)} />
         </div>
       )}
 
       {editingCategory && (
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Edit Category: {editingCategory.name}</h2>
           <CategoryForm
             initialData={editingCategory}
@@ -83,7 +83,7 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
@@ -105,15 +105,13 @@ export default function CategoriesPage() {
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-16 h-16 object-cover rounded-md border cursor-pointer"
+                        className="w-16 h-16 object-cover rounded-xl border cursor-pointer"
                         onClick={() => setModalImage({ src: category.image_url!, name: category.name })}
                       />
                     )}
                     <div>
                       <h3 className="text-lg font-medium">{category.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {category.user_customization_options.length} customization option(s)
-                      </p>
+                      
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -141,14 +139,7 @@ export default function CategoriesPage() {
                     <div className="mb-4">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">User Customization Options</h4>
                       <div className="flex flex-wrap gap-2">
-                        {category.user_customization_options.map((option, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                          >
-                            {option}
-                          </span>
-                        ))}
+                        
                       </div>
                     </div>
 
@@ -161,7 +152,7 @@ export default function CategoriesPage() {
                           {Object.entries(category.allowed_customizations).map(([key, values]) => (
                             <div key={key}>
                               <span className="text-sm font-medium">{key}:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
+                              {/* <div className="flex flex-wrap gap-1 mt-1">
                                 {values.map((value, index) => (
                                   <span
                                     key={index}
@@ -170,7 +161,7 @@ export default function CategoriesPage() {
                                     {value}
                                   </span>
                                 ))}
-                              </div>
+                              </div> */}
                             </div>
                           ))}
                         </div>
@@ -186,7 +177,7 @@ export default function CategoriesPage() {
 
       {modalImage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 max-w-3xl w-full relative">
+          <div className="bg-white rounded-xl p-4 max-w-3xl w-full relative">
             <button
               onClick={() => setModalImage(null)}
               className="absolute top-2 right-2 text-gray-500 hover:text-black"
@@ -197,7 +188,7 @@ export default function CategoriesPage() {
             <img
               src={modalImage.src}
               alt={modalImage.name}
-              className="w-full max-h-[80vh] object-contain rounded-md"
+              className="w-full max-h-[80vh] object-contain rounded-xl"
             />
           </div>
         </div>

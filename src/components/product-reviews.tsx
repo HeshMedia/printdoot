@@ -174,7 +174,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
               </Button>
             </form>
           ) : (
-            <div className="bg-muted p-4 rounded-md">
+            <div className="bg-muted p-4 rounded-xl">
               <p className="text-sm mb-2">Please log in to write a review.</p>
               <Button asChild variant="outline">
                 <Link href="/login">Log In</Link>
@@ -195,9 +195,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
             {reviews.map((review) => (
               <div key={review.id} className="border-b pb-6">
                 <div className="flex items-center mb-2">
-                  <div className="bg-muted w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                    <User className="w-5 h-5" />
-                  </div>
+                 
                   <div>
                     <div className="font-medium">{review.user_name}</div>
                     <div className="flex items-center">
