@@ -25,7 +25,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/product/${product.product_id}`}>
+      <Link href={`/products/${product.product_id}`}>
         <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md">
           {/* Image with placeholder */}
           <div className="relative aspect-square overflow-hidden bg-gray-100">
