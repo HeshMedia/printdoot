@@ -9,7 +9,8 @@ import ProductsFilter from "@/components/products-filter"
 import { PaginationControl } from "@/components/ui/pagination-control"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
-import { FilterX, SlidersHorizontal, Loader2 } from "lucide-react"
+import { FilterX, SlidersHorizontal, Loader2, ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -22,7 +23,7 @@ export default function ProductsPage() {
   const [totalProducts, setTotalProducts] = useState(0)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-  const itemsPerPage = 12
+  const itemsPerPage = 24
 
   const categoryId = searchParams.get("category") ? Number.parseInt(searchParams.get("category")!) : undefined
   const minPrice = searchParams.get("min_price") ? Number.parseFloat(searchParams.get("min_price")!) : undefined
@@ -38,12 +39,12 @@ export default function ProductsPage() {
     const fetchCategories = async () => {
       try {
         const data = await categoriesApi.getCategories()
-        setCategories(data.categories)
-      } catch (err) {
-        console.error("Failed to fetch categories:", err)
+        setCategories(data.categories || [])
+      } catch (error) {
+        console.error("Error fetching categories:", error)
       }
     }
-
+    
     fetchCategories()
   }, [])
 
@@ -51,144 +52,182 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        setError(null)
-
+        
+        // Prepare filter params
         const filterParams: ProductsFilterParams = {
           category_id: categoryId,
           min_price: minPrice,
           max_price: maxPrice,
           min_rating: minRating,
           sort_by: sortBy,
-          skip: (currentPage - 1) * itemsPerPage,
           limit: itemsPerPage,
+          skip: (currentPage - 1) * itemsPerPage
         }
-
-        let response: ProductsResponse
-
-        if (Object.values(filterParams).some((value) => value !== undefined)) {
-          response = await productsApi.filterProducts(filterParams)
-        } else {
-          response = await productsApi.getProducts((currentPage - 1) * itemsPerPage, itemsPerPage)
-        }
-
-        if (response?.products && Array.isArray(response.products)) {
-          setProducts(response.products)
-          setTotalProducts(response.total || 0)
-          const pages = Math.max(1, Math.ceil((response.total || 0) / itemsPerPage))
-          console.log(`Total products: ${response.total}, Pages: ${pages}`)
-          setTotalPages(pages)
-        } else {
-          console.error("Invalid API response format:", response)
-          setProducts([])
-          setTotalPages(1)
-          setTotalProducts(0)
-        }
-
-        setLoading(false)
-      } catch (err) {
-        console.error("Failed to fetch products:", err)
-        setError("Failed to load products. Please try again.")
-        setProducts([])
-        setTotalPages(1)
-        setTotalProducts(0)
+        
+        const data: ProductsResponse = await productsApi.filterProducts(filterParams)
+        
+        setProducts(data.products)
+        setTotalProducts(data.total)
+        setTotalPages(Math.ceil(data.total / itemsPerPage))
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        setError("Failed to load products. Please try again later.")
+      } finally {
         setLoading(false)
       }
     }
-
+    
     fetchProducts()
   }, [categoryId, minPrice, maxPrice, minRating, sortBy, currentPage])
 
   const handlePageChange = (page: number) => {
-    console.log(`Changing to page ${page}`)
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
 
+  // Get active category name for display
+  const activeCategoryName = categoryId && categories.length > 0
+    ? categories.find(cat => cat.id === categoryId)?.name
+    : undefined;
+
+  // Get formatted filter description
+  const getFilterDescription = () => {
+    if (activeCategoryName) {
+      return `${activeCategoryName} Products`;
+    }
+    
+    if (minRating) {
+      return `${minRating}+ Star Products`;
+    }
+    
+    return "All Products";
+  };
+
   return (
-    <div className="container py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h1 className="text-3xl font-bold">Products</h1>
-        
-        <div className="flex gap-2 mt-4 sm:mt-0">
-          {hasActiveFilters && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                window.location.href = "/products";
-              }}
-              className="flex items-center gap-1"
-            >
-              <FilterX size={16} />
-              <span>Clear</span>
-            </Button>
-          )}
-          
-          <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="block lg:hidden">
-                <SlidersHorizontal size={16} className="mr-2" />
-                Filters
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[85%] sm:max-w-md overflow-y-auto">
-              <div className="py-6 pr-6">
-                <ProductsFilter categories={categories} closeSheet={() => setIsFilterOpen(false)} />
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="hidden lg:block lg:col-span-1">
-          <ProductsFilter categories={categories} />
-        </div>
-
-        <div className="lg:col-span-3">
-          {loading && currentPage === 1 ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Loading products...</span>
+    <section className="py-12 bg-gradient-to-b from-white to-blue-50">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-center mb-8">
+          <motion.div
+            className="w-full max-w-lg text-center mb-3"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >            
+            <h2 className="text-2xl font-bold mb-2">{getFilterDescription()}</h2>
+            <div className="w-full max-w-xs mx-auto">
+              <div className="h-1 bg-blue-500 rounded-full w-full"></div>
             </div>
+          </motion.div>
+          <motion.p
+            className="text-gray-600 max-w-md text-center mb-5 text-sm"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {minPrice || maxPrice 
+              ? `Price Range: ₹${minPrice || 0} - ₹${maxPrice || '1000+'}` 
+              : 'Discover our quality products for your needs'}
+          </motion.p>
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <div className="flex flex-wrap gap-2 items-center">
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <SlidersHorizontal size={16} className="mr-1" />
+                  <span>Filters</span>
+                  {hasActiveFilters && (
+                    <span className="ml-1 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
+                      {(categoryId ? 1 : 0) + 
+                       ((minPrice || maxPrice) ? 1 : 0) + 
+                       (minRating ? 1 : 0) + 
+                       (sortBy ? 1 : 0)}
+                    </span>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[85%] sm:max-w-md overflow-y-auto p-0">
+                <ProductsFilter categories={categories} closeSheet={() => setIsFilterOpen(false)} />
+              </SheetContent>
+            </Sheet>
+            
+            {hasActiveFilters && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  window.location.href = "/products";
+                }}
+                className="flex items-center gap-1"
+              >
+                <FilterX size={16} />
+                <span>Clear All</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
+          {loading && currentPage === 1 ? (
+            Array(12).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-xl bg-gray-200 h-32 sm:h-36"></div>
+            ))
           ) : error ? (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl">{error}</div>
+            <div className="col-span-full bg-red-50 text-red-600 p-4 rounded-lg">
+              {error}
+            </div>
           ) : !Array.isArray(products) || products.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="col-span-full text-center py-12">
               <h2 className="text-xl font-medium mb-2">No products found</h2>
-              <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+              <p className="text-gray-500 mb-4">Try adjusting your filters or search criteria.</p>
+              <Button 
+                onClick={() => {
+                  window.location.href = "/products";
+                }}
+              >
+                View All Products
+              </Button>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.product_id} product={product} />
-                ))}
-              </div>
-              
-              {loading && currentPage > 1 && (
-                <div className="flex justify-center mt-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              )}
-
-              {!loading && products.length > 0 && (
-                <div className="mt-8">
-                  <PaginationControl 
-                    currentPage={currentPage}
-                    totalPages={Math.max(1, totalPages)}
-                    onPageChange={handlePageChange}
-                    loading={loading}
-                  />
-                  <div className="text-center text-sm text-gray-500 mt-2">
-                    Showing {products.length} of {totalProducts} products
-                  </div>
-                </div>
-              )}
-            </>
+            products.map((product, index) => (
+              <ProductCard key={product.product_id} product={product} index={index} />
+            ))
           )}
         </div>
+        
+        {/* Loading indicator for pagination */}
+        {loading && currentPage > 1 && (
+          <div className="flex justify-center mt-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && products.length > 0 && totalPages > 1 && (
+          <motion.div
+            className="mt-8"
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <PaginationControl 
+              currentPage={currentPage}
+              totalPages={Math.max(1, totalPages)}
+              onPageChange={handlePageChange}
+            />
+            <div className="text-center text-sm text-gray-500 mt-4">
+              Showing {products.length} of {totalProducts} products
+            </div>
+          </motion.div>
+        )}
+        
+        
       </div>
-    </div>
+    </section>
   )
 }

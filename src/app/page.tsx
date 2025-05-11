@@ -1,5 +1,4 @@
 import HeroSection from "@/components/hero-section"
-import BestSellers from "@/components/best-sellers"
 import Categories from "@/components/categories"
 import ShopByNeeds from "@/components/shop-by-needs"
 import Testimonials from "@/components/testimonials"

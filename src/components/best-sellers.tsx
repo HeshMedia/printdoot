@@ -31,30 +31,7 @@ export default function BestSellers() {
   return (
     <section className="py-6 sm:py-10 bg-white">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center mb-4 sm:mb-6">
-          <motion.div
-            className="w-full max-w-lg text-center mb-2 sm:mb-3"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">Bestselling Products</h2>
-            <div className="flex items-center justify-center w-full">
-              <div className="h-1 w-12 sm:w-16 bg-[#60B5FF] rounded-full mx-2"></div>
-              <div className="h-1 w-24 sm:w-32 bg-[#60B5FF] opacity-50 rounded-full"></div>
-            </div>
-          </motion.div>
-          <motion.p
-            className="text-gray-600 max-w-md text-center mb-3 sm:mb-5 text-xs sm:text-sm"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            Our most popular products loved by customers
-          </motion.p>
-        </div>
+       
 
         {/* Product Grid - Optimized for 4 products */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4">

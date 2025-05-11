@@ -1,53 +1,34 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect} from "react"
 import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
-import { productsApi, type Product, type BulkPrice } from "@/lib/api/products"
+import { productsApi, type Product } from "@/lib/api/products"
 import { categoriesApi, type Category } from "@/lib/api/categories"
 import { reviewsApi, type Review } from "@/lib/api/reviews"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { useToast } from "@/components/ui/use-toast"
 import ProductReviews from "@/components/product-reviews"
 import WhatsAppButton from "@/components/whatsappbutton"
 import RelatedProducts from "@/components/product/RelatedProducts"
 import OnSaleProducts from "@/components/product/OnSaleProducts"
+import QuantitySelector from "@/components/product/QuantitySelector"
+
+import ProductHeader from "@/components/product/ProductHeader"
+import ProductGallery from "@/components/product/ProductGallery"
+import ProductPricing from "@/components/product/ProductPricing" 
+import ProductDelivery from "@/components/product/ProductDelivery"
+import ProductDimensions from "@/components/product/ProductDimensions"
+import ProductCustomization from "@/components/product/ProductCustomization"
+
 import Link from "next/link"
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Heart,
-  Info,
   Loader2,
   Package,
-  Search,
   Share2,
   ShoppingCart,
-  Star,
   Truck,
-  ZoomIn,
-  Check,
 } from "lucide-react"
 
 export default function ProductDetailPage() {
@@ -64,45 +45,8 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null)
   
   // UI state
-  const [activeImage, setActiveImage] = useState<string | null>(null)
   const [quantity, setQuantity] = useState<number>(1)
   const [selectedCustomizations, setSelectedCustomizations] = useState<Record<string, string>>({})
-  const [isWishlisted, setIsWishlisted] = useState(false)
-  const [showZoom, setShowZoom] = useState(false)
-  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 })
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const imageRef = useRef<HTMLDivElement>(null)
-  
-  // Calculate the total price based on quantity
-  const getUnitPrice = useCallback((qty: number): number => {
-    if (!product) return 0
-    
-    const bulkPrices = product.bulk_prices || []
-    for (let i = 0; i < bulkPrices.length; i++) {
-      const { min_quantity, max_quantity, price } = bulkPrices[i]
-      if (qty >= min_quantity && qty <= max_quantity) {
-        return price
-      }
-    }
-    
-    if (bulkPrices.length > 0 && qty > bulkPrices[bulkPrices.length - 1].max_quantity) {
-      return bulkPrices[bulkPrices.length - 1].price
-    }
-    
-    return product.price
-  }, [product])
-  
-  // Calculate shipping estimate based on product weight/dimensions
-  const getShippingEstimate = useCallback((): string => {
-    if (!product) return "Unknown"
-    
-    // This is a simplified calculation - in a real app, this would be 
-    // more complex based on destination, carrier rules, etc.
-    const weight = product.weight
-    if (weight < 500) return "1-2 business days"
-    else if (weight < 2000) return "2-3 business days"
-    else return "3-5 business days"
-  }, [product])
   
   // Fetch product data
   useEffect(() => {
@@ -111,7 +55,6 @@ export default function ProductDetailPage() {
         setLoading(true)
         const p = await productsApi.getProduct(productId)
         setProduct(p)
-        setActiveImage(p.main_image_url)
 
         if (p.category_name) {
           const { categories } = await categoriesApi.getCategories()
@@ -129,36 +72,16 @@ export default function ProductDetailPage() {
     fetchData()
   }, [productId])
   
-  // Handle image zooming
-  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return
-    
-    const { left, top, width, height } = imageRef.current.getBoundingClientRect()
-    const x = ((e.clientX - left) / width) * 100
-    const y = ((e.clientY - top) / height) * 100
-    
-    setZoomPosition({ x, y })
-  }
-  
-  // Handle custom quantity input validation
-  const handleQuantityChange = (value: string) => {
-    const numVal = parseInt(value)
-    if (!isNaN(numVal) && numVal > 0) {
-      setQuantity(numVal)
-    } else if (value === '') {
-      setQuantity(0)
-    }
-  }
-  
   // Handle adding to cart with selected options
   const handleAddToCart = () => {
     if (!product) return
     
     // Validation - ensure all required customizations are selected
-    const hasCustomization = !!category && Object.keys(category.allowed_customizations || {}).length > 0
+    const customizationOptions = product?.customization_options
+    const hasCustomization = customizationOptions && Object.keys(customizationOptions).length > 0
     
     if (hasCustomization) {
-      const requiredOptions = Object.keys(category.allowed_customizations)
+      const requiredOptions = Object.keys(customizationOptions)
       const missingOptions = requiredOptions.filter(opt => !selectedCustomizations[opt])
       
       if (missingOptions.length > 0) {
@@ -185,75 +108,61 @@ export default function ProductDetailPage() {
     // e.g., dispatch(addToCart({ product, quantity, customizations: selectedCustomizations }))
   }
   
-  // Handle wishlist toggle
-  const handleWishlistToggle = () => {
-    setIsWishlisted(!isWishlisted)
-    
-    toast({
-      title: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
-      description: isWishlisted 
-        ? `${product?.name} has been removed from your wishlist` 
-        : `${product?.name} has been added to your wishlist`,
-    })
-    
-    // In a real app, dispatch wishlist action here
-  }
-  
-  // Image carousel navigation
-  const nextImage = () => {
-    if (!product) return
-    const images = [product.main_image_url, ...product.side_images_url]
-    const nextIndex = (activeImageIndex + 1) % images.length
-    setActiveImageIndex(nextIndex)
-    setActiveImage(images[nextIndex])
-  }
-  
-  const prevImage = () => {
-    if (!product) return
-    const images = [product.main_image_url, ...product.side_images_url]
-    const prevIndex = (activeImageIndex - 1 + images.length) % images.length
-    setActiveImageIndex(prevIndex)
-    setActiveImage(images[prevIndex])
-  }
-  
-  // Share product functionality
-  const handleShareProduct = async () => {
-    if (navigator.share && window) {
-      try {
+  // Handle share product functionality
+ const handleShareProduct = async () => {
+  if (navigator.share && window) {
+    try {
+      // First check if we can share files
+      const imageUrl = product?.main_image_url 
+      
+      // Only attempt to share image if it exists and the browser supports file sharing
+      if (imageUrl && navigator.canShare && navigator.canShare({ files: [] })) {
+        // Fetch the image and convert to a file
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const imageFile = new File([blob], 'product-image.jpg', { type: blob.type });
+        
         await navigator.share({
           title: product?.name || 'Check out this product',
           text: product?.description || 'I found this awesome product',
           url: window.location.href,
-        })
-      } catch (error) {
-        console.error('Error sharing:', error)
-        
-        // Fallback - copy to clipboard
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(window.location.href)
-          toast({
-            title: "Link copied to clipboard",
-            description: "You can now paste the link to share this product",
-          })
-        }
+          files: [imageFile]
+        });
+      } else {
+        // Fall back to sharing without an image
+        await navigator.share({
+          title: product?.name || 'Check out this product',
+          text: product?.description || 'I found this awesome product',
+          url: window.location.href,
+        });
       }
-    } else {
-      // Fallback for browsers that don't support Web Share API
+    } catch (error) {
+      console.error('Error sharing:', error);
+      
+      // Fallback - copy to clipboard
       if (navigator.clipboard) {
-        await navigator.clipboard.writeText(window.location.href)
+        await navigator.clipboard.writeText(window.location.href);
         toast({
           title: "Link copied to clipboard",
           description: "You can now paste the link to share this product",
-        })
+        });
       }
     }
+  } else {
+    // Fallback for browsers that don't support Web Share API
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied to clipboard",
+        description: "You can now paste the link to share this product",
+      });
+    }
   }
+};
   
   // Calculate basic data
-  const hasCustomization = !!category && Object.keys(category.allowed_customizations || {}).length > 0
-  const unitPrice = getUnitPrice(quantity)
-  const totalPrice = unitPrice * quantity
-  const shippingEstimate = getShippingEstimate()
+  const customizationOptions = product?.customization_options
+  const hasCustomization = customizationOptions && Object.keys(customizationOptions).length > 0
   
   if (loading) {
     return (
@@ -281,392 +190,159 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container py-8 space-y-8">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center text-sm">
-        <ol className="flex items-center gap-1.5">
-          <li>
-            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Home
-            </Link>
-          </li>
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70" />
-          <li>
-            <Link href="/products" className="text-muted-foreground hover:text-foreground transition-colors">
-              Products
-            </Link>
-          </li>
-          {category && (
-            <>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70" />
-              <li>
-                <Link 
-                  href={`/categories?category=${category.id}`}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {category.name}
-                </Link>
-              </li>
-            </>
-          )}
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70" />
-          <li className="font-medium text-foreground" aria-current="page">
-            {product.name}
-          </li>
-        </ol>
-      </nav>
+      {/* Header with breadcrumb and product title */}
+      <ProductHeader 
+        product={product} 
+        category={category} 
+        reviewCount={reviews.length}
+      />
 
       {/* Main product section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* — Left: Image Gallery */}
-        <div className="space-y-4">
-          {/* Main image with zoom */}
-          <div 
-            ref={imageRef}
-            className="bg-white rounded-xl shadow overflow-hidden aspect-square relative group"
-            onMouseEnter={() => setShowZoom(true)}
-            onMouseLeave={() => setShowZoom(false)}
-            onMouseMove={handleImageMouseMove}
-          >
-            <Image
-              src={activeImage || product.main_image_url}
-              alt={product.name}
-              fill
-              priority
-              className="object-contain p-4 transition-transform duration-200"
-              sizes="(max-width: 768px) 100vw, (min-width: 769px) 50vw"
-            />
-            
-            {/* Zoom overlay */}
-            {showZoom && (
-              <div className="absolute inset-0 bg-black/5 pointer-events-none">
-                <ZoomIn className="absolute top-4 right-4 text-muted-foreground" />
-              </div>
-            )}
-            
-            {/* Image lightbox indicator */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button 
-                  size="icon" 
-                  variant="outline" 
-                  className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <ZoomIn className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-[95vh] sm:h-[95vh]">
-                <SheetHeader>
-                  <SheetTitle>{product.name}</SheetTitle>
-                  <SheetDescription>Image Gallery</SheetDescription>
-                </SheetHeader>
-                <div className="h-full flex justify-center items-center p-4">
-                  <div className="relative h-full w-full">
-                    <Image
-                      src={activeImage || product.main_image_url}
-                      alt={product.name}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            {/* Image navigation buttons */}
-            <Button
-              size="icon"
-              variant="secondary"
-              className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-90 transition-opacity"
-              onClick={prevImage}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-90 transition-opacity"
-              onClick={nextImage}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          {/* Thumbnails */}
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
-            {[product.main_image_url, ...product.side_images_url].map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setActiveImage(img)
-                  setActiveImageIndex(idx)
-                }}
-                className={`
-                  relative flex-shrink-0
-                  w-20 h-20
-                  rounded-md overflow-hidden
-                  border-2 transition-all
-                  snap-start
-                  ${activeImage === img ? "border-primary ring-2 ring-primary/20" : "border-transparent hover:border-primary/50"}
-                `}
-              >
-                <Image
-                  src={img}
-                  alt={`Thumbnail ${idx + 1}`}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
+        <ProductGallery 
+          mainImageUrl={product.main_image_url}
+          sideImagesUrl={product.side_images_url}
+          productName={product.name}
+        />
 
         {/* — Right: Product Info */}
         <div className="space-y-6">
-          {/* Basic Info */}
+          {/* Product description - moved to top of right column */}
           <div>
-            {/* Title & Price Section */}
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <h2 className="text-lg font-medium mb-3">Description</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              {product.description}
+            </p>
+          </div>
+          
+          {/* Basic Info with Pricing */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            {/* Product pricing component */}
+            <ProductPricing 
+              price={product.price}
+              bulkPrices={product.bulk_prices}
+              quantity={quantity}
+            />
+          </div>
+           {/* WhatsApp Link */}
+          <WhatsAppButton />
+          
+          {/* Quick Specs */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {(() => {
+              // Handle dimensions regardless of format
+              const dimensionsArray = Array.isArray(product.dimensions) 
+                ? product.dimensions 
+                : [product.dimensions];
+              
+              const validDimensions = dimensionsArray.filter(dim => 
+                dim && (dim.length || dim.breadth || dim.height || dim.radius)
+              );
+              
+              if (validDimensions.length > 0) {
+                const primaryDimension = validDimensions[0];
                 
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(product.average_rating)
-                            ? "text-yellow-400 fill-yellow-400"
-                            : i < product.average_rating
-                            ? "text-yellow-400 fill-yellow-400 opacity-50"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-                    </span>
-                  </div>
+                // Format dimension values, omitting those that are 0 or undefined
+                const formatDimension = (value?: number) => {
+                  if (!value || value === 0) return '';
+                  return `${value} cm`;
+                };
+                
+                // Build the dimensions string
+                let dimensionString = '';
+                
+                if (primaryDimension.radius) {
+                  dimensionString = `${formatDimension(primaryDimension.radius)} (radius)`.trim();
+                } else {
+                  const length = formatDimension(primaryDimension.length);
+                  const breadth = formatDimension(primaryDimension.breadth);
+                  const height = formatDimension(primaryDimension.height);
                   
-                  <span className="text-muted-foreground">•</span>
-                  
-                  <Badge 
-                    className="bg-green-500 hover:bg-green-600"
-                    variant={
-                      product.status === "in_stock" 
-                        ? "default" 
-                        : product.status === "out_of_stock" 
-                        ? "destructive" 
-                        : "outline"
-                    }
-                  >
-                    {product.status === "in_stock" 
-                      ? "In Stock" 
-                      : product.status === "out_of_stock" 
-                      ? "Out of Stock" 
-                      : "Discontinued"}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="md:text-right">
-                <div className="text-3xl font-bold text-primary">
-                  ₹{unitPrice.toFixed(2)}
-                </div>
-                {quantity > 1 && (
-                  <div className="text-sm text-muted-foreground">
-                    ₹{product.price.toFixed(2)} per unit • {Math.round((1 - (unitPrice / product.price)) * 100)}% bulk discount
-                  </div>
-                )}
-              </div>
-            </div>
+                  const parts = [length, breadth, height].filter(part => part !== '');
+                  dimensionString = parts.join(' × ');
+                }
+                
+                // Only show dimensions card if there are valid dimensions to display
+                if (dimensionString) {
+                  return (
+                    <div className="bg-muted p-3 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Dimensions</div>
+                      <div className="font-medium">{dimensionString}</div>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
             
-            {/* Description */}
-            <p className="text-gray-600 leading-relaxed">{product.description}</p>
-            
-            {/* Quick Specs */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="text-xs text-muted-foreground">Dimensions</div>
-                <div className="font-medium">
-                  {product.dimensions.length} × {product.dimensions.breadth} × {product.dimensions.height} cm
-                </div>
-              </div>
-              
+            {product.weight && (
               <div className="bg-muted p-3 rounded-lg">
                 <div className="text-xs text-muted-foreground">Weight</div>
                 <div className="font-medium">{product.weight} g</div>
               </div>
-              
+            )}
+            
+            {product.material && (
               <div className="bg-muted p-3 rounded-lg">
                 <div className="text-xs text-muted-foreground">Material</div>
                 <div className="font-medium">{product.material}</div>
               </div>
-              
-              <div className="bg-muted p-3 rounded-lg col-span-2 sm:col-span-3">
-                <div className="text-xs text-muted-foreground">Shipping</div>
-                <div className="font-medium flex items-center gap-2">
-                  <Truck className="h-4 w-4" /> Estimated delivery: {shippingEstimate}
-                </div>
+            )}
+            
+            <div className="bg-muted p-3 rounded-lg col-span-2 sm:col-span-3">
+              <div className="text-xs text-muted-foreground">Shipping</div>
+              <div className="font-medium flex items-center gap-2">
+                <Truck className="h-4 w-4" /> Estimated delivery: {product.standard_delivery_time || "3-5 "} business days
               </div>
             </div>
           </div>
+          
+          {/* Product dimensions */}
+          <ProductDimensions 
+            dimensions={product.dimensions}
+            weight={product.weight}
+            material={product.material}
+          />
+         
+         
+          <ProductDelivery 
+            standardDeliveryTime={product.standard_delivery_time}
+            expressDeliveryTime={product.express_delivery_time}
+            bulkPrices={product.bulk_prices}
+            weight={product.weight}
+            quantity={quantity}
+          />
 
           {/* Customization/Purchase Options */}
           <Card>
             <CardContent className="pt-6 space-y-5">
               {/* Quantity Selector */}
               <div className="flex flex-col">
-                <label htmlFor="quantity" className="text-sm font-medium mb-2">
-                  Quantity
-                </label>
-                <div className="flex items-center">
-                  <Button 
-                    size="icon" 
-                    variant="outline"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => handleQuantityChange(e.target.value)}
-                    min="1"
-                    className="w-16 mx-2 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <Button 
-                    size="icon" 
-                    variant="outline"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  
-                  {/* Bulk pricing tooltip */}
-                  {product.bulk_prices.length > 0 && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="link" size="sm" className="ml-2 text-primary">
-                            <Info className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Bulk discounts</span>
-                            <span className="sm:hidden">Bulk</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="py-4">
-                            <table className="w-full text-sm">
-                              <thead className="border-b">
-                                <tr>
-                                  <th className="pb-2 text-left font-medium">Quantity</th>
-                                  <th className="pb-2 text-right font-medium">Price/Unit</th>
-                                  <th className="pb-2 text-right font-medium">Discount</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr className="border-b">
-                                  <td className="py-2">1 - {product.bulk_prices[0]?.min_quantity - 1 || 'N/A'}</td>
-                                  <td className="py-2 text-right">₹{product.price.toFixed(2)}</td>
-                                  <td className="py-2 text-right">-</td>
-                                </tr>
-                                {product.bulk_prices.map((bp, index) => (
-                                  <tr key={index} className={index < product.bulk_prices.length - 1 ? "border-b" : ""}>
-                                    <td className="py-2">{bp.min_quantity} - {bp.max_quantity}</td>
-                                    <td className="py-2 text-right">₹{bp.price.toFixed(2)}</td>
-                                    <td className="py-2 text-right text-green-600">
-                                      {Math.round((1 - (bp.price / product.price)) * 100)}%
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
+
+                <QuantitySelector 
+                  quantity={quantity} 
+                  setQuantity={setQuantity} 
+                  bulkPrices={product.bulk_prices}
+                />
               </div>
               
               {/* Customization Options */}
               {hasCustomization && (
-                <div className="space-y-4">
-                  <h3 className="font-medium">Customization Options</h3>
-                  
-                  {Object.entries(category.allowed_customizations).map(([optionName, values]) => (
-                    <div key={optionName}>
-                      <label className="block text-sm font-medium mb-2">
-                        {optionName.charAt(0).toUpperCase() + optionName.slice(1)}
-                      </label>
-                      
-                      {/* Different UI for different option types */}
-                      {optionName.toLowerCase() === "color" ? (
-                        <div className="flex flex-wrap gap-2">
-                          {Object.entries(values).map(([value, colorCode], i) => (
-                            <button
-                              key={i}
-                              onClick={() => setSelectedCustomizations({
-                                ...selectedCustomizations,
-                                [optionName]: value
-                              })}
-                              className={`
-                                w-8 h-8 rounded-full border-2
-                                ${selectedCustomizations[optionName] === value 
-                                  ? "border-primary ring-2 ring-primary/30" 
-                                  : "border-gray-200"
-                                }
-                                transition-all
-                              `}
-                              style={{ backgroundColor: colorCode as string }}
-                              title={value}
-                            >
-                              {selectedCustomizations[optionName] === value && (
-                                <Check className="w-4 h-4 mx-auto text-white drop-shadow" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <Select
-                          value={selectedCustomizations[optionName] || ""}
-                          onValueChange={(value) => setSelectedCustomizations({
-                            ...selectedCustomizations, 
-                            [optionName]: value
-                          })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={`Select ${optionName}`} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(values).map(([value, extraInfo], i) => (
-                              <SelectItem key={i} value={value}>
-                                <span className="flex items-center justify-between w-full">
-                                  <span>{value}</span>
-                                  {extraInfo && (
-                                    <span className="text-xs text-muted-foreground ml-2">
-                                      {extraInfo as string}
-                                    </span>
-                                  )}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <ProductCustomization
+                  customizationOptions={customizationOptions}
+                  selectedCustomizations={selectedCustomizations}
+                  setSelectedCustomizations={setSelectedCustomizations}
+                />
               )}
               
               {/* Total Price */}
               <div className="bg-muted p-3 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Total Price:</span>
-                  <span className="text-xl font-bold text-primary">₹{totalPrice.toFixed(2)}</span>
+                  <span className="font-medium text-blu">Total Price:</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    ₹{(product.price * quantity).toFixed(2)}
+                  </span>
                 </div>
               </div>
               
@@ -674,7 +350,7 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 pt-2">
                 <Button 
                   size="lg"
-                  className="sm:col-span-5"
+                  className="sm:col-span-5 bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={product.status !== "in_stock"}
                   onClick={handleAddToCart}
                 >
@@ -682,36 +358,26 @@ export default function ProductDetailPage() {
                   Add to Cart
                 </Button>
                 
-          
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="sm:col-span-1"
+               <button 
+                  className="inline-flex items-center hover:text-black hover:bg-blue-100  justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onClick={handleShareProduct}
                 >
-                  <Share2 className="h-5 w-5" />
-                </Button>
+                  <Share2  className="h-5 w-5 font-thin text-muted-foreground " />
+        
+                </button>
               </div>
             </CardContent>
           </Card>
           
-          {/* WhatsApp Link */}
-          <WhatsAppButton />
+          
         </div>
       </div>
 
       {/* Detailed Product Information Tabs */}
-      <Tabs defaultValue="description" className="bg-white rounded-xl shadow-sm">
+      <Tabs defaultValue="details" className="bg-white rounded-xl shadow-sm">
         <div className="overflow-x-auto scrollbar-hide">
           <TabsList className="border-b rounded-t-xl p-0 h-auto w-full flex-nowrap min-w-max">
-            <TabsTrigger value="description" className="rounded-tl-xl py-2 px-3 sm:py-3 sm:px-6 whitespace-nowrap text-sm">
-              Description
-            </TabsTrigger>
-            {hasCustomization && (
-              <TabsTrigger value="customization" className="py-2 px-3 sm:py-3 sm:px-6 whitespace-nowrap text-sm">
-                Customization
-              </TabsTrigger>
-            )}
+
             <TabsTrigger value="details" className="py-2 px-3 sm:py-3 sm:px-6 whitespace-nowrap text-sm">
               Specifications
             </TabsTrigger>
@@ -724,68 +390,7 @@ export default function ProductDetailPage() {
           </TabsList>
         </div>
 
-        <TabsContent value="description" className="p-6">
-          <div className="prose prose-sm sm:prose max-w-none">
-            <p>{product.description}</p>
-          </div>
-        </TabsContent>
-
-        {hasCustomization && (
-          <TabsContent value="customization" className="p-6">
-            <h3 className="text-lg font-medium mb-6">Available Customization Options</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(category.allowed_customizations).map(([key, opts]) => (
-                <div key={key} className="border rounded-lg p-4">
-                  <h4 className="font-semibold text-lg capitalize mb-3 pb-2 border-b">
-                    {key}
-                  </h4>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(opts).map(([value, extraValue], i) => (
-                      <div
-                        key={i}
-                        className="group relative px-3 py-2 rounded-lg text-sm 
-                                 border transition-all duration-200 
-                                 bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-300
-                                 cursor-default"
-                      >
-                        {key.toLowerCase() === "color" ? (
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: extraValue as string }}
-                            />
-                            <span>{value}</span>
-                          </div>
-                        ) : key.toLowerCase() === "size" ? (
-                          <div className="flex flex-col items-center">
-                            <span className="font-medium">{value}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {extraValue}
-                            </span>
-                          </div>
-                        ) : (
-                          <span>{value}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 bg-blue-50 p-4 rounded-lg">
-              <h4 className="flex items-center text-blue-800 font-medium mb-2">
-                <Info className="mr-2 h-5 w-5" />
-                How To Customize
-              </h4>
-              <p className="text-blue-700 text-sm">
-                After adding this product to your cart, you'll be able to provide detailed customization
-                instructions including text, images, or special requirements. Our team will work with 
-                you to ensure your product is exactly as you envisioned.
-              </p>
-            </div>
-          </TabsContent>
-        )}
+       
         
         <TabsContent value="details" className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
@@ -795,23 +400,80 @@ export default function ProductDetailPage() {
                 <tbody>
                   <tr className="border-b">
                     <th className="py-2 text-left font-medium text-muted-foreground">Material</th>
-                    <td className="py-2">{product.material}</td>
+                    <td className="py-2">{product.material || "Specification unavailable"}</td>
                   </tr>
                   <tr className="border-b">
                     <th className="py-2 text-left font-medium text-muted-foreground">Dimensions</th>
-                    <td className="py-2">{`${product.dimensions.length} × ${product.dimensions.breadth} × ${product.dimensions.height} cm`}</td>
+                    <td className="py-2">
+                      {(() => {
+                        // Handle dimensions regardless of format
+                        const dimensionsArray = Array.isArray(product.dimensions) 
+                          ? product.dimensions 
+                          : [product.dimensions];
+                        
+                        // Filter out empty dimension objects
+                        const validDimensions = dimensionsArray.filter(dim => 
+                          dim && (dim.length || dim.breadth || dim.height || dim.radius)
+                        );
+                        
+                        if (validDimensions.length === 0) {
+                          return "Dimensions unavailable";
+                        }
+                        
+                        // Helper function to format dimensions without showing 0 values
+                        const formatDimension = (value?: number) => {
+                          if (!value || value === 0) return '';
+                          return `${value} cm`;
+                        }
+
+                        // Helper function to build dimensions string
+                        const buildDimensionsString = (dim: any) => {
+                          if (dim.radius) {
+                            return `${formatDimension(dim.radius)} (radius)`.trim();
+                          }
+                          
+                          const length = formatDimension(dim.length);
+                          const breadth = formatDimension(dim.breadth);
+                          const height = formatDimension(dim.height);
+                          
+                          // Create array of non-empty dimension values
+                          const parts = [length, breadth, height].filter(part => part !== '');
+                          
+                          // If no parts are valid, return empty string
+                          if (parts.length === 0) return '';
+                          
+                          // Join parts with the × symbol
+                          return parts.join(' × ');
+                        };
+                        
+                        return validDimensions.map((dim, i) => {
+                          // Get formatted dimensions string
+                          const dimensionsString = buildDimensionsString(dim);
+                          
+                          // Skip this dimension if string is empty
+                          if (!dimensionsString) return null;
+                          
+                          return (
+                            <div key={i} className={i > 0 ? "mt-2 pt-2 border-t" : ""}>
+                              {dim.label && <span className="text-xs text-muted-foreground block">{dim.label}:</span>}
+                              {dimensionsString}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </td>
                   </tr>
                   <tr className="border-b">
                     <th className="py-2 text-left font-medium text-muted-foreground">Weight</th>
-                    <td className="py-2">{product.weight} g</td>
+                    <td className="py-2">{product.weight ? `${product.weight} g` : "Specification unavailable"}</td>
                   </tr>
                   <tr className="border-b">
                     <th className="py-2 text-left font-medium text-muted-foreground">Product ID</th>
-                    <td className="py-2">{product.product_id}</td>
+                    <td className="py-2">{product.product_id || "N/A"}</td>
                   </tr>
                   <tr>
                     <th className="py-2 text-left font-medium text-muted-foreground">Category</th>
-                    <td className="py-2">{product.category_name}</td>
+                    <td className="py-2">{product.category_name || "Uncategorized"}</td>
                   </tr>
                 </tbody>
               </table>
@@ -819,7 +481,7 @@ export default function ProductDetailPage() {
             
             <div>
               <h3 className="text-lg font-medium mb-4">Bulk Pricing</h3>
-              {product.bulk_prices.length > 0 ? (
+              {Array.isArray(product.bulk_prices) && product.bulk_prices.length > 0 ? (
                 <table className="w-full text-sm">
                   <thead className="border-b">
                     <tr>
@@ -829,11 +491,7 @@ export default function ProductDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b">
-                      <td className="py-2">1 - {product.bulk_prices[0]?.min_quantity - 1 || 'N/A'}</td>
-                      <td className="py-2 text-right">₹{product.price.toFixed(2)}</td>
-                      <td className="py-2 text-right">-</td>
-                    </tr>
+                    
                     {product.bulk_prices.map((bp, index) => (
                       <tr key={index} className={index < product.bulk_prices.length - 1 ? "border-b" : ""}>
                         <td className="py-2">{bp.min_quantity} - {bp.max_quantity}</td>
@@ -860,7 +518,7 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-medium mb-4 flex items-center">
-                <Truck className="h-5 w-5 mr-2" />
+                <Package className="h-5 w-5 mr-2" />
                 Shipping Information
               </h3>
               
@@ -868,21 +526,67 @@ export default function ProductDetailPage() {
                 <div className="bg-muted rounded-lg p-4">
                   <h4 className="font-medium mb-2">Delivery Time</h4>
                   <p className="text-sm">
-                    Standard delivery: {shippingEstimate}
+                    Standard delivery: {product.standard_delivery_time || "3-5 "} business days
                     <br />
-                    Express delivery: 1-2 business days (additional charges apply)
+                    Express delivery: {product.express_delivery_time || "1-2 "} buisness days (additional charges apply)
                   </p>
-                </div>
-                
-                <div className="bg-muted rounded-lg p-4">
-                  <h4 className="font-medium mb-2">Shipping Costs</h4>
-                  <p className="text-sm">
-                    Free shipping on orders above ₹499
-                    <br />
-                    Standard delivery: ₹49
-                    <br />
-                    Express delivery: ₹149
-                  </p>
+                </div>                  <div className="bg-muted rounded-lg p-4">
+                  <h4 className="font-medium mb-2 flex items-center">
+                    <Truck className="h-4 w-4 mr-1" />
+                    Shipping Costs
+                  </h4>
+
+
+                  {Array.isArray(product.bulk_prices) && product.bulk_prices.length > 0 ? (
+                    <div>
+                      <h5 className="font-medium text-sm mb-2">Shipping costs by Bulk Quantity:</h5>
+                      <table className="w-full text-sm border-collapse">
+                        <thead className="border-b">
+                          <tr>
+                            <th className="pb-2 text-left font-medium">Quantity Range</th>
+                            <th className="pb-2 text-right font-medium">Standard</th>
+                            <th className="pb-2 text-right font-medium">Express</th>
+                           
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {product.bulk_prices.map((bp, index) => {
+                            // Calculate if this range qualifies for free shipping
+                            const orderValue = bp.min_quantity * product.price;
+                            const freeShipping = bp.standard_delivery_price === 0 ;
+                            
+                            return (
+                              <tr key={index} className={index < product.bulk_prices.length - 1 ? "border-b" : ""}>
+                                <td className="py-2">{bp.min_quantity} - {bp.max_quantity}</td>
+                                <td className={`py-2 text-right ${freeShipping ? 'text-green-600 font-medium' : ''}`}>
+                                  {freeShipping ? 'FREE' : `₹${bp.standard_delivery_price ?? "Contact Us"}`}
+                                </td>
+                                <td className="py-2 text-right">₹{bp.express_delivery_price ?? "Contact Us"}</td>
+                                
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      
+                     
+                    </div>
+                  ) : (
+                    <div>
+                      <table className="w-full text-sm">
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-2 font-medium">Standard delivery:</td>
+                            <td className="py-2 text-right">₹{product.bulk_prices?.[0]?.standard_delivery_price ?? 49}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 font-medium">Express delivery:</td>
+                            <td className="py-2 text-right">₹{product.bulk_prices?.[0]?.express_delivery_price ?? 149}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="bg-muted rounded-lg p-4">

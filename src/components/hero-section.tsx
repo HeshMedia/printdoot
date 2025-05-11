@@ -2,10 +2,13 @@
 "use client"
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertCircle, Star, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import BestSellers from "./best-sellers";
 import { Banner, bannerApi } from "@/lib/api/banners";
+import { bestsellingApi } from "@/lib/api/featured";
 
 const HeroSection = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -192,20 +195,137 @@ const HeroSection = () => {
 // Compact version of bestsellers specifically for hero section
 const HeroSideBestsellers = () => {
   return (
-    <div className="bg-white h-full rounded-2xl shadow-lg p-4">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold mb-2">Bestsellers</h2>
-        <div className="flex items-center">
-          <div className="h-1 w-12 bg-blue-600 rounded-full"></div>
-          <div className="h-1 w-20 bg-blue-400 opacity-50 rounded-full ml-1"></div>
+    <motion.div 
+      className="bg-white h-full rounded-2xl shadow-lg p-4 flex flex-col"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="mb-3 flex flex-col items-start">
+        <motion.h2 
+          className="text-xl font-bold mb-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          Bestsellers
+        </motion.h2>
+        <div className="flex  flex-col w-full justify-start">
+          <motion.div 
+            className="h-1 w-full bg-blue-600 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: 140 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          ></motion.div>
+          <motion.p
+            className="mt-1 text-gray-600 text-sm font-medium"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            our most popular items just for you
+          </motion.p>
         </div>
       </div>
-      
-      {/* We'll use a minimal version of the BestSellers component */}
-      <div className="h-[300px] sm:h-[350px] md:h-[385px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-100">
-        <BestSellers />
+        {/* We'll adapt the BestSellers component to fit without scrolling */}
+      <motion.div 
+        className="flex-grow flex flex-col"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        <BestSellersCompact />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Simpler version of BestSellers with fewer products and no scrollbar
+const BestSellersCompact = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await bestsellingApi.get();
+        // Take only 3 products for compact display
+        setProducts(data.products.slice(0, 3));
+      } catch (error) {
+        console.error("Error fetching bestselling products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+  
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {isLoading
+          ? Array(3).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-xl bg-gray-100 aspect-square"></div>
+            ))
+          : products.map((product, index) => (
+              <motion.div
+                key={product.product_id}
+                className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 group relative"
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 0.05 * index }}
+              >
+                <Link href={`/products/${product.product_id}`} className="flex flex-col">
+                  {/* Product image */}
+                  <div className="relative w-full aspect-square overflow-hidden">
+                    <Image
+                      src={product.main_image_url || "/placeholder.svg"}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 20vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  
+                  {/* Product info */}
+                  <div className="p-2">
+                    <h3 className="font-medium text-xs line-clamp-1 group-hover:text-[#60B5FF] transition-colors">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="font-bold text-[#60B5FF] text-xs">
+                        ₹{product.price.toFixed(2)}
+                      </span>
+                      <div className="flex items-center">
+                        <Star className="h-2.5 w-2.5 fill-yellow-400 stroke-yellow-400 mr-0.5" />
+                        <span className="text-[10px]">{product.average_rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
       </div>
-    </div>
+      
+      <motion.div
+        className="text-center mt-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Button 
+          className="rounded-full bg-[#60B5FF] hover:bg-[#4da8f7] text-white px-4 py-1.5 text-xs flex items-center group shadow-md w-full justify-center"
+          asChild
+        >
+          <Link href="/featured/bestselling">
+            View All Bestsellers
+            <ArrowRight className="ml-1 h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </Button>
+      </motion.div>
+    </>
   );
 };
 

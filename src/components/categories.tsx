@@ -42,7 +42,7 @@ export default function Categories() {
   }, []);
 
   return (
-    <section className="sticky top-0 z-50 bg-white shadow-sm py-3 border-b">
+    <section className="sticky top-0 z-50 bg-white  shadow-sm py-3 border-b">
       <div className="container mx-auto px-4">
        
         {/* Mobile Menu - Now horizontal scrollable instead of sidebar */}
@@ -63,7 +63,7 @@ export default function Categories() {
               categories.map((category) => (
                 <div key={category.id} className="flex-shrink-0">
                   <Link 
-                    href={`/categories/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={`/products?category=${category.id}`}
                     className="group"
                   >
                     <div className="flex flex-col items-center px-3 py-2">

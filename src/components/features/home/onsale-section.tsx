@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Zap, Eye, ShoppingCart } from "lucide-react"
+import { ArrowRight, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 import { onsaleApi, type FeaturedProductResponse } from "@/lib/api/featured"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import ProductCard from "@/components/features/FeaturedProductCard" // Adjust import path as needed
 
 export function OnsaleSection() {
   const [products, setProducts] = useState<FeaturedProductResponse[]>([])
@@ -16,9 +16,8 @@ export function OnsaleSection() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await onsaleApi.get()
-        // Take only 6 products
-        setProducts(data.products.slice(0, 6))
+        const data = await onsaleApi.get(0, 6) // Use proper pagination
+        setProducts(data.products)
       } catch (error) {
         console.error("Error fetching on-sale products:", error)
       } finally {
@@ -29,10 +28,28 @@ export function OnsaleSection() {
     fetchProducts()
   }, [])
 
+  // Function to calculate and round discount percentage to nearest 5%
+  const calculateDiscount = (currentPrice: number, originalPrice: number) => {
+    // Calculate exact discount percentage
+    const discountPercent = ((originalPrice - currentPrice) / originalPrice) * 100;
+    
+    // Round to nearest 5%
+    const roundedDiscount = Math.round(discountPercent / 5) * 5;
+    
+    return roundedDiscount;
+  }
+
   // Skip rendering if there are no products
   if (!isLoading && products.length === 0) {
     return null
   }
+
+  // Custom sale badge component
+  const renderSaleBadge = () => (
+    <Badge className="bg-red-500 hover:bg-red-600 px-1.5 py-0.5 text-xs">
+      <Zap className="h-2.5 w-2.5 mr-0.5" strokeWidth={3} /> SALE
+    </Badge>
+  )
 
   return (
     <section className="py-12 bg-gray-50">
@@ -46,9 +63,8 @@ export function OnsaleSection() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-2xl font-bold mb-2">On Sale</h2>
-            <div className="flex items-center justify-center w-full">
-              <div className="h-1 w-16 bg-red-500 rounded-full mx-2"></div>
-              <div className="h-1 w-32 bg-red-500 opacity-50 rounded-full"></div>
+            <div className="w-full max-w-xs mx-auto">
+              <div className="h-1 bg-red-500 rounded-full w-full"></div>
             </div>
           </motion.div>
           <motion.p
@@ -68,65 +84,37 @@ export function OnsaleSection() {
             ? Array(6).fill(0).map((_, i) => (
                 <div key={i} className="animate-pulse rounded-xl bg-gray-200 h-44"></div>
               ))
-            : products.map((product, index) => (
-                <motion.div
-                  key={product.product_id}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 group relative"
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: 0.05 * index }}
-                >
-                  <Link href={`/products/${product.product_id}`}>
-                    <div className="relative w-full aspect-square overflow-hidden">
-                      <Image
-                        src={product.main_image_url || "/placeholder.svg"}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      
-                      {/* Sale tag - Smaller */}
-                      <div className="absolute top-1.5 right-1.5 z-10">
-                        <Badge className="bg-red-500 hover:bg-red-600 px-1.5 py-0.5 text-xs">
-                          <Zap className="h-2.5 w-2.5 mr-0.5" strokeWidth={3} /> SALE
-                        </Badge>
-                      </div>
-                      
-                      {/* Quick action overlay - Smaller */}
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-white rounded-full p-1.5"
-                          aria-label="Quick view"
-                        >
-                          <Eye className="h-3 w-3 text-gray-800" />
-                        </motion.button>
-                        <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-red-500 rounded-full p-1.5"
-                          aria-label="Add to cart"
-                        >
-                          <ShoppingCart className="h-3 w-3 text-white" />
-                        </motion.button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-2">
-                      <h3 className="font-medium text-sm line-clamp-1 group-hover:text-red-500 transition-colors">{product.name}</h3>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="font-bold text-red-500 text-sm">₹{product.price.toFixed(2)}</span>
-                        <span className="text-xs text-gray-500 line-through">₹{(product.price * 1.2).toFixed(2)}</span>
-                        <span className="ml-auto text-xs font-medium text-green-600 bg-green-100 px-1 py-0.5 rounded">
-                          20% OFF
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+            : products.map((product, index) => {
+                // Calculate discount percentage
+                const originalPrice = product.price * 1.2;
+                const discountPercent = calculateDiscount(product.price, originalPrice);
+                
+                // Custom price component with sale price and original price
+                const priceComponent = (
+                  <div className="flex flex-col">
+                    <span className="font-bold text-red-500 text-xs">₹{product.price.toFixed(2)}</span>
+                    <span className="text-[10px] text-gray-500 line-through">₹{originalPrice.toFixed(2)}</span>
+                  </div>
+                );
+                
+                // Custom badge with discount percentage
+                const badgeComponent = (
+                  <Badge className="bg-red-500 hover:bg-red-600 px-1.5 py-0.5 text-xs">
+                    <Zap className="h-2.5 w-2.5 mr-0.5" strokeWidth={3} /> {discountPercent}% OFF
+                  </Badge>
+                );
+                
+                return (
+                  <ProductCard
+                    key={product.product_id}
+                    product={product}
+                    animationDelay={0.05 * index}
+                    badgeComponent={badgeComponent}
+                    priceComponent={priceComponent}
+                    accentColor="red"
+                  />
+                );
+              })}
         </div>
 
         {/* Explore Button - More compact */}
@@ -151,4 +139,3 @@ export function OnsaleSection() {
     </section>
   )
 }
-

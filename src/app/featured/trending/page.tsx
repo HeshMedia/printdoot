@@ -1,61 +1,47 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { TrendingUp, ArrowRight, Loader2 } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { TrendingUp } from "lucide-react"
 import { trendingApi, type FeaturedProductResponse } from "@/lib/api/featured"
 import { categoriesApi } from "@/lib/api/categories"
 import { Category } from "@/lib/api/admin/categories"
-import Link from "next/link"
-import Image from "next/image"
-
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { PaginationControl } from "@/components/ui/pagination-control"
+import ProductCard from "@/components/features/FeaturedProductCard"
 
 export default function TrendingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<FeaturedProductResponse[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<FeaturedProductResponse[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [totalProducts, setTotalProducts] = useState(0)
   
-  // Filter states
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
-  const [minRating, setMinRating] = useState<number | undefined>(undefined)
-  const [sortBy, setSortBy] = useState<string>("name_asc")
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const productsPerPage = 9
-
+  // Pagination from URL
+  const pageParam = searchParams.get("page")
+  const [currentPage, setCurrentPage] = useState<number>(
+    pageParam ? parseInt(pageParam) : 1
+  )
+  const productsPerPage = 12
+  
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true)
       try {
+        // Calculate skip based on current page
+        const skip = (currentPage - 1) * productsPerPage
+        
+        // Use the API with proper pagination
         const [productsData, categoriesData] = await Promise.all([
-          trendingApi.get(100, 0), // Get a large number to allow for client-side filtering
+          trendingApi.get(skip, productsPerPage),
           categoriesApi.getCategories()
         ])
         
         setProducts(productsData.products || [])
-        setFilteredProducts(productsData.products || [])
+        setTotalProducts(productsData.total || 0)
         setCategories(categoriesData.categories || [])
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -65,286 +51,111 @@ export default function TrendingPage() {
     }
 
     fetchProducts()
-  }, [])
-
-  useEffect(() => {
-    // Apply filters whenever filter values change
-    let filtered = [...products]
-
-    // Filter by category
-    if (selectedCategory) {
-      filtered = filtered.filter(product => product.category_name === selectedCategory)
+    
+    // Update URL with current page
+    if (currentPage > 1) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("page", currentPage.toString())
+      router.push(`/featured/trending?${params.toString()}`, { scroll: false })
+    } else if (pageParam && currentPage === 1) {
+      // Remove page param if on page 1
+      router.push(`/featured/trending`, { scroll: false })
     }
+  }, [currentPage, router, searchParams, pageParam])
 
-    // Filter by price range
-    filtered = filtered.filter(
-      product => product.price >= priceRange[0] && product.price <= priceRange[1]
-    )
+  // Calculate total pages based on total products from API
+  const totalPages = Math.ceil(totalProducts / productsPerPage)
 
-    // Filter by rating
-    if (minRating !== undefined) {
-      filtered = filtered.filter(product => product.average_rating >= minRating)
-    }
-
-    // Apply sorting
-    if (sortBy === "price_asc") {
-      filtered.sort((a, b) => a.price - b.price)
-    } else if (sortBy === "price_desc") {
-      filtered.sort((a, b) => b.price - a.price)
-    } else if (sortBy === "rating_desc") {
-      filtered.sort((a, b) => b.average_rating - a.average_rating)
-    } else if (sortBy === "name_asc") {
-      filtered.sort((a, b) => a.name.localeCompare(b.name))
-    } else if (sortBy === "name_desc") {
-      filtered.sort((a, b) => b.name.localeCompare(a.name))
-    }
-
-    setFilteredProducts(filtered)
-    setCurrentPage(1) // Reset to first page when filters change
-  }, [selectedCategory, priceRange, minRating, sortBy, products])
-
-  const handleRatingChange = (rating: number) => {
-    setMinRating(minRating === rating ? undefined : rating)
-  }
-
-  const clearFilters = () => {
-    setSelectedCategory("")
-    setPriceRange([0, Math.max(...products.map(product => product.price), 1000)])
-    setMinRating(undefined)
-    setSortBy("name_asc")
-  }
-
-  const maxPrice = Math.max(...products.map(product => product.price), 1000)
-
-  // Pagination
-  const indexOfLastProduct = currentPage * productsPerPage
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct)
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
-
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber)
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  return (
-    <div className="container mx-auto py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar with filters */}
-        <div className="w-full md:w-1/4">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-blue-800">Filters</h2>
-              <Button variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50" onClick={clearFilters}>Clear All</Button>
-            </div>
-            
-            <Accordion type="single" collapsible className="w-full" defaultValue="category">
-              {/* Category filter */}
-              <AccordionItem value="category">
-                <AccordionTrigger className="text-sm font-medium">Categories</AccordionTrigger>
-                <AccordionContent>
-                  <div className="flex flex-col gap-2 mt-2">
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center gap-2">
-                        <Checkbox 
-                          id={`category-${category.id}`} 
-                          checked={selectedCategory === category.name}
-                          onCheckedChange={() => 
-                            setSelectedCategory(selectedCategory === category.name ? "" : category.name)
-                          }
-                        />
-                        <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+  // Custom badge renderer for trending products
+  const renderBadge = (product: FeaturedProductResponse) => (
+    <Badge className="bg-blue-500 hover:bg-blue-600 px-1 py-0.5 text-[10px]">
+      <TrendingUp className="h-2 w-2 mr-0.5" strokeWidth={3} /> TRENDING
+    </Badge>
+  )
 
-              {/* Price range filter */}
-              <AccordionItem value="price">
-                <AccordionTrigger className="text-sm font-medium">Price Range</AccordionTrigger>
-                <AccordionContent>
-                  <div className="mt-4">
-                    <Slider 
-                      min={0} 
-                      max={maxPrice} 
-                      step={10}
-                      value={priceRange} 
-                      onValueChange={(value) => setPriceRange(value as [number, number])} 
-                      className="text-blue-600"
-                    />
-                    <div className="flex justify-between mt-2 text-sm">
-                      <span>₹{priceRange[0]}</span>
-                      <span>₹{priceRange[1]}</span>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-              
-              {/* Rating filter */}
-              <AccordionItem value="rating">
-                <AccordionTrigger className="text-sm font-medium">Rating</AccordionTrigger>
-                <AccordionContent>
-                  <div className="flex flex-col gap-2 mt-2">
-                    {[5, 4, 3, 2, 1].map((rating) => (
-                      <div key={rating} className="flex items-center gap-2">
-                        <Checkbox 
-                          id={`rating-${rating}`} 
-                          checked={minRating === rating}
-                          onCheckedChange={() => handleRatingChange(rating)}
-                        />
-                        <Label htmlFor={`rating-${rating}`} className="flex items-center">
-                          {Array.from({ length: rating }).map((_, i) => (
-                            <TrendingUp key={i} className="h-4 w-4 fill-blue-400 text-blue-400" />
-                          ))}
-                          {Array.from({ length: 5 - rating }).map((_, i) => (
-                            <TrendingUp key={i} className="h-4 w-4 text-gray-200" />
-                          ))}
-                          <span className="ml-1">&amp; Up</span>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+  return (
+    <section className="py-12 bg-gradient-to-b from-white to-blue-50">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-center mb-8">
+          <motion.div
+            className="w-full max-w-lg text-center mb-3"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >            
+            <h2 className="text-2xl font-bold mb-2">Trending Products</h2>
+            <div className="w-full max-w-xs mx-auto">
+              <div className="h-1 bg-blue-500 rounded-full w-full"></div>
+            </div>
+          </motion.div>
+          <motion.p
+            className="text-gray-600 max-w-md text-center mb-5 text-sm"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            See what's popular with our community right now
+          </motion.p>
         </div>
-        
-        {/* Main content area */}
-        <div className="w-full md:w-3/4">
-          {/* Page header */}
-          <div className="mb-6 bg-gradient-to-r from-blue-500 to-blue-700 p-6 rounded-lg text-white shadow-md">
-            <h1 className="text-3xl font-bold mb-2 flex items-center">
-              <TrendingUp className="h-8 w-8 mr-3" /> 
-              Trending Products
-            </h1>
-            <p className="opacity-90">See what's popular with our community right now</p>
-          </div>
           
-          {/* Sorting and results count */}
-          <div className="flex flex-wrap justify-between items-center mb-6 gap-4 bg-white p-4 rounded-lg shadow-sm border border-blue-100">
-            <div className="text-sm">
-              Showing {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Sort by:</span>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px] border-blue-200">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                  <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                  <SelectItem value="price_asc">Price (Low to High)</SelectItem>
-                  <SelectItem value="price_desc">Price (High to Low)</SelectItem>
-                  <SelectItem value="rating_desc">Rating (Highest)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Products grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+            {Array(productsPerPage).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-xl bg-gray-200 h-44"></div>
+            ))}
           </div>
-          
-          {/* Products grid */}
-          {isLoading ? (
-            <div className="flex justify-center items-center py-32 bg-white rounded-lg shadow-sm">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+        ) : products.length === 0 ? (
+          <div className="text-center py-32 bg-white rounded-xl shadow-sm">
+            <h3 className="text-xl font-medium mb-2">No trending products found</h3>
+            <p className="text-muted-foreground mb-6">Check back later for trending items.</p>
+            <Button onClick={() => router.push("/")} className="bg-blue-500 hover:bg-blue-600">
+              Browse All Products
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+              {products.map((product, index) => (
+                <ProductCard 
+                  key={product.product_id}
+                  product={product}
+                  animationDelay={0.05 * (index % 4)}
+                  badgeComponent={renderBadge(product)}
+                  accentColor="blue"
+                />
+              ))}
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-32 bg-white rounded-xl shadow-sm">
-              <h3 className="text-xl font-medium mb-2">No trending products found</h3>
-              <p className="text-muted-foreground mb-6">Try changing your filters or check back later.</p>
-              <Button onClick={clearFilters} className="bg-blue-500 hover:bg-blue-600">Clear All Filters</Button>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentProducts.map((product) => (
-                  <Link href={`/products/${product.product_id}`} key={product.product_id}>
-                    <Card className="h-full transition-all duration-300 hover:shadow-lg border-blue-100 overflow-hidden">
-                      <div className="relative h-64 w-full">
-                        <Image
-                          src={product.main_image_url || "/placeholder.svg"}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-blue-500 hover:bg-blue-600">
-                            <TrendingUp className="h-3 w-3 mr-1" /> Trending
-                          </Badge>
-                        </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-medium text-lg mb-1 line-clamp-1">{product.name}</h3>
-                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-blue-600">₹{product.price.toFixed(2)}</span>
-                          <div className="flex items-center bg-blue-50 px-2 py-1 rounded-full">
-                            <TrendingUp className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                            <span className="text-sm font-medium text-blue-700">{product.average_rating.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
               
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-8">
-                  <div className="flex space-x-1">
-                    <Button 
-                      variant="outline" 
-                      disabled={currentPage === 1}
-                      onClick={() => paginate(currentPage - 1)}
-                      className="border-blue-200 text-blue-700"
-                    >
-                      Previous
-                    </Button>
-                    
-                    {Array.from({ length: totalPages }).map((_, idx) => {
-                      const pageNumber = idx + 1
-                      // Show current page, first, last, and neighboring pages
-                      if (
-                        pageNumber === 1 || 
-                        pageNumber === totalPages ||
-                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                      ) {
-                        return (
-                          <Button
-                            key={pageNumber}
-                            variant={currentPage === pageNumber ? "default" : "outline"}
-                            className={currentPage === pageNumber ? "bg-blue-500 hover:bg-blue-600" : "border-blue-200 text-blue-700"}
-                            onClick={() => paginate(pageNumber)}
-                          >
-                            {pageNumber}
-                          </Button>
-                        )
-                      } else if (
-                        (pageNumber === currentPage - 2 && currentPage > 3) || 
-                        (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
-                      ) {
-                        return <span key={pageNumber} className="flex items-center px-3">...</span>
-                      }
-                      return null
-                    })}
-                    
-                    <Button 
-                      variant="outline" 
-                      disabled={currentPage === totalPages}
-                      onClick={() => paginate(currentPage + 1)}
-                      className="border-blue-200 text-blue-700"
-                    >
-                      Next
-                    </Button>
-                  </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <motion.div
+                className="mt-8"
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <PaginationControl 
+                  currentPage={currentPage}
+                  totalPages={Math.max(1, totalPages)}
+                  onPageChange={handlePageChange}
+                />
+                <div className="text-center text-sm text-gray-500 mt-4">
+                  Showing {products.length} of {totalProducts} products
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              </motion.div>
+            )}
+          </>
+        )}
       </div>
-    </div>
+    </section>
   )
 }
