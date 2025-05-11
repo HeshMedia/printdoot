@@ -125,13 +125,7 @@ const ProductDelivery: React.FC<ProductDeliveryProps> = ({
         </div>
       </div>
 
-      {/* Free shipping threshold */}
-      {!isFreeShipping && (
-        <div className="text-sm pt-2 border-t text-green-600">
-          Free standard shipping on orders over ₹499
-        </div>
-      )}
-
+      
       {/* Fallback notice if delivery times are estimations */}
       {!standardDeliveryTime && !expressDeliveryTime && (
         <div className="flex items-start gap-2 mt-2 pt-2 border-t text-amber-600 text-sm">
