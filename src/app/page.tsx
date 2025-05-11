@@ -6,19 +6,25 @@ import AboutUs from "@/components/about-us"
 import { OnsaleSection } from "@/components/features/home/onsale-section"
 import { TrendingSection } from "@/components/features/home/trending-section"
 import { NewArrivalsSection } from "@/components/features/home/newarrivals-section"
+import { TextBannerProvider } from "@/lib/context/text-banner-context"
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Categories />
-      <HeroSection />
-      <TrendingSection />
-      <NewArrivalsSection />
-      <OnsaleSection />
-      <ShopByNeeds />
-      <Testimonials />
-      <AboutUs />
-    </div>
+    <>
+      <TextBannerProvider>
+        <div className="flex flex-col min-h-screen">
+         
+          <Categories />
+          <HeroSection />
+          <TrendingSection />
+          <NewArrivalsSection />
+          <OnsaleSection />
+          <ShopByNeeds />
+          <Testimonials />
+          <AboutUs />
+        </div>
+    </TextBannerProvider>
+    </>
   )
 }
 

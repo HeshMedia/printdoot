@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model alembic_version {
+  version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
+}
+
+model banners {
+  id            Int       @id @default(autoincrement())
+  image_url     String    @db.VarChar
+  display_order Int?
+  active        Int?
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([id], map: "ix_banners_id")
+}
+
+model bestselling {
+  id         Int       @id @default(autoincrement())
+  product_id String    @unique @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id], map: "ix_bestselling_id")
+}
+
+model categories {
+  id                     Int        @id @default(autoincrement())
+  name                   String     @unique @db.VarChar
+  allowed_customizations Json?
+  created_at             DateTime?  @default(now()) @db.Timestamp(6)
+  image_url              String?    @db.VarChar
+  products               products[]
+
+  @@index([id], map: "ix_categories_id")
+}
+
+model coupons {
+  id                    Int       @id @default(autoincrement())
+  code                  String    @unique @db.VarChar
+  discount_percentage   Int
+  applicable_categories Int[]
+  applicable_products   String[]  @db.VarChar
+  active                Int?
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  expires_at            DateTime? @db.Timestamp(6)
+
+  @@index([id], map: "ix_coupons_id")
+}
+
+model new_arrivals {
+  id         Int       @id @default(autoincrement())
+  product_id String    @unique @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id], map: "ix_new_arrivals_id")
+}
+
+model on_sale {
+  id         Int       @id @default(autoincrement())
+  product_id String    @unique @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id], map: "ix_on_sale_id")
+}
+
+model order_counter {
+  id             Int  @id @default(autoincrement())
+  current_number Int?
+
+  @@index([id], map: "ix_order_counter_id")
+}
+
+model order_items {
+  id                       Int      @id @default(autoincrement())
+  order_id                 Int?
+  product_id               String   @db.VarChar
+  quantity                 Int
+  selected_customizations  Json?
+  user_customization_type  String?  @db.VarChar
+  user_customization_value String?  @db.VarChar
+  individual_price         Int
+  orders                   orders?  @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products                 products @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id], map: "ix_order_items_id")
+}
+
+model orders {
+  id          Int           @id @default(autoincrement())
+  order_id    String?       @unique(map: "ix_orders_order_id") @db.VarChar
+  clerkId     String?       @db.VarChar
+  total_price Int
+  status      String?       @db.VarChar
+  created_at  DateTime?     @default(now()) @db.Timestamp(6)
+  receipt_id  Int?
+  order_items order_items[]
+  receipts    receipts?     @relation(fields: [receipt_id], references: [id], onUpdate: NoAction)
+
+  @@index([clerkId], map: "ix_orders_clerkId")
+  @@index([id], map: "ix_orders_id")
+}
+
+model product_reviews {
+  id          Int       @id @default(autoincrement())
+  clerkId     String    @db.VarChar
+  user_name   String    @db.VarChar
+  product_id  String    @db.VarChar
+  rating      Int
+  review_text String?   @db.VarChar
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  products    products  @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([clerkId, product_id], map: "_clerk_product_uc")
+  @@index([id], map: "ix_product_reviews_id")
+}
+
+model products {
+  id                     Int               @id @default(autoincrement())
+  product_id             String            @unique(map: "ix_products_product_id") @db.VarChar
+  main_image_url         String            @db.VarChar
+  side_images_url        Json?
+  name                   String            @db.VarChar
+  price                  Int
+  category_id            Int
+  description            String?           @db.VarChar
+  customization_options  Json?
+  status                 productstatus
+  average_rating         Float?
+  created_at             DateTime?         @default(now()) @db.Timestamp(6)
+  bulk_prices            Json?
+  dimensions             Json?
+  weight                 Int?
+  material               String?           @db.VarChar
+  standard_delivery_time String?           @db.VarChar
+  express_delivery_time  String?           @db.VarChar
+  bestselling            bestselling?
+  new_arrivals           new_arrivals?
+  on_sale                on_sale?
+  order_items            order_items[]
+  product_reviews        product_reviews[]
+  categories             categories        @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  shop_by_need           shop_by_need[]
+  trending               trending?
+
+  @@index([id], map: "ix_products_id")
+}
+
+model receipts {
+  id                Int       @id @default(autoincrement())
+  payment_reference String?   @unique @db.VarChar
+  amount_paid       Int?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  orders            orders[]
+
+  @@index([id], map: "ix_receipts_id")
+}
+
+model shop_by_need {
+  id         Int       @id @default(autoincrement())
+  product_id String    @db.VarChar
+  need       String    @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([product_id, need], map: "_product_need_uc")
+  @@index([id], map: "ix_shop_by_need_id")
+}
+
+model text_banners {
+  id               Int       @id @default(autoincrement())
+  text             String    @db.VarChar
+  background_color String?   @db.VarChar
+  text_color       String?   @db.VarChar
+  display_order    Int?
+  active           Int?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([id], map: "ix_text_banners_id")
+}
+
+model trending {
+  id         Int       @id @default(autoincrement())
+  product_id String    @unique @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id], map: "ix_trending_id")
+}
+
+model user_details {
+  id       Int     @id @default(autoincrement())
+  clerkId  String? @unique @db.VarChar
+  address  String? @db.VarChar
+  city     String? @db.VarChar
+  state    String? @db.VarChar
+  country  String? @db.VarChar
+  pin_code String? @db.VarChar
+  users    users?  @relation(fields: [clerkId], references: [clerkId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id], map: "ix_user_details_id")
+}
+
+model users {
+  id           Int           @id @default(autoincrement())
+  clerkId      String        @unique @db.VarChar
+  first_name   String        @db.VarChar
+  last_name    String        @db.VarChar
+  email        String        @unique @db.VarChar
+  phone_number String        @unique @db.VarChar
+  role         userrole
+  user_details user_details?
+
+  @@index([id], map: "ix_users_id")
+}
+
+enum customization_type_enum {
+  size
+  color
+}
+
+enum productstatus {
+  in_stock
+  out_of_stock
+  discontinued
+}
+
+enum userrole {
+  USER
+  ADMIN
+}
