@@ -3,6 +3,7 @@ import { config } from "../config"
 export type ProductStatus = "in_stock" | "out_of_stock" | "discontinued"
 
 export interface Product {
+  // Existing fields
   product_id: string;
   name: string;
   price: number;
@@ -12,29 +13,29 @@ export interface Product {
   side_images_url: string[];
   category_name: string;
   average_rating: number;
-
-  // ✅ Add these
-  dimensions: {
-    length: number;
-    breadth: number;
-    height: number;
-  };
-  bulk_prices: {
-    min_quantity: number;
-    max_quantity: number;
-    price: number;
-  }[];
-
+  review_count: number;
+  
+  // Add/update these fields
+  standard_delivery_time: string;
+  express_delivery_time: string;
+  dimensions: Array<{
+    length?: number;
+    breadth?: number;
+    height?: number;
+    radius?: number;
+    label?: string;
+  }>;
   weight: number;
   material: string;
+  bulk_prices: BulkPrice[];
   customization_options?: Record<string, Record<string, string>>;
-
 }
-
 export type BulkPrice = {
   min_quantity: number;
   max_quantity: number;
   price: number;
+  standard_delivery_price: number,
+  express_delivery_price: number
 };
 
 

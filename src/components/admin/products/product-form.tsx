@@ -3,11 +3,11 @@
 import type { BulkPrice } from "@/lib/api/products";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ProductInfoForm } from "@/components/admin/products/new/ProductInfoForm";
+import { Dimension, ProductInfoForm } from "@/components/admin/products/new/ProductInfoForm";
 import { CustomizationOptions } from "@/components/admin/products/new/CustomizationOptions";
 import { ProductImagesForm } from "@/components/admin/products/new/ProductImagesForm";
 import { FormButtons } from "@/components/admin/products/new/FormButtons";
-import { productsApi,  urlToBase64 } from "@/lib/api/admin/products";
+import { productsApi, urlToBase64 } from "@/lib/api/admin/products";
 import { categoriesApi, Category } from "@/lib/api/admin/categories";
 
 interface ProductFormProps {
@@ -37,12 +37,14 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     description: initialData?.description || "",
     customization_options: initialData?.customization_options || {},
     status: initialData?.status || "in_stock",
-    dimensions: initialData?.dimensions || { length: 0, breadth: 0, height: 0 },
+    dimensions: initialData?.dimensions || {},
     bulk_prices: initialData?.bulk_prices || [
-      { min_quantity: 0, max_quantity: 0, price: 0 }
+      { min_quantity: 0, max_quantity: 0, price: 0, standard_delivery_price: 0, express_delivery_price: 0 }
     ],
     material: initialData?.material || "",
     weight: initialData?.weight || 0,
+    standard_delivery_time: initialData?.standard_delivery_time || "",
+    express_delivery_time: initialData?.express_delivery_time || "",
   });
 
   useEffect(() => {
@@ -50,25 +52,25 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       try {
         const res = await categoriesApi.getCategories();
         setCategories(res.categories || []);
-        
+
         // If we're editing a product
         if (initialData) {
           // Find the matching category by name if we have category_name but not category_id
           const matchingCategory = res.categories?.find(
             (c) => c.name.toLowerCase() === initialData.category_name?.toLowerCase()
           );
-          
+
           if (matchingCategory) {
             // Process customization options for the form
             // Convert the nested object structure from API to the array format used by the form
             const processedCustomizations: Record<string, string[]> = {};
-            
+
             if (initialData.customization_options) {
               Object.entries(initialData.customization_options).forEach(([key, options]) => {
                 processedCustomizations[key] = Object.keys(options as Record<string, string>);
               });
             }
-            
+
             // Update formData with the correct category_id and processed customization options
             setFormData((prev: any) => ({
               ...prev,
@@ -82,7 +84,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         setError("Failed to fetch categories.");
       }
     };
-    
+
     fetchCategories();
   }, [initialData]);
 
@@ -91,21 +93,98 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     setMainImagePreview(null);
   };
 
-  const handleDimensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  
+  // Support for multiple dimensions
+  const handleAddDimension = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      dimensions: Array.isArray(prev.dimensions) 
+        ? [...prev.dimensions, { }]  // Empty object without type
+        : [prev.dimensions, { }]     // Empty object without type
+    }));
+  };
+
+  const handleRemoveDimension = (index: number) => {
+    setFormData((prev: any) => {
+      if (!Array.isArray(prev.dimensions)) return prev;
+      
+      // If this is the last dimension, return an empty dimensions object
+      if (prev.dimensions.length === 1) {
+        return {
+          ...prev,
+          dimensions: {} // Convert to empty object when removing the last array item
+        };
+      }
+      
+      // Otherwise filter out the removed dimension
+      const updatedDimensions = prev.dimensions.filter((_: any, i: number) => i !== index);
+      return {
+        ...prev,
+        dimensions: updatedDimensions
+      };
+    });
+  };
+// Update these functions in the ProductForm component
+
+const handleDimensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  
+  if (name === "dimensions") {
+    // When the entire dimensions object is being replaced
+    setFormData((prev: any) => ({
+      ...prev,
+      dimensions: value,
+    }));
+  } else {
+    // When a field within dimensions is being updated
     setFormData((prev: any) => ({
       ...prev,
       dimensions: {
         ...prev.dimensions,
-        [name]: parseFloat(value),
+        [name]: name === 'label' ? value : parseFloat(value) || 0,
       },
     }));
-  };
+  }
+};
 
+const handleDimensionFieldChange = (index: number, field: string, value: string) => {
+  setFormData((prev: any) => {
+    if (!Array.isArray(prev.dimensions)) {
+      // If dimensions is not yet an array, just update the single dimension object
+      return {
+        ...prev,
+        dimensions: {
+          ...prev.dimensions,
+          [field]: field === 'label' ? value : (value === undefined ? undefined : parseFloat(value) || 0)
+        }
+      };
+    }
+    
+    // Otherwise update the dimension at the specified index
+    const updatedDimensions = [...prev.dimensions];
+    if (value === undefined) {
+      // If value is undefined, remove the field
+      const dimension = { ...updatedDimensions[index] };
+      delete dimension[field as keyof Dimension];
+      updatedDimensions[index] = dimension;
+    } else {
+      // Otherwise update the field
+      updatedDimensions[index] = {
+        ...updatedDimensions[index],
+        [field]: field === 'label' ? value : parseFloat(value) || 0
+      };
+    }
+    
+    return {
+      ...prev,
+      dimensions: updatedDimensions
+    };
+  });
+};
 
   const handleBulkPriceChange = (
     index: number,
-    field: "min_quantity" | "max_quantity" | "price",
+    field: "min_quantity" | "max_quantity" | "price" | "standard_delivery_price" | "express_delivery_price",
     value: string
   ) => {
     const updated = [...formData.bulk_prices];
@@ -118,7 +197,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const addBulkPrice = () => {
     setFormData((prev: any) => ({
       ...prev,
-      bulk_prices: [...prev.bulk_prices, { min_quantity: 0, max_quantity: 0, price: 0 }],
+      bulk_prices: [...prev.bulk_prices, { min_quantity: 0, max_quantity: 0, price: 0, standard_delivery_price: 0, express_delivery_price: 0 }],
     }));
   };
 
@@ -196,6 +275,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setLoading(true);
     setError(null);
 
@@ -226,19 +306,31 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         ...formDataWithoutCategoryName,
         price: Number(formData.price),
         weight: Number(formData.weight),
-        dimensions: {
-          length: Number(formData.dimensions.length),
-          breadth: Number(formData.dimensions.breadth),
-          height: Number(formData.dimensions.height),
-        },
+        dimensions: Array.isArray(formData.dimensions)
+          ? formData.dimensions.map((dim: any) => ({
+              length: Number(dim.length) || 0,
+              breadth: Number(dim.breadth) || 0,
+              height: Number(dim.height) || 0,
+              radius: Number(dim.radius) || 0,
+              label: dim.label || ""
+            }))
+          : [{ // Wrap the single dimension object in an array
+              length: Number(formData.dimensions.length) || 0,
+              breadth: Number(formData.dimensions.breadth) || 0,
+              height: Number(formData.dimensions.height) || 0,
+              radius: Number(formData.dimensions.radius) || 0,
+              label: formData.dimensions.label || ""
+            }],
         bulk_prices: formData.bulk_prices.map((bp: BulkPrice) => ({
-          min_quantity: Number(bp.min_quantity),
-          max_quantity: Number(bp.max_quantity),
-          price: Number(bp.price),
+          min_quantity: Number(bp.min_quantity) || 0,
+          max_quantity: Number(bp.max_quantity) || 0,
+          price: Number(bp.price) || 0,
+          standard_delivery_price: Number(bp.standard_delivery_price) || 0,
+          express_delivery_price: Number(bp.express_delivery_price) || 0,
         })),
         customization_options: transformedCustomizations,
       };
-
+      console.log("Payload:", payload); // Log the payload for debugging
       // 4. Call the right API and stash the returned ID
       let response;
       if (initialData) {
@@ -247,7 +339,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         response = await productsApi.createProduct(payload);
       }
       setProductId(response.product_id);
-
+      console.log("Product ID:", response.product_id); // Log the product ID for debugging
       // 5. Advance to the image-upload step
       setStep(2);
     } catch (err) {
@@ -283,21 +375,21 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           try {
             // Convert the cloudfront URL to base64
             const mainImageData = await urlToBase64(mainImagePreview);
-            
+
             // Handle side images - convert existing URLs to base64, use files directly for new ones
             let processedSideImages: File[] = [];
             let sideImagesBase64: string[] = [];
             let sideImagesExtensions: string[] = [];
-            
+
             // Process side images - for each preview, check if it's a new file or an existing URL
             for (let i = 0; i < sideImagePreviews.length; i++) {
               const preview = sideImagePreviews[i];
               // Check if this is one of our newly added files
-              const correspondingFile = sideImages.find((_, index) => 
-                sideImagePreviews.indexOf(preview) === index && 
+              const correspondingFile = sideImages.find((_, index) =>
+                sideImagePreviews.indexOf(preview) === index &&
                 preview.startsWith('blob:') // blob URLs are from new files
               );
-              
+
               if (correspondingFile) {
                 // This is a new file, add it to processed files
                 processedSideImages.push(correspondingFile);
@@ -308,7 +400,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 sideImagesExtensions.push(sideImageData.extension);
               }
             }
-            
+
             if (processedSideImages.length > 0) {
               // If we have new side image files, use the updateProductImages method
               if (mainImage) {
@@ -399,6 +491,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             handleBulkPriceChange={handleBulkPriceChange} // ✅ NEW
             addBulkPrice={addBulkPrice}                   // ✅ NEW
             removeBulkPrice={removeBulkPrice}             // ✅ NEW
+            handleAddDimension={handleAddDimension}       // ✅ NEW
+            handleRemoveDimension={handleRemoveDimension} // ✅ NEW
+            handleDimensionFieldChange={handleDimensionFieldChange} 
           />
           <CustomizationOptions
             customizationOptions={formData.customization_options}

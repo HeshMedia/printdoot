@@ -51,10 +51,12 @@ export function ShopByNeedSection() {
   }, [selectedNeed])
 
   if (isLoadingNeeds) {
-    return (
-      <section className="py-12 bg-white">
+    return (      <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop By Need</h2>
+          <h2 className="text-3xl font-bold text-center mb-2">Shop By Need</h2>
+          <div className="w-full max-w-xs mx-auto mb-8">
+            <div className="h-1 bg-blue-600 rounded-full w-full"></div>
+          </div>
           <div className="animate-pulse">
             <div className="h-10 bg-gray-200 rounded mb-8 max-w-2xl mx-auto"></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -76,10 +78,12 @@ export function ShopByNeedSection() {
     return null
   }
 
-  return (
-    <section className="py-12 bg-white">
+  return (    <section className="py-12 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">Shop By Need</h2>
+        <h2 className="text-3xl font-bold text-center mb-2">Shop By Need</h2>
+        <div className="w-full max-w-xs mx-auto mb-8">
+          <div className="h-1 bg-blue-600 rounded-full w-full"></div>
+        </div>
 
         <Tabs value={selectedNeed} onValueChange={setSelectedNeed} className="w-full">
           <TabsList className="mb-8 w-full h-auto flex flex-wrap justify-center">

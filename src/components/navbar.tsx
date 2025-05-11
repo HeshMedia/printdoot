@@ -20,11 +20,11 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { totalItems } = useCart()
   const { user } = useUser()
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between w-[90%]">
-        <div className="flex items-center gap-6">
+      <div className="container flex h-16 items-center justify-between px-4">
+        {/* Left section: Logo and mobile menu */}
+        <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -54,55 +54,62 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center">
             <Image 
               src="/logo.png" 
               alt="PRINTDOOT Logo" 
-              width={192}
-              height={48}
+              width={160}
+              height={40}
               style={{ height: 'auto' }}
               priority
             />
           </Link>
+        </div>
 
-          <div className="hidden md:flex md:w-[300px] lg:w-[400px]">
+        {/* Center section: Desktop navigation and search */}
+        <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
+          <nav className="flex items-center gap-6 mr-4">
+            <Link href="/" className="text-sm font-medium transition-colors hover:text-foreground/80">
+              Home
+            </Link>
+            <Link href="/products" className="text-sm font-medium transition-colors hover:text-foreground/80">
+              Products
+            </Link>
+            <Link href="/categories" className="text-sm font-medium transition-colors hover:text-foreground/80">
+              Categories
+            </Link>
+          </nav>
+
+          <div className="w-[240px] lg:w-[300px]">
             <div className="relative w-full">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input type="search" placeholder="Search here" className="w-full pl-8 bg-muted/50" />
             </div>
           </div>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/" className="text-sm font-medium transition-colors hover:text-foreground/80">
-            Home
-          </Link>
-          <Link href="/products" className="text-sm font-medium transition-colors hover:text-foreground/80">
-            Products
-          </Link>
-          <Link href="/categories" className="text-sm font-medium transition-colors hover:text-foreground/80">
-            Categories
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+        </div>        {/* Right section: Actions (search, cart, account) */}
+        <div className="flex items-center mt-4 gap-2">
+          {/* Search button - mobile */}
+          <Button variant="ghost" className="md:hidden flex flex-col items-center gap-1 h-auto py-1" onClick={() => setIsSearchOpen(!isSearchOpen)}>
             <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
+            <span className="text-[10px] font-medium">Search</span>
           </Button>
-
+          
+          {/* Cart button */}
           <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link href="/cart">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {totalItems}
-                      </span>
-                    )}
-                    <span className="sr-only">Cart</span>
+                  <Button variant="ghost" className="relative flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
+                    <div className="relative">
+                      <ShoppingCart className="h-5 w-5" />
+                      {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {totalItems}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] md:text-xs font-medium md:hidden">Cart</span>
+                    <span className="sr-only md:not-sr-only md:text-xs hidden">Cart</span>
                   </Button>
                 </Link>
               </TooltipTrigger>
@@ -110,16 +117,15 @@ export default function Navbar() {
                 <p className="text-black">Shopping Cart</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-
-          {user ? (
+          </TooltipProvider>          {user ? (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/account">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
                       <User className="h-5 w-5" />
-                      <span className="sr-only">Account</span>
+                      <span className="text-[10px] md:text-xs font-medium md:hidden">Account</span>
+                      <span className="sr-only md:not-sr-only md:text-xs hidden">Account</span>
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -133,9 +139,10 @@ export default function Navbar() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/login">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
                       <LogIn className="h-5 w-5" />
-                      <span className="sr-only">Login</span>
+                      <span className="text-[10px] md:text-xs font-medium md:hidden">Login</span>
+                      <span className="sr-only md:not-sr-only md:text-xs hidden">Login</span>
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -144,12 +151,11 @@ export default function Navbar() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          )}
-        </div>
+          )}        </div>
       </div>
 
       {isSearchOpen && (
-        <div className="container py-2 md:hidden">
+        <div className="absolute top-16 left-0 right-0 border-t border-border bg-background px-4 py-3 shadow-md md:hidden">
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input type="search" placeholder="Search here" className="w-full pl-8 bg-muted/50" />

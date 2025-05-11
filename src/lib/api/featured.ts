@@ -60,8 +60,8 @@ export const bestsellingApi = {
     return response.json();
   },
 
-  get: async (): Promise<FeaturedProductsResponse> => {
-    const url = `${PUBLIC_BASE_URL}/bestselling`;
+   get: async (skip = 0, limit = 12): Promise<FeaturedProductsResponse> => {
+    const url = `${PUBLIC_BASE_URL}/bestselling?skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' },
     });
@@ -111,9 +111,8 @@ export const onsaleApi = {
 
     return response.json();
   },
-
-  get: async (): Promise<FeaturedProductsResponse> => {
-    const url = `${PUBLIC_BASE_URL}/onsale`;
+ get: async (skip = 0, limit = 12): Promise<FeaturedProductsResponse> => {
+    const url = `${PUBLIC_BASE_URL}/onsale?skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' },
     });
@@ -216,8 +215,8 @@ export const newarrivalsApi = {
     return response.json();
   },
   
-  get: async (limit = 6, skip = 0): Promise<FeaturedProductsResponse> => {
-    const url = `${PUBLIC_BASE_URL}/newarrivals?limit=${limit}&skip=${skip}`;
+ get: async (skip = 0, limit = 12): Promise<FeaturedProductsResponse> => {
+    const url = `${PUBLIC_BASE_URL}/newarrivals?skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' },
     });
@@ -281,18 +280,18 @@ export const shopByNeedApi = {
     return response.json();
   },
 
-  getProducts: async (need: string): Promise<ShopByNeedProductsResponse> => {
-    const url = `${PUBLIC_BASE_URL}/shopbyneed/${encodeURIComponent(need)}`;
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    });
+  getProducts: async (need: string, skip = 0, limit = 12): Promise<ShopByNeedProductsResponse> => {
+  const url = `${PUBLIC_BASE_URL}/shopbyneed/${encodeURIComponent(need)}?skip=${skip}&limit=${limit}`;
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products for need: ${need}`);
-    }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products for need: ${need}`);
+  }
 
-    return response.json();
-  },
+  return response.json();
+},
 
   remove: async (need: string, productId: string): Promise<void> => {
     const url = new URL(`${BASE_URL}/shopbyneed`);
