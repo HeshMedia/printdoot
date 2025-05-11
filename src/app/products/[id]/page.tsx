@@ -290,12 +290,7 @@ export default function ProductDetailPage() {
               </div>
             )}
             
-            <div className="bg-muted p-3 rounded-lg col-span-2 sm:col-span-3">
-              <div className="text-xs text-muted-foreground">Shipping</div>
-              <div className="font-medium flex items-center gap-2">
-                <Truck className="h-4 w-4" /> Estimated delivery: {product.standard_delivery_time || "3-5 "} business days
-              </div>
-            </div>
+           
           </div>
           
           {/* Product dimensions */}
