@@ -36,7 +36,6 @@ export default function CouponForm({
   const [expiryDate, setExpiryDate] = useState<string>("")
   const [isFocused, setIsFocused] = useState(false);
 
-  // Initialize form data based on whether we're editing or creating
   const [formData, setFormData] = useState<CouponCreate | CouponUpdate>(
     isEditing && initialData
       ? {

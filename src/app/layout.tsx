@@ -10,6 +10,7 @@ import { Toaster } from "@/components/toaster"
 import { WhatsApp } from "@/components/floatingwhatsapp"
 import { TextBanner } from "@/components/layout/TextBanner"
 import { TextBannerProvider } from "@/lib/context/text-banner-context"
+import { ClerkProvider } from "@clerk/nextjs"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,22 +25,24 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <UserProvider>
-          <CartProvider>
-            <TextBannerProvider>
-              <TextBanner />
-              <Navbar />
-              <main>{children}</main>
-              <WhatsApp/>
-              <Footer />
-              <Toaster />
-            </TextBannerProvider>
-          </CartProvider>
-        </UserProvider>
-      </body>
-    </html>
+    <ClerkProvider> 
+      <html lang="en">
+        <body className={inter.className}>
+          <UserProvider>
+            <CartProvider>           
+              <TextBannerProvider>
+                <TextBanner />
+                <Navbar />
+                <main>{children}</main>
+                <WhatsApp/>
+                <Footer />
+                <Toaster />
+              </TextBannerProvider>
+            </CartProvider>
+          </UserProvider>
+        </body>
+      </html>
+    </ClerkProvider> 
   )
 }
 

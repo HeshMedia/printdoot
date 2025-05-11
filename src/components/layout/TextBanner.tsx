@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useTextBanner } from "@/lib/context/text-banner-context"
 import { TextBannerResponse } from "@/lib/api/text-banners"
+import { usePathname } from "next/navigation"
 
 interface TextBannerProps {
   className?: string
@@ -14,6 +15,13 @@ export function TextBanner({
   className = "", 
   autoRotateInterval = 5000 
 }: TextBannerProps) {
+  const pathname = usePathname()
+  const isAdminPage = pathname?.startsWith('/admin')
+  
+  // Don't render the banner on admin pages
+  if (isAdminPage) {
+    return null
+  }
   const { banners, isLoading, error } = useTextBanner()
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const [isPaused, setIsPaused] = useState<boolean>(false)

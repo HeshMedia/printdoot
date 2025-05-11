@@ -3,12 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, Search, ShoppingCart, User, LogIn } from "lucide-react"
+import { Menu, Search, ShoppingCart } from "lucide-react"
+import { SignedOut, SignInButton, SignUpButton, SignedIn, UserButton } from '@clerk/nextjs'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/lib/context/cart-context"
-import { useUser } from "@/lib/context/user-context"
 import {
   Tooltip,
   TooltipContent,
@@ -19,7 +19,7 @@ import {
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { totalItems } = useCart()
-  const { user } = useUser()
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -86,8 +86,10 @@ export default function Navbar() {
               <Input type="search" placeholder="Search here" className="w-full pl-8 bg-muted/50" />
             </div>
           </div>
-        </div>        {/* Right section: Actions (search, cart, account) */}
-        <div className="flex items-center mt-4 gap-2">
+        </div>
+
+        {/* Right section: Actions (search, cart, account) */}
+        <div className="flex items-center gap-2">
           {/* Search button - mobile */}
           <Button variant="ghost" className="md:hidden flex flex-col items-center gap-1 h-auto py-1" onClick={() => setIsSearchOpen(!isSearchOpen)}>
             <Search className="h-5 w-5" />
@@ -117,41 +119,56 @@ export default function Navbar() {
                 <p className="text-black">Shopping Cart</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>          {user ? (
+          </TooltipProvider>
+
+          {/* Clerk Authentication */}
+          <SignedIn>
+            {/* User is signed in */}
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/account">
-                    <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
-                      <User className="h-5 w-5" />
-                      <span className="text-[10px] md:text-xs font-medium md:hidden">Account</span>
-                      <span className="sr-only md:not-sr-only md:text-xs hidden">Account</span>
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col items-center gap-1 h-auto py-1">
+                    <UserButton 
+                      afterSignOutUrl="/"
+                      appearance={{
+                        elements: {
+                          avatarBox: "h-5 w-5"
+                        }
+                      }} 
+                    />
+                    <span className="text-[10px] md:text-xs font-medium md:hidden">Account</span>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>My Account</p>
+                  <p className="text-black">My Account</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          ) : (
+          </SignedIn>
+          
+          <SignedOut>
+            {/* User is not signed in */}
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/login">
-                    <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
-                      <LogIn className="h-5 w-5" />
-                      <span className="text-[10px] md:text-xs font-medium md:hidden">Login</span>
-                      <span className="sr-only md:not-sr-only md:text-xs hidden">Login</span>
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col items-center gap-1 h-auto py-1">
+                    <SignInButton>
+                      <Button variant="ghost" className="h-5 w-5 p-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                        </svg>
+                      </Button>
+                    </SignInButton>
+                    <span className="text-[10px] md:text-xs font-medium md:hidden">Login</span>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-black">Sign In</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          )}        </div>
+          </SignedOut>
+        </div>
       </div>
 
       {isSearchOpen && (
