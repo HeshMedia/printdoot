@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BestsellingSection } from "@/components/features/home/bestselling-section"
 import { OnsaleSection } from "@/components/features/home/onsale-section"
 import { ShopByNeedSection } from "@/components/features/home/shop-by-need-section"
-import ProtectRoute from "../protected/ProtectRoute"
+import ProtectRoute from "../../(auth)/protected/ProtectRoute"
 
 export default function AdminDashboard() {
   const [productCount, setProductCount] = useState(0)

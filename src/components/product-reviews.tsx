@@ -6,7 +6,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { type Review, reviewsApi, type ReviewInput } from "@/lib/api/reviews"
-import { useUser } from "@/lib/context/user-context"
+import { useUser } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Star, User } from "lucide-react"
@@ -18,7 +18,7 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({ productId, reviews: initialReviews }: ProductReviewsProps) {
-  const { user } = useUser()
+  const { user, isSignedIn } = useUser()
   const { toast } = useToast()
   const [reviews, setReviews] = useState<Review[]>(initialReviews)
   const [rating, setRating] = useState(5)
@@ -28,20 +28,17 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
   const handleRatingChange = (newRating: number) => {
     setRating(newRating)
   }
-
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!user) {
+    
+    if (!isSignedIn || !user) {
       toast({
         title: "Login Required",
         description: "Please login to submit a review",
         variant: "destructive",
       })
       return
-    }
-
-    if (!reviewText.trim()) {
+    }if (!reviewText.trim()) {
       toast({
         title: "Review Required",
         description: "Please enter your review",
@@ -49,12 +46,12 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
       })
       return
     }
-
+    
     try {
       setIsSubmitting(true)
-
+      
       const reviewInput: ReviewInput = {
-        clerkId: user.clerkId,
+        clerkId: user.id,
         product_id: productId,
         rating,
         review_text: reviewText,
@@ -136,11 +133,10 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
           </div>
         </div>
 
-        {/* Write a Review */}
-        <div>
+        {/* Write a Review */}        <div>
           <h3 className="text-lg font-medium mb-4">Write a Review</h3>
-
-          {user ? (
+          
+          {isSignedIn ? (
             <form onSubmit={handleSubmitReview}>
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">Rating</label>
@@ -167,9 +163,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
                   rows={4}
                   required
                 />
-              </div>
-
-              <Button type="submit" disabled={isSubmitting}>
+              </div>              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Review"}
               </Button>
             </form>
@@ -177,7 +171,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
             <div className="bg-muted p-4 rounded-xl">
               <p className="text-sm mb-2">Please log in to write a review.</p>
               <Button asChild variant="outline">
-                <Link href="/login">Log In</Link>
+                <Link href="/sign-in">Log In</Link>
               </Button>
             </div>
           )}

@@ -1,10 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation" // Next.js router
 import { Menu, Search, ShoppingCart } from "lucide-react"
-import { SignedOut, SignInButton, SignUpButton, SignedIn, UserButton } from '@clerk/nextjs'
+import {
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  useUser,
+} from '@clerk/nextjs'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -19,7 +26,16 @@ import {
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { totalItems } = useCart()
-  
+  const router = useRouter() // Next.js router instance
+  const { user } = useUser() // Get user information from Clerk
+
+  useEffect(() => {
+    // Check if the user is an admin
+    if (user && user.publicMetadata?.role === "ADMIN") {
+      router.push('/admin') // Redirect to admin dashboard
+    }
+  }, [user, router])
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -127,15 +143,18 @@ export default function Navbar() {
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center gap-1 h-auto py-1">
-                    <UserButton 
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "h-5 w-5"
-                        }
-                      }} 
-                    />
+                  <div
+                    className="flex flex-col items-center gap-1 h-auto py-1 cursor-pointer"
+                    onClick={() => router.push('/account')} // Redirect to /account page on click
+                  >
+                    <div className="h-8 w-8 rounded-full overflow-hidden">
+                      <Image
+                        src={user?.imageUrl || "/default-avatar.png"}
+                        alt="User Avatar"
+                        width={32}
+                        height={32}
+                      />
+                    </div>
                     <span className="text-[10px] md:text-xs font-medium md:hidden">Account</span>
                   </div>
                 </TooltipTrigger>
