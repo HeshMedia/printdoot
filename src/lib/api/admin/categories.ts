@@ -5,7 +5,7 @@ import { config } from "../../config";
 // Input type used when creating/updating a category
 export interface CategoryCreateInput {
   name: string;
-allowed_customizations: Record<string, Record<string, string>>;
+  allowed_customizations: Record<string, Record<string, string>>;
   image: string;               // base64 string
   image_extension: string;     // file extension, e.g., "png", "jpg"
 }
