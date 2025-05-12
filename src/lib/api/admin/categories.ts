@@ -1,12 +1,11 @@
 import { config } from "../../config";
 
 // Defining allowed customization types
-export type UserCustomizationOption = "text" | "image" | "color";
 
 // Input type used when creating/updating a category
 export interface CategoryCreateInput {
   name: string;
-  allowed_customizations?: Record<string, string[]>;
+allowed_customizations: Record<string, Record<string, string>>;
   image: string;               // base64 string
   image_extension: string;     // file extension, e.g., "png", "jpg"
 }
@@ -52,7 +51,7 @@ export const categoriesApi = {
       },
       body: JSON.stringify(category),
     });
-
+    console.log("createCategory", category);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || "Failed to create category");
