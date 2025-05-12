@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BestsellingSection } from "@/components/features/home/bestselling-section"
 import { OnsaleSection } from "@/components/features/home/onsale-section"
 import { ShopByNeedSection } from "@/components/features/home/shop-by-need-section"
+import ProtectRoute from "../protected/ProtectRoute"
 
 export default function AdminDashboard() {
   const [productCount, setProductCount] = useState(0)
@@ -79,6 +80,7 @@ export default function AdminDashboard() {
   }, [])
 
   return (
+      <ProtectRoute allowedRoles={['ADMIN']}>
     <div className="mb-10 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
@@ -223,5 +225,6 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
+  </ProtectRoute>
   )
 }
