@@ -5,10 +5,74 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TextBannerList } from "@/components/admin/TextBannerList"
-import { TextBanner } from "@/components/layout/TextBanner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, RefreshCw, AlertCircle } from "lucide-react"
+import { Plus, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { fetchTextBanners, TextBannerResponse } from "@/lib/api/text-banners"
+
+// Banner Preview Component with navigation
+interface BannerPreviewProps {
+  banners: TextBannerResponse[]
+}
+
+function BannerPreview({ banners }: BannerPreviewProps) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % banners.length)
+  }
+  
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1))
+  }
+  
+  return (
+    <div className="w-full bg-black text-white text-sm py-2 relative overflow-hidden">
+      <div className="container mx-auto px-4 flex items-center justify-center">
+        {banners.length > 1 && (
+          <button 
+            onClick={goToPrevious}
+            className="absolute left-2 md:left-4 p-1 text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 focus:ring-offset-black rounded-full"
+            aria-label="Previous banner"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
+        
+        <div className="overflow-hidden text-center w-full max-w-4xl mx-auto px-8">
+          <div className="animate-fade-in text-center">
+            {banners[currentIndex].text}
+          </div>
+        </div>
+        
+        {banners.length > 1 && (
+          <button 
+            onClick={goToNext}
+            className="absolute right-2 md:right-4 p-1 text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 focus:ring-offset-black rounded-full"
+            aria-label="Next banner"
+          >
+            <ChevronRight size={18} />
+          </button>
+        )}
+        
+        {banners.length > 1 && (
+          <div className="absolute -bottom-1 left-0 right-0 flex justify-center gap-1">
+            {banners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`h-1 rounded-full transition-all duration-300 focus:outline-none ${
+                  idx === currentIndex ? 'bg-white w-4' : 'bg-white/40 w-2'
+                }`}
+                aria-label={`Go to banner ${idx + 1}`}
+                aria-current={idx === currentIndex ? 'true' : 'false'}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function TextBannersPage() {
   const [banners, setBanners] = useState<TextBannerResponse[]>([])
@@ -91,11 +155,10 @@ export default function TextBannersPage() {
           <CardDescription>
             This is how your active text banners will appear on your website
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activeBanners.length > 0 ? (
+        </CardHeader>        <CardContent>          {activeBanners.length > 0 ? (
             <div className="rounded-md overflow-hidden">
-              <TextBanner />
+              {/* Pass the active banners directly to the component with navigation */}
+              <BannerPreview banners={activeBanners} />
             </div>
           ) : (
             <div className="bg-gray-100 text-gray-500 p-4 rounded-md text-center">
