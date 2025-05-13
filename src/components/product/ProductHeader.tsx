@@ -54,10 +54,12 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
                 </Link>
               </li>
             </>
-          )}
+          )}          
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70" />
-          <li className="font-medium text-foreground" aria-current="page">
-            {product.name || "Product Details"}
+          <li className="font-medium text-foreground truncate max-w-[120px] sm:max-w-[180px] md:max-w-[240px]" aria-current="page">
+            {(product.name && product.name.length > 25) 
+              ? `${product.name.substring(0, 25)}...` 
+              : (product.name || "Product Details")}
           </li>
         </ol>
       </nav>
@@ -65,7 +67,11 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
       {/* Title & Price Section */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{product.name || "Product Details"}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 break-words">
+            {(product.name && product.name.length > 60) 
+              ? `${product.name.substring(0, 60)}...` 
+              : (product.name || "Product Details")}
+          </h1>
           
           <div className="flex items-center gap-3 mt-2">
             <div className="flex items-center">

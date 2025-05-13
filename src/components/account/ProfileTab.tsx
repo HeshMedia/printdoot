@@ -24,21 +24,11 @@ export function ProfileTab() {
             onValueChange={setActiveProfileTab}
             className="w-full"
           >
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="edit">Edit Profile</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
               <ProfileCard onEdit={() => setActiveProfileTab('edit')} />
-            </TabsContent>
-            
-            <TabsContent value="edit">
               <UserDetailsForm 
                 onSuccess={() => setActiveProfileTab('overview')}
                 showHeader={false}
               />
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>

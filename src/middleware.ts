@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',    // Matches anything starting with "/sign-up"
   "/api/webhooks",   // Matches "/api/webhooks"
   "/",
+  "/featured",
+  "/featured/(.*)",
   "/categories",
     "/products",
     "/products/(.*)", // Matches any product page

@@ -71,7 +71,7 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
       console.error("Failed to submit review:", error)
       toast({
         title: "Submission Failed",
-        description: "Failed to submit your review. Please try again.",
+        description: "You may write only one review per product",
         variant: "destructive",
       })
     } finally {
@@ -163,7 +163,8 @@ export default function ProductReviews({ productId, reviews: initialReviews }: P
                   rows={4}
                   required
                 />
-              </div>              <Button type="submit" disabled={isSubmitting}>
+              </div>              
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Review"}
               </Button>
             </form>
