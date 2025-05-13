@@ -54,7 +54,6 @@ export async function POST(req: Request) {
     email_addresses: { email_address: string }[]
     first_name: string | null
     last_name: string | null
-    phone_numbers: { phone_number: string }[] | undefined
   }
   
   const {
@@ -62,12 +61,10 @@ export async function POST(req: Request) {
     email_addresses,
     first_name,
     last_name,
-    phone_numbers
   } = userData
   
   const email = email_addresses[0]?.email_address // Safe check for email_addresses
-  const phone = phone_numbers && phone_numbers[0]?.phone_number || "+1234567890" // Default phone if missing
-
+  
   // If there's no email, return an error
   if (!email) {
     return new Response('Email address is missing', { status: 400 })
@@ -102,7 +99,6 @@ export async function POST(req: Request) {
         email,
         first_name: first_name || '',
         last_name: last_name || '',
-        phone_number: phone,
         role: 'USER',  // Default role from your enum
       },
     });

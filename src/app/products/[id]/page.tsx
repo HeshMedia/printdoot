@@ -37,7 +37,6 @@ export default function ProductDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   
-  // Core state
   const [product, setProduct] = useState<Product | null>(null)
   const [category, setCategory] = useState<Category | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])

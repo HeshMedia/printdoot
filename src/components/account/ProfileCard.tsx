@@ -14,14 +14,14 @@ export function ProfileCard({ onEdit }: ProfileCardProps) {
   const { user } = useUser();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
+    useEffect(() => {
     const fetchUserDetails = async () => {
       if (!user?.id) return;
       
       try {
         setIsLoading(true);
         const details = await getUserDetails(user.id);
+        console.log("Profile details loaded:", details);
         setUserDetails(details);
       } catch (error) {
         console.error("Error fetching user details:", error);
@@ -62,12 +62,6 @@ export function ProfileCard({ onEdit }: ProfileCardProps) {
               {userDetails?.first_name && userDetails?.last_name 
                 ? `${userDetails.first_name} ${userDetails.last_name}`
                 : user?.fullName || 'Not provided'}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Email Address</h3>
-            <p className="font-medium">
-              {userDetails?.email || user?.emailAddresses[0]?.emailAddress || 'Not provided'}
             </p>
           </div>
           <div>

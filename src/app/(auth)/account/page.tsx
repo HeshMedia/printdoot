@@ -29,7 +29,6 @@ function AccountPage() {
           />
         </div>
 
-        {/* Main Content */}
         <div className="md:col-span-9">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="profile" className="m-0">

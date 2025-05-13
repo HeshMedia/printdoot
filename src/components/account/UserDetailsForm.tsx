@@ -24,7 +24,6 @@ import { useToast } from '@/components/ui/use-toast';
 const userFormSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
   phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
@@ -46,13 +45,11 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
   const clerkId = user?.id;
-
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       first_name: '',
       last_name: '',
-      email: '',
       phone_number: '',
       address: '',
       city: '',
@@ -67,16 +64,15 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
       if (!isSignedIn || !clerkId) return;
 
       setIsLoading(true);
-      try {
-        // First try to get existing user details
+      try {        // First try to get existing user details
         const userDetails = await getUserDetails(clerkId);
+        console.log("UserDetails loaded in form:", userDetails);
         
         if (userDetails) {
           // If user details exist, populate the form
           form.reset({
             first_name: userDetails.first_name || user?.firstName || '',
             last_name: userDetails.last_name || user?.lastName || '',
-            email: userDetails.email || user?.emailAddresses[0]?.emailAddress || '',
             phone_number: userDetails.phone_number || user?.phoneNumbers?.[0]?.phoneNumber || '',
             address: userDetails.address || '',
             city: userDetails.city || '',
@@ -89,7 +85,6 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
           form.reset({
             first_name: user?.firstName || '',
             last_name: user?.lastName || '',
-            email: user?.emailAddresses[0]?.emailAddress || '',
             phone_number: user?.phoneNumbers?.[0]?.phoneNumber || '',
             address: '',
             city: '',
@@ -113,7 +108,6 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
 
     loadUserDetails();
   }, [clerkId, isSignedIn, user, form, toast]);
-
   const onSubmit = async (values: UserFormValues) => {
     if (!clerkId) {
       toast({
@@ -131,19 +125,27 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
         clerkId
       };
 
+      console.log("Form submission values:", values);
+      console.log("Prepared userDetails object:", userDetails);
+
       // First try to get existing user details to determine if we need to create or update
       const existingDetails = await getUserDetails(clerkId);
+      console.log("Existing details check result:", existingDetails);
       
       if (existingDetails) {
         // Update existing user details
-        await updateUserDetails(clerkId, values);
+        console.log("Updating existing user details");
+        const updateResult = await updateUserDetails(clerkId, values);
+        console.log("Update result:", updateResult);
         toast({
           title: "Profile updated",
           description: "Your profile information has been updated successfully."
         });
       } else {
         // Add new user details
-        await addUserDetails(userDetails);
+        console.log("Adding new user details");
+        const addResult = await addUserDetails(userDetails);
+        console.log("Add result:", addResult);
         toast({
           title: "Profile created",
           description: "Your profile information has been saved successfully."
@@ -212,23 +214,7 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="email" disabled={isLoading} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
+            </div>            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">  
               <FormField
                 control={form.control}
                 name="phone_number"

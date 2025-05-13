@@ -2,6 +2,30 @@
 
 const BASE_URL = "https://oj5k6unyp3.execute-api.ap-south-1.amazonaws.com/Prod";
 
+export interface UserResponse {
+  user: {
+    id: string;
+    clerkId: string;
+    email?: string;
+    created_at?: string;
+    updated_at?: string;
+  };
+  user_details: {
+    id?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    pin_code?: string;
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    userId?: string;
+    created_at?: string;
+    updated_at?: string;
+  };
+}
+
 export interface UserDetails {
   address?: string;
   city?: string;
@@ -10,7 +34,6 @@ export interface UserDetails {
   pin_code?: string;
   first_name?: string;
   last_name?: string;
-  email?: string;
   phone_number?: string;
   clerkId: string;
 }
@@ -19,9 +42,9 @@ export interface UserDetails {
  * Add user details to the database
  */
 export async function addUserDetails(userDetails: UserDetails): Promise<any> {
-  try {
-    // Format body exactly as expected by the API, clerkId is sent in the body for add-details
+  try {    // Format body exactly as expected by the API, updating to match new schema
     const requestBody = {
+      "clerkId": userDetails.clerkId, // API expects clerkId in the body
       "address": userDetails.address || "",
       "city": userDetails.city || "",
       "state": userDetails.state || "",
@@ -29,15 +52,13 @@ export async function addUserDetails(userDetails: UserDetails): Promise<any> {
       "pin_code": userDetails.pin_code || "",
       "first_name": userDetails.first_name || "",
       "last_name": userDetails.last_name || "",
-      "email": userDetails.email || "",
-      "phone_number": userDetails.phone_number || "",
-      "clerkId": userDetails.clerkId
+      "phone_number": userDetails.phone_number || ""
     };
     
     console.log("Request body for addUserDetails:", requestBody);
     console.log("UserDetails:", userDetails);
     console.log("UserDetails.clerkId:", userDetails.clerkId);
-    console.log("Sending request to:", `${BASE_URL}/users/update-details/${userDetails.clerkId}`);
+    console.log("Sending request to:", `${BASE_URL}/users/add-details`);
     const response = await fetch(`${BASE_URL}/users/add-details`, {
       method: 'POST',
       headers: {
@@ -45,14 +66,15 @@ export async function addUserDetails(userDetails: UserDetails): Promise<any> {
         'Accept': 'application/json',
       },
       body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
+    });    if (!response.ok) {
       const errorData = await response.json();
+      console.error('API Error Response:', errorData);
       throw new Error(errorData.message || 'Failed to add user details');
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log('API Success Response:', responseData);
+    return responseData;
   } catch (error) {
     console.error('Error adding user details:', error);
     throw error;
@@ -63,8 +85,7 @@ export async function addUserDetails(userDetails: UserDetails): Promise<any> {
  * Update user details in the database
  */
 export async function updateUserDetails(clerkId: string, userDetails: Omit<UserDetails, 'clerkId'>): Promise<any> {
-  try {
-    // Format body exactly as expected by the API
+  try {    // Format body exactly as expected by the API with updated schema - flat structure as per docs
     const requestBody = {
       "address": userDetails.address || "",
       "city": userDetails.city || "",
@@ -73,7 +94,6 @@ export async function updateUserDetails(clerkId: string, userDetails: Omit<UserD
       "pin_code": userDetails.pin_code || "",
       "first_name": userDetails.first_name || "",
       "last_name": userDetails.last_name || "",
-      "email": userDetails.email || "",
       "phone_number": userDetails.phone_number || ""
     };
     console.log("Request body for updateUserDetails:", requestBody);
@@ -89,14 +109,15 @@ export async function updateUserDetails(clerkId: string, userDetails: Omit<UserD
       body: JSON.stringify(requestBody),
     });
     console.log("Response from updateUserDetails:", response);
-    
-
-    if (!response.ok) {
+        if (!response.ok) {
       const errorData = await response.json();
+      console.error('API Error Response:', errorData);
       throw new Error(errorData.message || 'Failed to update user details');
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log('API Success Response:', responseData);
+    return responseData;
   } catch (error) {
     console.error('Error updating user details:', error);
     throw error;
@@ -122,9 +143,26 @@ export async function getUserDetails(clerkId: string): Promise<UserDetails | nul
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to get user details');
-    }
+    }    // Get the nested response format
+    const data = await response.json();
+    console.log("API Response data:", data);
 
-    return await response.json();
+    // Check if we have the expected nested structure
+    if (data && data.user_details) {
+      // Extract user_details and merge with clerkId for backward compatibility
+      return {
+        ...data.user_details,
+        clerkId: data.user.clerkId
+      };
+    } 
+    // Check if the response is a flat structure (backwards compatibility)
+    else if (data && data.clerkId) {
+      console.log("Received flat data structure:", data);
+      return data;
+    }
+    
+    console.log("No valid user details found in response");
+    return null;
   } catch (error) {
     console.error('Error getting user details:', error);
     throw error;

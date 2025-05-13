@@ -198,14 +198,15 @@ model trending {
 }
 
 model user_details {
-  id       Int     @id @default(autoincrement())
-  clerkId  String? @unique @db.VarChar
-  address  String? @db.VarChar
-  city     String? @db.VarChar
-  state    String? @db.VarChar
-  country  String? @db.VarChar
-  pin_code String? @db.VarChar
-  users    users?  @relation(fields: [clerkId], references: [clerkId], onDelete: NoAction, onUpdate: NoAction)
+  id           Int     @id @default(autoincrement())
+  clerkId      String? @unique @db.VarChar
+  address      String? @db.VarChar
+  city         String? @db.VarChar
+  state        String? @db.VarChar
+  country      String? @db.VarChar
+  pin_code     String? @db.VarChar
+  phone_number String  @unique @db.VarChar
+  users        users?  @relation(fields: [clerkId], references: [clerkId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([id], map: "ix_user_details_id")
 }
@@ -216,7 +217,6 @@ model users {
   first_name   String        @db.VarChar
   last_name    String        @db.VarChar
   email        String        @unique @db.VarChar
-  phone_number String        @unique @db.VarChar
   role         userrole
   user_details user_details?
 
