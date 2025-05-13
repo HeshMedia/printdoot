@@ -38,14 +38,6 @@ function AccountPage() {
             <TabsContent value="orders" className="m-0">
               <OrdersTab />
             </TabsContent>
-
-            <TabsContent value="wishlist" className="m-0">
-              <WishlistTab />
-            </TabsContent>
-
-            <TabsContent value="addresses" className="m-0">
-              <AddressesTab />
-            </TabsContent>
           </Tabs>
         </div>
       </div>

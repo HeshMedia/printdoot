@@ -68,9 +68,7 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 break-words">
-            {(product.name && product.name.length > 60) 
-              ? `${product.name.substring(0, 60)}...` 
-              : (product.name || "Product Details")}
+              `${product.name}` 
           </h1>
           
           <div className="flex items-center gap-3 mt-2">

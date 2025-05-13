@@ -50,22 +50,6 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             <ShoppingBag className="mr-2 h-4 w-4" />
             My Orders
           </Button>
-          <Button 
-            variant={activeTab === 'wishlist' ? "default" : "ghost"} 
-            className="w-full justify-start"
-            onClick={() => setActiveTab('wishlist')}
-          >
-            <Heart className="mr-2 h-4 w-4" />
-            Wishlist
-          </Button>
-          <Button 
-            variant={activeTab === 'addresses' ? "default" : "ghost"} 
-            className="w-full justify-start"
-            onClick={() => setActiveTab('addresses')}
-          >
-            <MapPin className="mr-2 h-4 w-4" />
-            Addresses
-          </Button>
         </nav>
       </CardContent>
     </Card>

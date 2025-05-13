@@ -175,15 +175,16 @@ export function UserDetailsForm({ onSuccess, showHeader = true }: UserDetailsFor
       </div>
     );
   }
-
   return (
     <Card>
       {showHeader && (
-        <CardHeader>
-          <CardTitle>Your Details</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-semibold">
+              Fill Details 
+          </CardTitle>
         </CardHeader>
       )}
-      <CardContent>
+      <CardContent className="pt-5">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
 import { ProfileCard } from './ProfileCard';
-import { ActivityCard } from './ActivityCard';
 import { UserDetailsForm } from './UserDetailsForm';
 import { useUser } from '@clerk/clerk-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,24 +15,18 @@ export function ProfileTab() {
       <Card className="shadow-md border-0 mb-6">
         <CardHeader className="pb-2 border-b">
           <CardTitle>Account Details</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <Tabs 
-            defaultValue="overview" 
-            value={activeProfileTab}
-            onValueChange={setActiveProfileTab}
-            className="w-full"
-          >
-              <ProfileCard onEdit={() => setActiveProfileTab('edit')} />
-              <UserDetailsForm 
-                onSuccess={() => setActiveProfileTab('overview')}
-                showHeader={false}
-              />
-          </Tabs>
+        </CardHeader>        <CardContent className="pt-4">
+          {activeProfileTab === 'overview' ? (
+            <ProfileCard onEdit={() => setActiveProfileTab('edit')} />
+          ) : (
+            <UserDetailsForm 
+              onSuccess={() => setActiveProfileTab('overview')}
+              showHeader={false}
+            />
+          )}
         </CardContent>
       </Card>
       
-      <ActivityCard />
     </>
   );
 }
