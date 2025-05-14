@@ -83,11 +83,7 @@ const ProductCustomization: React.FC<ProductCustomizationProps> = ({
                     <SelectItem key={i} value={value}>
                       <span className="flex items-center justify-between w-full">
                         <span>{value}</span>
-                        {extraInfo && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {String(extraInfo)}
-                          </span>
-                        )}
+                       
                       </span>
                     </SelectItem>
                   ))}
