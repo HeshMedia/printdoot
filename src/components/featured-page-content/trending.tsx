@@ -26,7 +26,8 @@ export default function TrendingPageContent() {
     pageParam ? parseInt(pageParam) : 1
   )
   const productsPerPage = 12
-    useEffect(() => {
+  
+  useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true)
       try {
@@ -35,22 +36,12 @@ export default function TrendingPageContent() {
         
         // Use the API with proper pagination
         const [productsData, categoriesData] = await Promise.all([
-          trendingApi.get(productsPerPage, skip), // Fixed order of parameters
+          trendingApi.get(skip, productsPerPage),
           categoriesApi.getCategories()
         ])
         
-        console.log("Trending API response:", productsData);
-        
-        // Check if we got products data
-        if (!productsData || !Array.isArray(productsData.products)) {
-          console.error("Invalid products data received:", productsData)
-          setProducts([])
-          setTotalProducts(0)
-        } else {
-          setProducts(productsData.products)
-          setTotalProducts(productsData.total || 0)
-        }
-        
+        setProducts(productsData.products || [])
+        setTotalProducts(productsData.total || 0)
         setCategories(categoriesData.categories || [])
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -113,14 +104,15 @@ export default function TrendingPageContent() {
             See what's popular with our community right now
           </motion.p>
         </div>
-            {/* Products grid */}
+          
+        {/* Products grid */}
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {Array(productsPerPage).fill(0).map((_, i) => (
               <div key={i} className="animate-pulse rounded-xl bg-gray-200 h-44"></div>
             ))}
           </div>
-        ) : !products || products.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="text-center py-32 bg-white rounded-xl shadow-sm">
             <h3 className="text-xl font-medium mb-2">No trending products found</h3>
             <p className="text-muted-foreground mb-6">Check back later for trending items.</p>
@@ -131,18 +123,15 @@ export default function TrendingPageContent() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-              {products.map((product, index) => {
-                console.log("Rendering product:", product);
-                return (
-                  <ProductCard 
-                    key={product.product_id}
-                    product={product}
-                    animationDelay={0.05 * (index % 4)}
-                    badgeComponent={renderBadge(product)}
-                    accentColor="blue"
-                  />
-                );
-              })}
+              {products.map((product, index) => (
+                <ProductCard 
+                  key={product.product_id}
+                  product={product}
+                  animationDelay={0.05 * (index % 4)}
+                  badgeComponent={renderBadge(product)}
+                  accentColor="blue"
+                />
+              ))}
             </div>
               
             {/* Pagination */}

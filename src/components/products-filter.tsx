@@ -79,125 +79,51 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
     
     setActiveFilters(filters)
   }, [categoryId, priceRange, minRating, sortBy, categories])
-    // State to track if price slider is currently being changed
+  
+  // Price range has a separate effect to avoid applying on every slider movement
   const [isSliderChanging, setIsSliderChanging] = useState(false)
-  const handleCategoryChange = (id: number) => {
-    const newCategoryId = categoryId === id ? undefined : id;
-    setCategoryId(newCategoryId);
-    
-    // Apply filter immediately
-    const params = new URLSearchParams(searchParams.toString());
-    if (newCategoryId) {
-      params.set("category", newCategoryId.toString());
-    } else {
-      params.delete("category");
+  useEffect(() => {
+    // Only apply price filter when slider stops moving (debounce)
+    if (!isSliderChanging) {
+      applyFilters()
     }
-    
-    // Keep other existing params
-    if (priceRange[0] > 0) params.set("min_price", priceRange[0].toString());
-    if (priceRange[1] < 1000) params.set("max_price", priceRange[1].toString());
-    if (minRating) params.set("min_rating", minRating.toString());
-    if (sortBy) params.set("sort_by", sortBy);
-    
-    router.push(`/products?${params.toString()}`);
+  }, [priceRange, isSliderChanging])
+
+  const handleCategoryChange = (id: number) => {
+    setCategoryId(categoryId === id ? undefined : id)
   }
 
   const handlePriceChange = (value: number[]) => {
-    setIsSliderChanging(true);
-    setPriceRange([value[0], value[1]]);
+    setIsSliderChanging(true)
+    setPriceRange([value[0], value[1]])
     
-    // Debounce price filter changes
-    clearTimeout((window as any).priceChangeTimeout);
-    (window as any).priceChangeTimeout = setTimeout(() => {
-      setIsSliderChanging(false);
-      
-      // Apply filter after debounce
-      const params = new URLSearchParams(searchParams.toString());
-      if (value[0] > 0) {
-        params.set("min_price", value[0].toString());
-      } else {
-        params.delete("min_price");
-      }
-      
-      if (value[1] < 1000) {
-        params.set("max_price", value[1].toString());
-      } else {
-        params.delete("max_price");
-      }
-      
-      // Keep other existing params
-      if (categoryId) params.set("category", categoryId.toString());
-      if (minRating) params.set("min_rating", minRating.toString());
-      if (sortBy) params.set("sort_by", sortBy);
-      
-      router.push(`/products?${params.toString()}`);
-    }, 500); // Slightly longer debounce for price slider
+    // Stop slider changing status after a short delay
+    clearTimeout((window as any).priceChangeTimeout)
+    ;(window as any).priceChangeTimeout = setTimeout(() => {
+      setIsSliderChanging(false)
+    }, 300)
   }
 
   const handleRatingChange = (rating: number) => {
-    const newRating = minRating === rating ? undefined : rating;
-    setMinRating(newRating);
-    
-    // Apply filter immediately
-    const params = new URLSearchParams(searchParams.toString());
-    if (newRating) {
-      params.set("min_rating", newRating.toString());
-    } else {
-      params.delete("min_rating");
-    }
-    
-    // Keep other existing params
-    if (categoryId) params.set("category", categoryId.toString());
-    if (priceRange[0] > 0) params.set("min_price", priceRange[0].toString());
-    if (priceRange[1] < 1000) params.set("max_price", priceRange[1].toString());
-    if (sortBy) params.set("sort_by", sortBy);
-    
-    router.push(`/products?${params.toString()}`);
+    setMinRating(minRating === rating ? undefined : rating)
   }
 
   const handleSortChange = (value: string) => {
-    const newSortBy = sortBy === value ? undefined : value;
-    setSortBy(newSortBy);
-    
-    // Apply filter immediately
-    const params = new URLSearchParams(searchParams.toString());
-    if (newSortBy) {
-      params.set("sort_by", newSortBy);
-    } else {
-      params.delete("sort_by");
-    }
-    
-    // Keep other existing params
-    if (categoryId) params.set("category", categoryId.toString());
-    if (priceRange[0] > 0) params.set("min_price", priceRange[0].toString());
-    if (priceRange[1] < 1000) params.set("max_price", priceRange[1].toString());
-    if (minRating) params.set("min_rating", minRating.toString());
-    
-    router.push(`/products?${params.toString()}`);
+    setSortBy(sortBy === value ? undefined : value)
   }
-    const removeFilter = (id: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    
+  
+  const removeFilter = (id: string) => {
     if (id.startsWith('category-')) {
-      setCategoryId(undefined);
-      params.delete("category");
+      setCategoryId(undefined)
     } else if (id === 'price') {
-      setPriceRange([0, 1000]);
-      params.delete("min_price");
-      params.delete("max_price");
+      setPriceRange([0, 1000])
     } else if (id.startsWith('rating-')) {
-      setMinRating(undefined);
-      params.delete("min_rating");
+      setMinRating(undefined)
     } else if (id.startsWith('sort-')) {
-      setSortBy(undefined);
-      params.delete("sort_by");
+      setSortBy(undefined)
     }
-    
-    // Apply changes immediately
-    router.push(`/products?${params.toString()}`);
   }
-  // This function is kept for backward compatibility but isn't really needed anymore
-  // as each filter handler now applies filters directly
+
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
 
@@ -479,23 +405,24 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
         )}
       </div>
       
-      {/* Bottom action buttons */}      <div className="border-t p-4 sticky bottom-0 bg-white z-10">
+      {/* Bottom action buttons */}
+      <div className="border-t p-4 sticky bottom-0 bg-white z-10">
         <div className="grid grid-cols-2 gap-3">
           <Button 
             onClick={clearFilters} 
             variant="outline" 
             className="h-12"
           >
-            Reset All
+            Reset
           </Button>
-          {/* Done button for mobile view */}
           <Button 
             onClick={() => {
+              applyFilters();
               if (closeSheet) closeSheet();
             }} 
             className="h-12"
           >
-            Done {activeFilterCount > 0 && `(${activeFilterCount})`}
+            Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
           </Button>
         </div>
       </div>

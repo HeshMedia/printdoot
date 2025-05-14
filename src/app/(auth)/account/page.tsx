@@ -29,6 +29,7 @@ function AccountPage() {
           />
         </div>
 
+        {/* Main Content */}
         <div className="md:col-span-9">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="profile" className="m-0">
@@ -37,6 +38,14 @@ function AccountPage() {
 
             <TabsContent value="orders" className="m-0">
               <OrdersTab />
+            </TabsContent>
+
+            <TabsContent value="wishlist" className="m-0">
+              <WishlistTab />
+            </TabsContent>
+
+            <TabsContent value="addresses" className="m-0">
+              <AddressesTab />
             </TabsContent>
           </Tabs>
         </div>

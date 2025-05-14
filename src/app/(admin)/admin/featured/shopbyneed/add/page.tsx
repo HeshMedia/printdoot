@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Heart, Loader2, Plus, Search, Star, X } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import { shopByNeedApi, type FeaturedProductResponse, type NeedResponse } from "@/lib/api/featured"
+import { shopByNeedApi, type FeaturedProductResponse } from "@/lib/api/featured"
 import { SectionHeader } from "@/components/features/featured/section-header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,32 +25,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 export default function AddShopByNeedPage() {
   const router = useRouter()
   const { toast } = useToast()
-    const [allProducts, setAllProducts] = useState<FeaturedProductResponse[]>([])
+  
+  const [allProducts, setAllProducts] = useState<FeaturedProductResponse[]>([])
   const [isLoadingAllProducts, setIsLoadingAllProducts] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [newNeedName, setNewNeedName] = useState("")
-  const [existingNeeds, setExistingNeeds] = useState<NeedResponse[]>([])
-  const [isLoadingNeeds, setIsLoadingNeeds] = useState(false)
-  const [isExistingNeed, setIsExistingNeed] = useState(false)
-  // Fetch all existing needs
-  const fetchExistingNeeds = async () => {
-    setIsLoadingNeeds(true)
-    try {
-      const data = await shopByNeedApi.getNeeds()
-      setExistingNeeds(data.needs)
-    } catch (error) {
-      console.error("Error fetching existing needs:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load existing need categories",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoadingNeeds(false)
-    }
-  }
 
   // Fetch all available products for selection
   const fetchAllProducts = async () => {
@@ -71,26 +52,10 @@ export default function AddShopByNeedPage() {
       setIsLoadingAllProducts(false)
     }
   }
-  useEffect(() => {
-    // Check for URL parameters
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const needParam = searchParams.get("need");
-      
-      if (needParam) {
-        setNewNeedName(needParam);
-        setIsExistingNeed(true);
-        
-        // Set the page title
-        document.title = `Add Products to ${needParam} - Printdoot Admin`;
-      }
-    }
-  }, []);
 
-  // Load products and needs on page mount
+  // Load products on page mount
   useEffect(() => {
     fetchAllProducts()
-    fetchExistingNeeds()
   }, [])
 
   // Toggle product selection for assignment
@@ -108,12 +73,13 @@ export default function AddShopByNeedPage() {
     product.product_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
-  // Handle adding products to a need (new or existing)
+
+  // Create a new need with selected products
   const handleCreateNeed = async () => {
     if (!newNeedName.trim()) {
       toast({
         title: "Error",
-        description: "Please enter or select a need category name",
+        description: "Please enter a name for the need category",
         variant: "destructive",
       })
       return
@@ -130,36 +96,30 @@ export default function AddShopByNeedPage() {
 
     setIsCreating(true)
     try {
-      // If creating a new need, create it first before adding products
-      if (!isExistingNeed) {
-        await fetch(`${BASE_URL}/admin/shopbyneed`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ need: newNeedName.trim() }),
-        })
-      }
+      // 1. Create the new need category
+      await fetch(`${BASE_URL}/admin/shopbyneed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ need: newNeedName.trim() }),
+      })
 
-      // Assign products to the need (works for both new and existing)
+      // 2. Assign products to the new need
       await shopByNeedApi.add(newNeedName.trim(), selectedProducts)
       
       toast({
         title: "Success",
-        description: isExistingNeed 
-          ? `Added ${selectedProducts.length} products to "${newNeedName}"`
-          : `Created new need category "${newNeedName}" with ${selectedProducts.length} products`,
+        description: `Created new need category "${newNeedName}" with ${selectedProducts.length} products`,
       })
       
-      // Redirect to the main shop by need page
+      // 3. Redirect to the main shop by need page
       router.push("/admin/featured/shopbyneed")
     } catch (error) {
-      console.error(`Error ${isExistingNeed ? 'updating' : 'creating'} need:`, error)
+      console.error("Error creating new need:", error)
       toast({
         title: "Error",
-        description: isExistingNeed
-          ? `Failed to add products to need category: ${error instanceof Error ? error.message : 'Unknown error'}`
-          : `Failed to create need category: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to create new need category: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     } finally {
@@ -168,105 +128,35 @@ export default function AddShopByNeedPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4">      <SectionHeader
-        title={isExistingNeed ? `Add Products to "${newNeedName}"` : "Add Shop By Need Category"}
-        description={isExistingNeed ? "Add more products to the selected need category" : "Create a new need category and assign products"}
+    <div className="max-w-6xl mx-auto px-4">
+      <SectionHeader
+        title="Add Shop By Need Category"
+        description="Create a new need category and assign products"
         icon={<Heart className="h-6 w-6 text-[#60B5FF]" />}
       />
 
-      {/* New Need Details */}      <Card className="mb-6">
+      {/* New Need Details */}
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Need Category Details</CardTitle>
+          <CardTitle>New Need Category Details</CardTitle>
           <CardDescription>
-            Select an existing need category or create a new one
+            Enter information for the new need category
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">            <div className="flex items-center space-x-3 mb-4">
-              <Button 
-                variant={!isExistingNeed ? "default" : "outline"} 
-                size="sm"
-                className={`font-medium transition-all ${
-                  !isExistingNeed 
-                    ? "bg-[#60B5FF] hover:bg-[#4DA1E8] shadow-sm" 
-                    : "hover:border-[#60B5FF]"
-                }`}
-                onClick={() => setIsExistingNeed(false)}
-              >
-                {!isExistingNeed && <span className="mr-1">✓</span>} Create New
-              </Button>
-              <Button 
-                variant={isExistingNeed ? "default" : "outline"} 
-                size="sm"
-                className={`font-medium transition-all ${
-                  isExistingNeed 
-                    ? "bg-[#60B5FF] hover:bg-[#4DA1E8] shadow-sm" 
-                    : "hover:border-[#60B5FF]"
-                }`}
-                onClick={() => setIsExistingNeed(true)}
-              >
-                {isExistingNeed && <span className="mr-1">✓</span>} Select Existing
-              </Button>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="needName" className="block text-sm font-medium mb-1">
+                Need Category Name
+              </label>
+              <Input
+                id="needName"
+                placeholder="e.g., Back to School, Office Essentials, Study Material"
+                value={newNeedName}
+                onChange={(e) => setNewNeedName(e.target.value)}
+                className="max-w-md"
+              />
             </div>
-
-            {isExistingNeed ? (
-              <div>
-                <label htmlFor="existingNeed" className="block text-sm font-medium mb-1">
-                  Select Existing Need Category
-                </label>                {isLoadingNeeds ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Loading need categories...</span>
-                  </div>
-                ) : existingNeeds.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-2">
-                    {existingNeeds.map((need) => {
-                      const isSelected = newNeedName === need.need;
-                      return (
-                        <div
-                          key={need.need}
-                          onClick={() => setNewNeedName(need.need)}
-                          className={`border rounded-lg p-2 cursor-pointer transition-all ${
-                            isSelected 
-                              ? "border-[#60B5FF] bg-blue-50 ring-2 ring-[#60B5FF] ring-opacity-50" 
-                              : "hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className={`${isSelected ? "font-bold" : "font-medium"} text-sm`}>
-                              {need.need}
-                            </span>
-                            <Badge variant={isSelected ? "default" : "secondary"} className="text-xs">
-                              {need.count}
-                            </Badge>
-                          </div>
-                          {isSelected && (
-                            <div className="mt-1 text-xs text-blue-600">
-                              ✓ Selected
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">No existing need categories found</div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="needName" className="block text-sm font-medium mb-1">
-                  Need Category Name
-                </label>
-                <Input
-                  id="needName"
-                  placeholder="e.g., Back to School, Office Essentials, Study Material"
-                  value={newNeedName}
-                  onChange={(e) => setNewNeedName(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-            )}
             
             <div className="pt-2">
               <div className="flex items-center text-sm text-gray-500 mb-1">
@@ -300,7 +190,8 @@ export default function AddShopByNeedPage() {
                 onClick={() => router.push("/admin/featured/shopbyneed")}
               >
                 Cancel
-              </Button>              <Button
+              </Button>
+              <Button
                 onClick={handleCreateNeed}
                 disabled={isCreating || !newNeedName.trim() || selectedProducts.length === 0}
                 className="bg-[#60B5FF] hover:bg-[#4DA1E8]"
@@ -308,12 +199,12 @@ export default function AddShopByNeedPage() {
                 {isCreating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isExistingNeed ? "Adding products..." : "Creating..."}
+                    Creating...
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4 mr-2" />
-                    {isExistingNeed ? "Add Products to Need" : "Create Need Category"}
+                    Create Need Category
                   </>
                 )}
               </Button>

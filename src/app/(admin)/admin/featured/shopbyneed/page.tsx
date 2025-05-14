@@ -319,11 +319,12 @@ export default function ShopByNeedPage() {
                 <CardDescription>
                   Products currently assigned to this need category
                 </CardDescription>
-              </div>              <Button
+              </div>
+              <Button
                 className="bg-[#60B5FF] hover:bg-[#4DA1E8]"
                 asChild
               >
-                <Link href={`/admin/featured/shopbyneed/add?need=${encodeURIComponent(selectedNeed)}`}>
+                <Link href="/admin/featured/shopbyneed/add">
                   <Plus className="h-4 w-4 mr-2" />
                   Add More Products
                 </Link>
