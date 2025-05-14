@@ -191,7 +191,7 @@ export default function CouponDetailsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="italic text-gray-500">All categories</p>
+                    <p className="italic text-gray-500">No category</p>
                   )}
                 </div>
                 
@@ -204,7 +204,7 @@ export default function CouponDetailsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="italic text-gray-500">All products</p>
+                    <p className="italic text-gray-500">No Product</p>
                   )}
                 </div>
               </div>

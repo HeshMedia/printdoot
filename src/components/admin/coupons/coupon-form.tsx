@@ -379,9 +379,7 @@ useEffect(() => {
                 <p className="text-sm text-gray-500 p-2">No categories available.</p>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Leave all unchecked to apply to all categories.
-            </p>
+           
           </div>
 
           {/* Applicable Products with Search Bar */}
@@ -427,9 +425,7 @@ useEffect(() => {
                 <p className="text-sm text-gray-500 p-2">No products available.</p>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Leave all unchecked to apply to all products.
-            </p>
+            
             {filteredProducts.length > 0 && productSearchQuery && (
               <p className="text-xs text-blue-600 mt-1">
                 Showing {filteredProducts.length} of {products.length} products
