@@ -79,15 +79,15 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
     
     setActiveFilters(filters)
   }, [categoryId, priceRange, minRating, sortBy, categories])
-  
-  // Price range has a separate effect to avoid applying on every slider movement
+    // Price range has a separate effect to avoid applying on every slider movement
   const [isSliderChanging, setIsSliderChanging] = useState(false)
+  
+  // Apply filters automatically whenever filter values change
   useEffect(() => {
-    // Only apply price filter when slider stops moving (debounce)
     if (!isSliderChanging) {
       applyFilters()
     }
-  }, [priceRange, isSliderChanging])
+  }, [categoryId, minRating, sortBy, priceRange, isSliderChanging])
 
   const handleCategoryChange = (id: number) => {
     setCategoryId(categoryId === id ? undefined : id)
@@ -111,8 +111,7 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
   const handleSortChange = (value: string) => {
     setSortBy(sortBy === value ? undefined : value)
   }
-  
-  const removeFilter = (id: string) => {
+    const removeFilter = (id: string) => {
     if (id.startsWith('category-')) {
       setCategoryId(undefined)
     } else if (id === 'price') {
@@ -122,6 +121,7 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
     } else if (id.startsWith('sort-')) {
       setSortBy(undefined)
     }
+    // No need to call applyFilters() as the useEffect will handle it
   }
 
   const applyFilters = () => {
@@ -159,7 +159,6 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
 
     router.push(`/products?${params.toString()}`)
   }
-
   const clearFilters = () => {
     setCategoryId(undefined)
     setPriceRange([0, 1000])
@@ -169,7 +168,7 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
     
     // Close the sheet if we're in mobile view
     if (closeSheet) {
-      setTimeout(() => closeSheet(), 300)
+      closeSheet()
     }
   }
 
@@ -403,27 +402,21 @@ export default function ProductsFilter({ categories = [], closeSheet }: Products
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Bottom action buttons */}
+      </div>      {/* Bottom action buttons */}
       <div className="border-t p-4 sticky bottom-0 bg-white z-10">
-        <div className="grid grid-cols-2 gap-3">
-          <Button 
-            onClick={clearFilters} 
-            variant="outline" 
-            className="h-12"
-          >
-            Reset
-          </Button>
-          <Button 
-            onClick={() => {
-              applyFilters();
-              if (closeSheet) closeSheet();
-            }} 
-            className="h-12"
-          >
-            Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-          </Button>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">
+            {activeFilterCount > 0 ? `${activeFilterCount} active filters` : "No filters applied"}
+          </span>
+          <div className="flex gap-3">
+            <Button 
+              onClick={clearFilters} 
+              variant="outline"
+            >
+              Reset All
+            </Button>
+            
+          </div>
         </div>
       </div>
     </div>
