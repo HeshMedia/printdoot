@@ -558,6 +558,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
                 value={bp.min_quantity === 0 ? "" : bp.min_quantity}
                 onChange={(e) => handleBulkPriceChange(index, "min_quantity", e.target.value)}
                 className="w-full border p-2 rounded-xl"
+                required
               />
             </div>
 
@@ -569,6 +570,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
                 value={bp.max_quantity === 0 ? "" : bp.max_quantity}
                 onChange={(e) => handleBulkPriceChange(index, "max_quantity", e.target.value)}
                 className="w-full border p-2 rounded-xl"
+                required
               />
             </div>
 
@@ -625,12 +627,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
 
       {/* Material */}
       <div>
-        <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">Material *</label>
+        <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">Material </label>
         <input
           type="text"
           id="material"
           name="material"
-          required
           value={formData.material}
           onChange={handleInputChange}
           className="w-full border rounded-xl px-3 py-2"
@@ -639,12 +640,11 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
 
       {/* Weight */}
       <div>
-        <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">Weight (gms) *</label>
+        <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">Weight (gms) </label>
         <input
           type="number"
           id="weight"
           name="weight"
-          required
           min="0"
           value={formData.weight === 0 ? "" : formData.weight}
           onChange={handleInputChange}

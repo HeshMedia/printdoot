@@ -89,6 +89,7 @@ const ProductDelivery: React.FC<ProductDeliveryProps> = ({
   const standardShippingCost = getShippingCost(false)
   const expressShippingCost = getShippingCost(true)
   const isFreeShipping = standardShippingCost <= 0
+  const isFreeExpressShipping = expressShippingCost <= 0
 
   return (
     <div className="bg-muted p-4 rounded-lg space-y-3">
@@ -121,7 +122,11 @@ const ProductDelivery: React.FC<ProductDeliveryProps> = ({
           <p className="text-xs mt-1">Est. arrival: {expressEstimate}</p>
         </div>
         <div className="text-right">
-          <span>₹{expressShippingCost}</span>
+          {isFreeExpressShipping ? (
+            <span className="text-green-600 font-semibold">FREE</span>
+          ) : (
+            <span>₹{expressShippingCost}</span>
+          )}
         </div>
       </div>
 
