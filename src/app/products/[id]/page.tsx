@@ -509,6 +509,7 @@ export default function ProductDetailPage() {
                         <tbody>
                           {product.bulk_prices.map((bp, index) => {
                             // Calculate if this range qualifies for free shipping
+                            // const orderValue = bp.min_quantity * product.price;
                             const orderValue = bp.min_quantity * product.price;
                             const freeShipping = bp.standard_delivery_price === 0 ;
                             const freeExpressShipping = bp.express_delivery_price === 0 ;
