@@ -42,10 +42,36 @@ export default function ProductDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
-  // UI state
+    // UI state
   const [quantity, setQuantity] = useState<number>(1)
   const [selectedCustomizations, setSelectedCustomizations] = useState<Record<string, string>>({})
+  
+  // Calculate the unit price based on quantity and bulk pricing
+  const getUnitPrice = (product: Product, qty: number): number => {
+    if (!Array.isArray(product.bulk_prices) || product.bulk_prices.length === 0) {
+      return product.price;
+    }
+    
+    for (let i = 0; i < product.bulk_prices.length; i++) {
+      const { min_quantity, max_quantity, price: bulkPrice } = product.bulk_prices[i];
+      if (qty >= min_quantity && qty <= max_quantity) {
+        return bulkPrice;
+      }
+    }
+    
+    // If quantity is larger than any defined range, use the last bulk price
+    if (qty > (product.bulk_prices[product.bulk_prices.length - 1]?.max_quantity || 0)) {
+      return product.bulk_prices[product.bulk_prices.length - 1]?.price || product.price;
+    }
+    
+    return product.price;
+  };
+
+  // Calculate total price based on quantity and bulk pricing
+  const calculateTotalPrice = (product: Product, qty: number): number => {
+    const unitPrice = getUnitPrice(product, qty);
+    return unitPrice * qty;
+  };
   
   // Fetch product data
   useEffect(() => {
@@ -228,69 +254,7 @@ export default function ProductDetailPage() {
           <WhatsAppButton />
           
           {/* Quick Specs */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {(() => {
-              // Handle dimensions regardless of format
-              const dimensionsArray = Array.isArray(product.dimensions) 
-                ? product.dimensions 
-                : [product.dimensions];
-              
-              const validDimensions = dimensionsArray.filter(dim => 
-                dim && (dim.length || dim.breadth || dim.height || dim.radius)
-              );
-              
-              if (validDimensions.length > 0) {
-                const primaryDimension = validDimensions[0];
-                
-                // Format dimension values, omitting those that are 0 or undefined
-                const formatDimension = (value?: number) => {
-                  if (!value || value === 0) return '';
-                  return `${value} cm`;
-                };
-                
-                // Build the dimensions string
-                let dimensionString = '';
-                
-                if (primaryDimension.radius) {
-                  dimensionString = `${formatDimension(primaryDimension.radius)} (radius)`.trim();
-                } else {
-                  const length = formatDimension(primaryDimension.length);
-                  const breadth = formatDimension(primaryDimension.breadth);
-                  const height = formatDimension(primaryDimension.height);
-                  
-                  const parts = [length, breadth, height].filter(part => part !== '');
-                  dimensionString = parts.join(' × ');
-                }
-                
-                // Only show dimensions card if there are valid dimensions to display
-                if (dimensionString) {
-                  return (
-                    <div className="bg-muted p-3 rounded-lg">
-                      <div className="text-xs text-muted-foreground">Dimensions</div>
-                      <div className="font-medium">{dimensionString}</div>
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
-            
-            {product.weight && (
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="text-xs text-muted-foreground">Weight</div>
-                <div className="font-medium">{product.weight} g</div>
-              </div>
-            )}
-            
-            {product.material && (
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="text-xs text-muted-foreground">Material</div>
-                <div className="font-medium">{product.material}</div>
-              </div>
-            )}
-            
-           
-          </div>
+        
           
           {/* Product dimensions */}
           <ProductDimensions 
@@ -331,11 +295,10 @@ export default function ProductDetailPage() {
               )}
               
               {/* Total Price */}
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="flex justify-between items-center">
+              <div className="bg-muted p-3 rounded-lg">                <div className="flex justify-between items-center">
                   <span className="font-medium text-blu">Total Price:</span>
                   <span className="text-xl font-bold text-blue-600">
-                    ₹{(product.price * quantity).toFixed(2)}
+                    ₹{calculateTotalPrice(product, quantity).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -548,6 +511,7 @@ export default function ProductDetailPage() {
                             // Calculate if this range qualifies for free shipping
                             const orderValue = bp.min_quantity * product.price;
                             const freeShipping = bp.standard_delivery_price === 0 ;
+                            const freeExpressShipping = bp.express_delivery_price === 0 ;
                             
                             return (
                               <tr key={index} className={index < product.bulk_prices.length - 1 ? "border-b" : ""}>
@@ -555,7 +519,10 @@ export default function ProductDetailPage() {
                                 <td className={`py-2 text-right ${freeShipping ? 'text-green-600 font-medium' : ''}`}>
                                   {freeShipping ? 'FREE' : `₹${bp.standard_delivery_price ?? "Contact Us"}`}
                                 </td>
-                                <td className="py-2 text-right">₹{bp.express_delivery_price ?? "Contact Us"}</td>
+                                <td className={`py-2 text-right ${freeExpressShipping ? 'text-green-600 font-medium' : ''}`}>
+                                  {freeExpressShipping ? 'FREE' : `₹${bp.express_delivery_price ?? "Contact Us"}`}
+
+                                </td>
                                 
                               </tr>
                             );

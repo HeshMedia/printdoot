@@ -11,6 +11,12 @@ interface ProductHeaderProps {
   reviewCount: number
 }
 
+// Utility function to sanitize product names and remove unwanted characters
+const sanitizeProductName = (name: string | undefined | null): string => {
+  if (!name) return "Product Details";
+  return name.replace(/[$`]/g, ''); // Remove $ and backtick characters
+}
+
 const ProductHeader: React.FC<ProductHeaderProps> = ({ 
   product, 
   category, 
@@ -25,6 +31,14 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
       </div>
     )
   }
+
+  // Sanitized product name
+  const productName = sanitizeProductName(product.name);
+  
+  // Truncate product name for breadcrumb navigation to avoid overflow
+  const truncatedName = productName.length > 25 
+    ? `${productName.substring(0, 25)}...` 
+    : productName;
 
   return (
     <div className="space-y-4">
@@ -56,8 +70,8 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
             </>
           )}
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70" />
-          <li className="font-medium text-foreground" aria-current="page">
-            {product.name || "Product Details"}
+          <li className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px] md:max-w-[250px]" aria-current="page">
+            {truncatedName}
           </li>
         </ol>
       </nav>
@@ -65,7 +79,9 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
       {/* Title & Price Section */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{product.name || "Product Details"}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 break-words max-w-full md:max-w-2xl">
+            {productName}
+          </h1>
           
           <div className="flex items-center gap-3 mt-2">
             <div className="flex items-center">

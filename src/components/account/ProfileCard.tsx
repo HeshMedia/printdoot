@@ -67,7 +67,7 @@ export function ProfileCard({ onEdit }: ProfileCardProps) {
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Email Address</h3>
             <p className="font-medium">
-              {userDetails?.email || user?.emailAddresses[0]?.emailAddress || 'Not provided'}
+              { user?.emailAddresses[0]?.emailAddress || 'Not provided'}
             </p>
           </div>
           <div>
