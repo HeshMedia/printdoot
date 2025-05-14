@@ -36,7 +36,7 @@ export default function TrendingPageContent() {
         
         // Use the API with proper pagination
         const [productsData, categoriesData] = await Promise.all([
-          trendingApi.get(skip, productsPerPage),
+          trendingApi.get( productsPerPage, skip),
           categoriesApi.getCategories()
         ])
         
