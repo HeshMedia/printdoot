@@ -12,6 +12,7 @@ import { TextBanner } from "@/components/layout/TextBanner"
 import { TextBannerProvider } from "@/lib/context/text-banner-context"
 import { ClerkProvider } from "@clerk/nextjs"
 
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function RootLayout({
               <TextBannerProvider>
                 <TextBanner />
                 <Navbar />
+                
                 <main>{children}</main>
                 <WhatsApp/>
                 <Footer />

@@ -18,7 +18,8 @@ import {
   PanelBottomDashed,
   Image as ImageIcon,
   Menu,
-  X
+  X,
+  LayoutGrid
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -102,6 +103,10 @@ export default function AdminSidebar() {
           <NavLink href="/admin/featured/trending" icon={<TrendingUp />} label="Trending" onClick={closeSidebar} />
           <NavLink href="/admin/featured/newarrivals" icon={<ShoppingCart />} label="New Arrivals" onClick={closeSidebar} />
           <NavLink href="/admin/featured/shopbyneed" icon={<Heart />} label="Shop By Need" onClick={closeSidebar} />
+
+          <div className="border-t border-gray-200 my-4"></div>
+
+          <NavLink href="/admin/topbar" icon={<LayoutGrid className="h-5 w-5" />} label="Topbar Management" onClick={closeSidebar} />
 
           <div className="border-t border-gray-200 my-4"></div>
 

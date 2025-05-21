@@ -42,6 +42,7 @@
     "react-hook-form": "^7.56.3",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
+    "sonner": "^2.0.3",
     "svix": "^1.65.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
