@@ -180,8 +180,7 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Right side - Bestselling Items */}
-          <div className="lg:w-2/5 mt-4 lg:mt-0">
+          {/* Right side - Bestselling Items */}          <div className="lg:w-2/5 mt-4 lg:mt-0">
             <div className="h-full overflow-hidden rounded-2xl">
               <HeroSideBestsellers />
             </div>
@@ -193,17 +192,16 @@ const HeroSection = () => {
 };
 
 // Compact version of bestsellers specifically for hero section
-const HeroSideBestsellers = () => {
-  return (
+const HeroSideBestsellers = () => {  return (
     <motion.div 
-      className="bg-white h-full rounded-2xl shadow-lg p-4 flex flex-col"
+      className="bg-white w-full rounded-2xl shadow-lg p-4 flex flex-col"
+      style={{ height: "100%" }}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-    >
-      <div className="mb-3 flex flex-col items-start">
+    >      <div className="mb-2 flex flex-col items-start">
         <motion.h2 
-          className="text-xl font-bold mb-1"
+          className="text-2xl font-bold mb-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
@@ -216,9 +214,8 @@ const HeroSideBestsellers = () => {
             initial={{ width: 0 }}
             animate={{ width: 140 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-          ></motion.div>
-          <motion.p
-            className="mt-1 text-gray-600 text-sm font-medium"
+          ></motion.div>          <motion.p
+            className="mt-1 text-gray-600 text-base font-medium"
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -227,9 +224,8 @@ const HeroSideBestsellers = () => {
           </motion.p>
         </div>
       </div>
-        {/* We'll adapt the BestSellers component to fit without scrolling */}
-      <motion.div 
-        className="flex-grow flex flex-col"
+        {/* We'll adapt the BestSellers component to fit without scrolling */}      <motion.div 
+        className="flex-1 flex flex-col"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
@@ -259,73 +255,64 @@ const BestSellersCompact = () => {
     };
 
     fetchProducts();
-  }, []);
-  
-  return (
-    <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+  }, []);  return (
+    <div className="flex flex-col h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
         {isLoading
           ? Array(3).fill(0).map((_, i) => (
-              <div key={i} className="animate-pulse rounded-xl bg-gray-100 aspect-square"></div>
+              <div key={i} className="animate-pulse rounded-xl bg-gray-100 aspect-[3/4] w-full"></div>
             ))
-          : products.map((product, index) => (
-              <motion.div
+          : products.map((product, index) => (              <motion.div
                 key={product.product_id}
-                className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 group relative"
+                className="bg-white rounded-lg overflow-hidden shadow-md border border-gray-100 group relative flex flex-col h-full"
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: 0.05 * index }}
-              >
-                <Link href={`/products/${product.product_id}`} className="flex flex-col">
+              >                <Link href={`/products/${product.product_id}`} className="flex flex-col h-full">
                   {/* Product image */}
-                  <div className="relative w-full aspect-square overflow-hidden">
+                  <div className="relative w-full aspect-[3/4] overflow-hidden">
                     <Image
                       src={product.main_image_url || "/placeholder.svg"}
                       alt={product.name}
                       fill
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 768px) 90vw, 30vw"
+                      className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
                     />
-                  </div>
-                  
-                  {/* Product info */}
-                  <div className="p-2">
-                    <h3 className="font-medium text-xs line-clamp-1 group-hover:text-[#60B5FF] transition-colors">
+                  </div>                  {/* Product info */}
+                  <div className="p-3 pt-2">
+                    <h3 className="font-medium text-sm line-clamp-1 group-hover:text-[#60B5FF] transition-colors">
                       {product.name}
                     </h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="font-bold text-[#60B5FF] text-xs">
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="font-bold text-[#60B5FF] text-sm">
                         ₹{product.price.toFixed(2)}
                       </span>
                       <div className="flex items-center">
-                        <Star className="h-2.5 w-2.5 fill-yellow-400 stroke-yellow-400 mr-0.5" />
-                        <span className="text-[10px]">{product.average_rating.toFixed(1)}</span>
+                        <Star className="h-3 w-3 fill-yellow-400 stroke-yellow-400 mr-0.5" />
+                        <span className="text-xs">{product.average_rating.toFixed(1)}</span>
                       </div>
                     </div>
                   </div>
                 </Link>
               </motion.div>
             ))}
-      </div>
-      
-      <motion.div
-        className="text-center mt-3"
+      </div>        <motion.div
+        className="text-center mt-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Button 
-          className="rounded-full bg-[#60B5FF] hover:bg-[#4da8f7] text-white px-4 py-1.5 text-xs flex items-center group shadow-md w-full justify-center"
+      >        <Button 
+          className="rounded-full bg-[#60B5FF] hover:bg-[#4da8f7] text-white px-5 py-2 text-sm flex items-center group shadow-md w-full justify-center"
           asChild
         >
           <Link href="/featured/bestselling">
             View All Bestsellers
-            <ArrowRight className="ml-1 h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Button>
       </motion.div>
-    </>
+    </div>
   );
 };
 

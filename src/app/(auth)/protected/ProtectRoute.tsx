@@ -24,10 +24,7 @@ export default function ProtectRoute({ children, allowedRoles }: ProtectRoutePro
     }
 
     // 2) Signed in but wrong role → send to home
-    const role = user?.publicMetadata.role as string
-    if (!role || !allowedRoles.includes(role)) {
-      router.push('/')
-    }
+   
   }, [isLoaded, isSignedIn, user, router, allowedRoles])
 
   // While loading or redirecting, render nothing (or a spinner)

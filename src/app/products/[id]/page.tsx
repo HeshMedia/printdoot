@@ -26,6 +26,7 @@ import Link from "next/link"
 import {
   Loader2,
   Package,
+  Pencil,
   Share2,
   ShoppingCart,
   Truck,
@@ -302,25 +303,25 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
               </div>
-              
-              {/* Action Buttons */}
+                {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 pt-2">
+                {/* Remove the Add to Cart button and only show the Customize button */}
                 <Button 
-                  size="lg"
-                  className="sm:col-span-5 bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={product.status !== "in_stock"}
-                  onClick={handleAddToCart}
+                  size="lg" 
+                  className="sm:col-span-5 bg-green-500 hover:bg-green-600 text-white"
+                  asChild
                 >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
+                  <Link href={`/products/${product.product_id}/customize`}>
+                    <Pencil className="mr-2 h-5 w-5" />
+                    Customize Now
+                  </Link>
                 </Button>
                 
-               <button 
-                  className="inline-flex items-center hover:text-black hover:bg-blue-100  justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                <button 
+                  className="inline-flex items-center hover:text-black hover:bg-blue-100 justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onClick={handleShareProduct}
                 >
-                  <Share2  className="h-5 w-5 font-thin text-muted-foreground " />
-        
+                  <Share2 className="h-5 w-5 font-thin text-muted-foreground" />
                 </button>
               </div>
             </CardContent>

@@ -25,9 +25,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/products/${product.product_id}`}>
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md">
-          {/* Image with placeholder */}
+      <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md flex flex-col h-full">
+        <Link href={`/products/${product.product_id}`} className="block">
           <div className="relative aspect-square overflow-hidden bg-gray-100">
             <img
               src={product.main_image_url}
@@ -38,36 +37,41 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               )}
             />
           </div>
+        </Link>
 
-          {/* Product info */}
-          <div className="p-2">
-            {/* Title */}
+        <div className="p-2 flex flex-col flex-grow">
+          <Link href={`/products/${product.product_id}`} className="block mb-auto">
             <h3 className="mb-1 line-clamp-2 text-xs font-medium text-gray-800 sm:text-sm">
               {product.name}
             </h3>
-
-            {/* Price */}
             <div className="mb-1 text-xs font-semibold text-blue-600 sm:text-sm">
               ₹{product.price.toFixed(2)}
             </div>
-
-            {/* Rating */}
             <div className="flex items-center">
-              <Star 
-                className="h-3 w-3 text-yellow-400" 
-                fill={product.average_rating > 0 ? "currentColor" : "none"} 
-                strokeWidth={1.5} 
+              <Star
+                className="h-3 w-3 text-yellow-400"
+                fill={product.average_rating > 0 ? "currentColor" : "none"}
+                strokeWidth={1.5}
               />
               <span className="ml-1 text-xs text-gray-500">
-                {product.average_rating > 0 
-                  ? `${product.average_rating.toFixed(1)} (${product.review_count})` 
-                  : "No ratings"
-                }
+                {product.average_rating > 0
+                  ? `${product.average_rating.toFixed(1)} (${product.review_count})`
+                  : "No ratings"}
               </span>
             </div>
-          </div>
+          </Link>
+
+          <Link href={`/products/${product.product_id}/customize`} passHref className="mt-2 block">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full rounded-md bg-green-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:text-sm"
+            >
+              Customize Now
+            </motion.button>
+          </Link>
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }
