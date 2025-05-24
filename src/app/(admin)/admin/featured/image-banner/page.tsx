@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Banner, bannerApi } from "@/lib/api/banners";
 import { Loader2, PlusCircle, ImageIcon, Trash2, Check, X, MoveVertical } from "lucide-react";
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const BannerManagementPage = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -274,12 +274,12 @@ const BannerManagementPage = () => {
               </div>
               
               {previewUrl && (
-                <div className="relative h-40 w-full overflow-hidden rounded-md border">
-                  <Image
-                    src={previewUrl}
+                <div className="relative h-40 w-full overflow-hidden rounded-md border">                  <Image
+                    src={getNextImageSrc(previewUrl)}
                     alt="Banner preview"
                     fill
                     className="object-cover"
+
                   />
                 </div>
               )}
@@ -368,11 +368,6 @@ const SortableBanner = ({ banner, onToggleActive, onDelete }: SortableBannerProp
     id: banner.id,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 1,
-  };
 
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -396,7 +391,6 @@ const SortableBanner = ({ banner, onToggleActive, onDelete }: SortableBannerProp
   return (
     <div
       ref={setNodeRef}
-      style={style}
       className={`bg-white border rounded-lg shadow-sm ${isDragging ? "shadow-lg" : ""}`}
     >
       <div className="flex items-center p-4">
@@ -410,12 +404,10 @@ const SortableBanner = ({ banner, onToggleActive, onDelete }: SortableBannerProp
         </div>
         
         {/* Banner Image */}
-        <div className="relative h-24 w-40 rounded-md overflow-hidden mr-4">
-          <Image
-            src={banner.image_url}
-            alt={`Banner ${banner.id}`}
-            fill
-            className="object-cover"
+        <div className="relative h-24 w-40 rounded-md overflow-hidden mr-4">          <Image            src={getNextImageSrc(banner?.image_url)}
+            alt={`Banner ${banner?.id}`}
+            fill            className="object-cover"
+
           />
         </div>
         

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { handleImageError } from "@/lib/utils/image-utils";
 
 interface ImageUploadProps {
   value: string; // base64 string
@@ -63,14 +64,13 @@ export default function ImageUpload({ value, extension, onChange, onReset }: Ima
         {uploading ? (
           <div className="flex flex-col items-center justify-center">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-600 mt-2">Uploading...</p>
-          </div>
+            <p className="text-sm text-gray-600 mt-2">Uploading...</p>          </div>
         ) : value ? (
-          <>
-            <img
+          <>            <img
               src={`data:image/${extension};base64,${value}`}
               alt="Preview"
               className="max-w-xs rounded-xl shadow-md"
+              onError={handleImageError}
             />
             <button
               type="button"

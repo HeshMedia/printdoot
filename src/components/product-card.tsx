@@ -4,6 +4,7 @@ import type { Product } from "@/lib/api/products"
 import { Eye, ShoppingCart, Star } from "lucide-react"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils"
 
 interface ProductCardProps {
   product: Product
@@ -20,13 +21,10 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       transition={{ duration: 0.3, delay: 0.05 * (index % 6) }}
     >
       <Link href={`/products/${product.product_id}`}>
-        <div className="relative w-full aspect-square">
-          <Image
-            src={product.main_image_url || "/placeholder.svg?height=300&width=300"}
-            alt={product.name}
+        <div className="relative w-full aspect-square">          <Image            src={getNextImageSrc(product?.main_image_url)}
+            alt={product?.name}
             fill
-            priority={index < 6}
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            priority={index < 6}            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
           
           {/* Status badge */}

@@ -6,6 +6,7 @@ import { Star } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import type { Product } from "@/lib/api/products"
+import { getSafeImageUrl, handleImageError, } from "@/lib/utils/image-utils"
 
 interface ProductCardProps {
   product: Product
@@ -27,14 +28,14 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md flex flex-col h-full">
         <Link href={`/products/${product.product_id}`} className="block">
-          <div className="relative aspect-square overflow-hidden bg-gray-100">
-            <img
-              src={product.main_image_url}
-              alt={product.name}
+          <div className="relative aspect-square overflow-hidden bg-gray-100">            <img
+              src={getSafeImageUrl(product?.main_image_url)}
+              alt={product?.name}
               className={cn(
                 "h-full w-full object-cover transition-transform duration-500",
                 isHovered ? "scale-110" : "scale-100"
               )}
+              onError={handleImageError}
             />
           </div>
         </Link>

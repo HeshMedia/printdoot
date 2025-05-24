@@ -7,6 +7,7 @@ import { Eye, ShoppingCart, Star, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 import { FeaturedProductResponse } from "@/lib/api/featured"
 import { Badge } from "@/components/ui/badge"
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils"
 
 type AccentColorType = "yellow" | "purple" | "blue" | "green" | "red" | "pink";
 
@@ -107,11 +108,8 @@ const ProductCard: FC<ProductCardProps> = ({
       viewport={{ once: true }}
       transition={{ duration: 0.3, delay: animationDelay }}
     >
-      <Link href={`/products/${product.product_id}`} className="block h-full">
-        <div className="relative w-full aspect-square overflow-hidden">
-          <Image
-            src={product.main_image_url || "/placeholder.svg"}
-            alt={product.name}
+      <Link href={`/products/${product.product_id}`} className="block h-full">        <div className="relative w-full aspect-square overflow-hidden">          <Image            src={getNextImageSrc(product?.main_image_url)}
+            alt={product?.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
             className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -170,10 +168,9 @@ const ProductCard: FC<ProductCardProps> = ({
                 <span className="text-[10px] text-gray-500 line-through">
                   ₹{originalPrice.toFixed(2)}
                 </span>
-              </div>
-            ) : (
+              </div>            ) : (
               <span className={`font-bold ${classes.text} text-sm`}>
-                ₹{product.price.toFixed(2)}
+                ₹{product?.price?.toFixed(2)}
               </span>
             )}
             

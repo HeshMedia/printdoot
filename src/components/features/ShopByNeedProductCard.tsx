@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Heart, Eye, ShoppingCart, Star, StarIcon, StarsIcon, StarHalf } from "lucide-react"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils"
 
 interface ProductCardProps {
   product: {
@@ -35,13 +36,10 @@ const ProductCard: FC<ProductCardProps> = ({
     >
       <Link href={`/products/${product.product_id}`} className="block h-full">
         {/* Image container - Added overflow-hidden to fix hover issue */}
-        <div className="relative w-full aspect-square overflow-hidden">
-          <Image
-            src={product.main_image_url || "/placeholder.svg"}
-            alt={product.name}
+        <div className="relative w-full aspect-square overflow-hidden">          <Image            src={getNextImageSrc(product?.main_image_url)}
+            alt={product?.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
 
           {/* Need badge */}

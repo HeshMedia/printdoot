@@ -10,6 +10,7 @@ import {
   SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { getSafeImageUrl, handleImageError, PLACEHOLDER_IMAGE, getNextImageSrc } from "@/lib/utils/image-utils"
 
 interface ProductGalleryProps {
   mainImageUrl: string | null
@@ -24,8 +25,8 @@ const ProductGallery = ({
 }: ProductGalleryProps) => {
   // Handle missing images with placeholders
   const allImages = [
-    mainImageUrl || '/placeholder-product.png', 
-    ...(sideImagesUrl?.filter(url => url) || [])
+    getSafeImageUrl(mainImageUrl), 
+    ...(sideImagesUrl?.filter(url => url)?.map(url => getSafeImageUrl(url)) || [])
   ]
   
   const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -81,19 +82,13 @@ const ProductGallery = ({
         onMouseEnter={() => setShowZoom(true)}
         onMouseLeave={() => setShowZoom(false)}
         onMouseMove={handleImageMouseMove}
-      >
-        <Image
-          src={activeImage}
+      >        <Image
+          src={getNextImageSrc(activeImage)}
           alt={`${productName} - Image ${activeImageIndex + 1}`}
           fill
           priority
           className="object-contain p-4 transition-transform duration-200"
           sizes="(max-width: 768px) 100vw, (min-width: 769px) 50vw"
-          onError={(e) => {
-            // Fallback for image loading errors
-            const target = e.target as HTMLImageElement;
-            target.src = '/placeholder-product.png';
-          }}
         />
         
         {/* Zoom overlay */}
@@ -119,17 +114,11 @@ const ProductGallery = ({
               <SheetTitle>{productName}</SheetTitle>
               <SheetDescription>Image Gallery</SheetDescription>
             </SheetHeader>
-            <div className="h-full flex justify-center items-center p-4">
-              <div className="relative h-full w-full">
-                <Image
-                  src={activeImage}
+            <div className="h-full flex justify-center items-center p-4">              <div className="relative h-full w-full">                <Image
+                  src={getNextImageSrc(activeImage)}
                   alt={`${productName} - Image ${activeImageIndex + 1}`}
                   fill
                   className="object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder-product.png';
-                  }}
                 />
               </div>
             </div>
@@ -173,18 +162,12 @@ const ProductGallery = ({
                 border-2 transition-all
                 snap-start
                 ${idx === activeImageIndex ? "border-primary ring-2 ring-primary/20" : "border-transparent hover:border-primary/50"}
-              `}
-            >
-              <Image
-                src={img}
+              `}            >              <Image
+                src={getNextImageSrc(img)}
                 alt={`Thumbnail ${idx + 1}`}
                 fill
                 sizes="80px"
                 className="object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder-product.png';
-                }}
               />
             </button>
           ))}

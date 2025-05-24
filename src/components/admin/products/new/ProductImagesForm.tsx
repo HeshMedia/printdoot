@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import React from "react";
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils";
 interface ProductImagesFormProps {
   mainImagePreview: string | null;
   sideImagePreviews: string[];
@@ -31,11 +32,11 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
           </label>
           <div className="mt-1 border-2 border-dashed border-gray-300 rounded-xl px-6 pt-5 pb-6 flex justify-center items-center">
             {mainImagePreview ? (
-              <div className="space-y-2 text-center">
-                <img
-                  src={mainImagePreview}
+              <div className="space-y-2 text-center">                <img
+                  src={getSafeImageUrl(mainImagePreview)}
                   alt="Main Preview"
                   className="mx-auto h-40 w-40 object-cover rounded-xl"
+                  onError={handleImageError}
                 />
                 <button
                   type="button"
@@ -130,13 +131,11 @@ export const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
               {sideImagePreviews.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {sideImagePreviews.map((preview, index) => (
-                    <div key={index} className="relative w-20 h-20 ">
-                    <Image
-                      src={preview}
+                    <div key={index} className="relative w-20 h-20 ">                    <Image
+                      src={getNextImageSrc(preview)}
                       alt={`Side ${index + 1}`}
                       width={80}
-                      height={80}
-                      className="object-cover rounded-xl"
+                      height={80}                      className="object-cover rounded-xl"
                     />
                     <button
                       type="button"

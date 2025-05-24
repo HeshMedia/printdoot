@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/context/cart-context"
 import { useUser } from "@/lib/context/user-context"
 import { ordersApi } from "@/lib/api/orders"
+import { getSafeImageUrl, handleImageError, getNextImageSrc } from "@/lib/utils/image-utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react"
@@ -134,17 +135,14 @@ export default function CartPage() {
               <div className="divide-y">
                 {items.map((item, index) => (
                   <div key={index} className="p-6 flex flex-col sm:flex-row gap-4">
-                    <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
-                      {item.customPreviewUrl ? (
-                        <Image
-                          src={item.customPreviewUrl || "/placeholder.svg"}
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">                      {item.customPreviewUrl ? (                        <Image
+                          src={getNextImageSrc(item?.customPreviewUrl)}
                           alt={`Custom ${item.product.name}`}
                           fill
                           className="object-cover"
                         />
-                      ) : (
-                        <Image
-                          src={item.product.main_image_url || "/placeholder.svg?height=100&width=100"}
+                      ) : (                        <Image
+                          src={getNextImageSrc(item?.product?.main_image_url)}
                           alt={item.product.name}
                           fill
                           className="object-cover"
