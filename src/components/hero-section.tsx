@@ -166,14 +166,15 @@ const HeroSection = () => {
                     opacity: 0,
                     transition: { duration: 0.8, ease: "easeIn" }
                   }}
-                >
-                  <Image
-                    src={displayImages[currentSlide]}
+                >                  
+                <Image
+                    src={displayImages?.[currentSlide]}
                     alt={`Banner Slide ${currentSlide + 1}`}
                     className="object-cover object-center"
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 60vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 60vw"                   
                     priority
+                  
                   />
                 </motion.div>
               </AnimatePresence>
@@ -271,22 +272,20 @@ const BestSellersCompact = () => {
                 transition={{ duration: 0.3, delay: 0.05 * index }}
               >                <Link href={`/products/${product.product_id}`} className="flex flex-col h-full">
                   {/* Product image */}
-                  <div className="relative w-full aspect-[3/4] overflow-hidden">
-                    <Image
-                      src={product.main_image_url || "/placeholder.svg"}
-                      alt={product.name}
+                  <div className="relative w-full aspect-[3/4] overflow-hidden">                   
+                   <Image src={product?.main_image_url || "/placeholder-product.png"}
+                      alt={product?.name}
                       fill
-                      sizes="(max-width: 768px) 90vw, 30vw"
-                      className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 768px) 90vw, 30vw"                      className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
                     />
-                  </div>                  {/* Product info */}
+                  </div>                  
+                  {/* Product info */}
                   <div className="p-3 pt-2">
-                    <h3 className="font-medium text-sm line-clamp-1 group-hover:text-[#60B5FF] transition-colors">
-                      {product.name}
+                    <h3 className="font-medium text-sm line-clamp-1 group-hover:text-[#60B5FF] transition-colors">                      {product?.name}
                     </h3>
                     <div className="flex items-center justify-between mt-1.5">
                       <span className="font-bold text-[#60B5FF] text-sm">
-                        ₹{product.price.toFixed(2)}
+                        ₹{product?.price?.toFixed(2)}
                       </span>
                       <div className="flex items-center">
                         <Star className="h-3 w-3 fill-yellow-400 stroke-yellow-400 mr-0.5" />

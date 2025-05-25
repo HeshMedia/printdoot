@@ -9,6 +9,7 @@ import { Category } from "@/lib/api/admin/categories"
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -20,9 +21,16 @@ export default function Categories() {
         
         // Extract categories array from the response
         setCategories(response.categories);
+        
+        // Filter out categories without valid image_url
+        const filtered = response.categories.filter(
+          category => category.image_url && category.image_url !== "/placeholder-product.png"
+        );
+        setFilteredCategories(filtered);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
         setCategories([]);
+        setFilteredCategories([]);
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +68,8 @@ export default function Categories() {
         </div>
        
         {/* Mobile Menu - Now horizontal scrollable instead of sidebar */}
-        <div className="md:hidden">          <div className="flex overflow-x-auto hide-scrollbar pb-5 space-x-5 px-2 w-full">
+        <div className="md:hidden">          
+          <div className="flex overflow-x-auto hide-scrollbar pb-5 space-x-5 px-2 w-full">
             {isLoading ? (
               // Loading skeleton for mobile view
               Array(6).fill(0).map((_, i) => (
@@ -72,7 +81,7 @@ export default function Categories() {
                 </div>
               ))
             ) : (
-              categories.map((category) => (
+              filteredCategories.map((category) => (
                 <div key={category.id} className="flex-shrink-0">
                   <Link 
                     href={`/products?category=${category.id}`}
@@ -112,7 +121,7 @@ export default function Categories() {
                 </div>
               ))
             ) : (
-              categories.map((category) => (<motion.div
+              filteredCategories.map((category) => (<motion.div
                   key={category.id}
                   className="flex-shrink-0 flex-none"
                   whileHover={{ scale: 1.05 }}
@@ -126,7 +135,7 @@ export default function Categories() {
                   >                    <div className={`flex flex-col items-center px-10 py-5 rounded-lg transition-colors ${activeCategory === category.name ? 'bg-[#60B5FF]/15' : 'hover:bg-gray-100'}`}>
                       <div className="w-28 h-28 relative rounded-full overflow-hidden border-4 border-transparent group-hover:border-[#60B5FF] transition-all shadow-xl">
                         <Image
-                          src={category.image_url}
+                          src={category.image_url || "/placeholder-product.png"}
                           alt={category.name}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
@@ -154,4 +163,3 @@ export default function Categories() {
     </section>
   )
 }
-

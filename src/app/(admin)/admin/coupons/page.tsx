@@ -220,7 +220,7 @@ export default function CouponsPage() {
           <div className="w-full sm:w-48">
             <Select 
               value={statusFilter} 
-              onValueChange={(value) => setStatusFilter(value as "all" | "active" | "inactive")}
+              onValueChange={(value: string) => setStatusFilter(value as "all" | "active" | "inactive")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />

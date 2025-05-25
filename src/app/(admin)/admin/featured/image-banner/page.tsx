@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const BannerManagementPage = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -369,7 +368,6 @@ const SortableBanner = ({ banner, onToggleActive, onDelete }: SortableBannerProp
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 1,
   };

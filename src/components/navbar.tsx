@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import Topbar from "./topbar"
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -198,6 +199,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
+      <Topbar />
     </header>
   )
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { topbarApi } from "@/lib/api/topbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown } from "lucide-react";
@@ -37,35 +37,26 @@ export default function Topbar() {
   const [topbarData, setTopbarData] = useState<TransformedTopbarTitle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track dropdown open/close timers to prevent flicker
-  const dropdownTimers: Record<number, NodeJS.Timeout> = {};
-
-  const handleMouseEnter = (id: number) => {
-    // Clear any existing close timer for this dropdown
-    if (dropdownTimers[id]) {
-      clearTimeout(dropdownTimers[id]);
-      delete dropdownTimers[id];
+  const handleMenuOpen = (id: number) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-
-    // Open the dropdown immediately
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [id]: true,
-    }));
+    setOpenDropdown(id);
   };
 
-  const handleMouseLeave = (id: number) => {
-    // Set a timer to close the dropdown after a delay
-    dropdownTimers[id] = setTimeout(() => {
-      setOpenDropdowns((prev) => ({
-        ...prev,
-        [id]: false,
-      }));
-    }, 300);
+  const handleMenuClose = (id: number) => {
+    timeoutRef.current = setTimeout(() => {
+      setOpenDropdown((prev) => (prev === id ? null : prev));
+    }, 200);
+  };
+
+  const cancelMenuClose = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
   };
 
   useEffect(() => {
@@ -73,7 +64,6 @@ export default function Topbar() {
       setIsLoading(true);
       try {
         const response = await topbarApi.getTopbars();
-
         const transformedData = response.titles.map((apiTitle: any) => ({
           id: apiTitle.id,
           title: apiTitle.title,
@@ -102,25 +92,17 @@ export default function Topbar() {
 
     fetchTopbarData();
 
-    // Clean up any lingering timers when component unmounts
     return () => {
-      Object.values(dropdownTimers).forEach((timer) => clearTimeout(timer));
-    };
-  }, []);
-
-  // Cleanup function to remove timers when component unmounts
-  useEffect(() => {
-    return () => {
-      Object.values(dropdownTimers).forEach((timer) => clearTimeout(timer));
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   if (isLoading) {
     return (
-      <div className="bg-gray-100 dark:bg-gray-800 py-2 shadow-sm">
-        <div className="container mx-auto px-4 flex justify-center space-x-6">
+      <div className="w-full bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 flex justify-center space-x-6 h-12">
           {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-5 w-20 rounded-md" />
+            <Skeleton key={i} className="h-5 w-20 rounded-md my-auto" />
           ))}
         </div>
       </div>
@@ -136,125 +118,89 @@ export default function Topbar() {
   }
 
   return (
-    <nav className="bg-gray-100 dark:bg-gray-800 py-2 shadow-sm sticky top-0 z-40">
-      <div className="container mx-auto px-4 flex justify-center items-center space-x-6 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        {topbarData.map(
-          (titleItem) =>
-            titleItem.active === 1 && (
-              <div
-                key={titleItem.id}
-                className="relative"
-                onMouseEnter={() => handleMouseEnter(titleItem.id)}
-                onMouseLeave={() => handleMouseLeave(titleItem.id)}
-              >
-                <DropdownMenu
-                  open={openDropdowns[titleItem.id] || false}
-                  onOpenChange={(open) => {
-                    setOpenDropdowns((prev) => ({
-                      ...prev,
-                      [titleItem.id]: open,
-                    }));
-                  }}
-                >
-                  <DropdownMenuTrigger className="px-3 py-1 focus:outline-none">
-                    <div className="flex items-center space-x-1">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary transition-colors">
-                        {titleItem.title.toUpperCase()}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-gray-700 dark:text-gray-200" />
-                    </div>
-                  </DropdownMenuTrigger>                 
-                   <DropdownMenuContent
-                    forceMount
-                    className={`p-0 border-none shadow-lg rounded-none transition-opacity duration-300 ease-in-out  ${
-                      openDropdowns[titleItem.id]
-                        ? "opacity-100 visible"
-                        : "opacity-0 invisible"
-                    }`}
-                    style={{
-                      position: "absolute",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      top: "calc(100% + 4px)",
-                      zIndex: 50,
-                      maxHeight: "80vh",
-                      width: "min(95vw, 1200px)",
-                      transformOrigin: "top center",
-                      animation: "none"
-                    }}
-                    sideOffset={0}
+    <div className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+      <nav className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex items-center space-x-6 overflow-x-auto whitespace-nowrap scrollbar-hide py-2">
+            {topbarData.map(
+              (titleItem) =>
+                titleItem.active === 1 && (
+                  <div
+                    key={titleItem.id}
+                    className="relative group"
+                    onMouseEnter={() => handleMenuOpen(titleItem.id)}
+                    onMouseLeave={() => handleMenuClose(titleItem.id)}
                   >
-                    <div className="bg-white dark:bg-gray-800 w-full">
-                      <div className="container mx-auto p-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                          {titleItem.categories.map((category) => (
-                            <div key={category.id} className="space-y-2">
-                              <Link
-                                href={`/products?category=${encodeURIComponent(
-                                  category.id
-                                )}`}
-                              >
-                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white border-b pb-2 mb-2 hover:underline">
-                                  {category.name}
-                                </h3>
-                              </Link>
-                              <ul className="space-y-1.5">
-                                {category.products
-                                  .slice(0, MAX_PRODUCTS_PER_GROUP)
-                                  .map((product) => (
-                                    <li key={product.id}>
+                    <button
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 border-b-2 border-transparent hover:border-blue-600 relative"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      <span>{titleItem.title.toUpperCase()}</span>
+                      <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+                    </button>
+
+                    {openDropdown === titleItem.id && (
+                      <div className="fixed left-0 right-0 top-[56px] w-screen bg-white shadow-lg border-t border-gray-200 z-50 animate-fadeIn">
+                        <div className="max-w-7xl mx-auto px-8 py-8">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                            {titleItem.categories.map((category) => (
+                              <div key={category.id} className="space-y-4">
+                                <Link
+                                  href={`/products?category=${encodeURIComponent(category.id)}`}
+                                >
+                                  <h3 className="font-semibold text-gray-900 text-sm border-b border-gray-200 pb-2">
+                                    {category.name}
+                                  </h3>
+                                </Link>
+                                <div className="space-y-2">
+                                  {category.products
+                                    .slice(0, MAX_PRODUCTS_PER_GROUP)
+                                    .map((product) => (
                                       <Link
+                                        key={product.id}
                                         href={`/products/${product.id}`}
-                                        className="block text-xs text-gray-600 dark:text-gray-300 hover:text-primary hover:underline"
+                                        className="block text-sm text-gray-600 hover:text-blue-600 hover:underline transition-colors duration-150"
                                       >
                                         {product.name}
                                       </Link>
-                                    </li>
-                                  ))}
-                                {category.products.length >
-                                  MAX_PRODUCTS_PER_GROUP && (
-                                  <li>
+                                    ))}
+                                  {category.products.length > MAX_PRODUCTS_PER_GROUP && (
                                     <Link
-                                      href={`/products?category=${encodeURIComponent(
-                                        category.id
-                                      )}`}
-                                      className="block text-xs font-medium text-primary hover:underline mt-1"
+                                      href={`/products?category=${encodeURIComponent(category.id)}`}
+                                      className="block text-sm font-medium text-blue-600 hover:underline transition-colors duration-150 mt-1"
                                     >
                                       Shop all {category.name}
                                     </Link>
-                                  </li>
-                                )}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-6 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
-                          <Link
-                            href={`/products?title=${encodeURIComponent(
-                              titleItem.title
-                            )}`}
-                            className="text-sm font-medium text-primary hover:underline"
-                          >
-                            See all {titleItem.title.toLowerCase()}
-                          </Link>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )
-        )}
-      </div>
+                    )}
+                  </div>
+                )
+            )}
+          </div>
+        </div>
+      </nav>
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
         .scrollbar-hide {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-in-out;
         }
       `}</style>
-    </nav>
+    </div>
   );
 }

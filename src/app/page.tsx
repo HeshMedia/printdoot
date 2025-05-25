@@ -14,7 +14,6 @@ export default function Home() {
     <>
       <TextBannerProvider>
         <div className="flex flex-col min-h-screen">
-          <Topbar />
           <HeroSection />
           <Categories />
           <TrendingSection />
