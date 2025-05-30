@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 
 // Import our modularized components

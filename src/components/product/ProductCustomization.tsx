@@ -70,7 +70,7 @@ const ProductCustomization: React.FC<ProductCustomizationProps> = ({
             ) : (
               <Select
                 value={selectedCustomizations[optionName] || ""}
-                onValueChange={(value) => setSelectedCustomizations({
+                onValueChange={(value: any) => setSelectedCustomizations({
                   ...selectedCustomizations, 
                   [optionName]: value
                 })}

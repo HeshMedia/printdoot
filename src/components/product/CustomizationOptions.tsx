@@ -32,7 +32,7 @@ export default function CustomizationOptions({
           </Label>
           <Select
             value={selectedCustomizations[key] || ""}
-            onValueChange={(value) => setSelectedCustomizations((prev) => ({ ...prev, [key]: value }))}
+            onValueChange={(value: any) => setSelectedCustomizations((prev) => ({ ...prev, [key]: value }))}
           >
             <SelectTrigger id={key}>
               <SelectValue placeholder={`Select ${key}`} />

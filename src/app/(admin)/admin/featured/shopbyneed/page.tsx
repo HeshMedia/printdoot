@@ -291,7 +291,7 @@ export default function ShopByNeedPage() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-500 hover:bg-red-600"
-                              onClick={(e) => {
+                              onClick={(e: { stopPropagation: () => void }) => {
                                 e.stopPropagation()
                                 handleDeleteNeed(need.need)
                               }}
