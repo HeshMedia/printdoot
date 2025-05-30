@@ -308,7 +308,7 @@ export default function TopbarAdminPage() {
 
           {editingTitle && (
             <div className="flex items-center space-x-2">
-              <Checkbox id="isActive" checked={isActive} onCheckedChange={(checked) => setIsActive(Boolean(checked))} />
+              <Checkbox id="isActive" checked={isActive} onCheckedChange={(checked: any) => setIsActive(Boolean(checked))} />
               <Label htmlFor="isActive">Active</Label>
             </div>
           )}

@@ -104,7 +104,7 @@ const DownloadOrdersPdf: React.FC<DownloadOrdersPdfProps> = ({ setError }) => {
                 min={1}
                 max={365}
                 step={1}
-                onValueChange={(value) => setDays(value[0])}
+                onValueChange={(value: React.SetStateAction<number>[]) => setDays(value[0])}
                 className="py-4"
               />
             </div>
