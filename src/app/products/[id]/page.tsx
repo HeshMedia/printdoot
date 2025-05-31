@@ -14,13 +14,12 @@ import WhatsAppButton from "@/components/whatsappbutton"
 import RelatedProducts from "@/components/product/RelatedProducts"
 import OnSaleProducts from "@/components/product/OnSaleProducts"
 import QuantitySelector from "@/components/product/QuantitySelector"
-
 import ProductHeader from "@/components/product/ProductHeader"
 import ProductGallery from "@/components/product/ProductGallery"
 import ProductPricing from "@/components/product/ProductPricing" 
 import ProductDelivery from "@/components/product/ProductDelivery"
 import ProductDimensions from "@/components/product/ProductDimensions"
-import ProductCustomization from "@/components/product/ProductCustomization"
+
 
 import Link from "next/link"
 import {
@@ -286,14 +285,7 @@ export default function ProductDetailPage() {
                 />
               </div>
               
-              {/* Customization Options */}
-              {hasCustomization && (
-                <ProductCustomization
-                  customizationOptions={customizationOptions}
-                  selectedCustomizations={selectedCustomizations}
-                  setSelectedCustomizations={setSelectedCustomizations}
-                />
-              )}
+              
               
               {/* Total Price */}
               <div className="bg-muted p-3 rounded-lg">                <div className="flex justify-between items-center">

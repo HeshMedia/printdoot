@@ -8,10 +8,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Plus, Trash2, ArrowUp, ArrowDown, Save } from 'lucide-react';
+import { Upload, Plus, Trash2, ArrowUp, ArrowDown, Save, Palette, Type } from 'lucide-react';
+import Loader from '../ui/loader';
+import TextCustomizationOptions from './TextCustomizationOptions';
 
 interface ProductCustomizerProps {
   productId: string;
+}
+
+export const AVAILABLE_FONTS = [
+  'Arial', 'Verdana', 'Helvetica', 'Tahoma', 'Trebuchet MS', 'Impact', // Sans-serif
+  'Times New Roman', 'Georgia', 'Garamond', 'Palatino', // Serif
+  'Courier New', 'Lucida Console', 'Monaco', 'Roboto Mono', 'Source Code Pro', // Monospace
+  'Comic Sans MS', 'Brush Script MT', 'Lobster', 'Pacifico', 'Satisfy', 'Dancing Script', // Display/Script  'Open Sans', 'Lato', 'Montserrat', 'Roboto', 'Nunito', 'Merriweather', 'Playfair Display' // Google Fonts like
+];
+
+// Exporting for TextCustomizationOptions
+export interface CustomTextConfig extends Konva.TextConfig {
+  isBold?: boolean;
+  fontStyle?: string; // 'normal', 'italic'
+  textDecoration?: string; // 'none', 'underline'
+  align?: string; // 'left', 'center', 'right', 'justify'
+  textTransform?: string; // 'none', 'uppercase', 'lowercase', 'capitalize'
+  shadowColor?: string;
+  shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  backgroundColor?: string; // For text box background
+  backgroundOpacity?: number; // Opacity for text box background
+  stroke?: string; // Border color
+  strokeWidth?: number; // Border width
+  fillPriority?: string; // 'color', 'linear-gradient', 'radial-gradient'
+  fillLinearGradientStartPoint?: { x: number; y: number };
+  fillLinearGradientEndPoint?: { x: number; y: number };
+  fillLinearGradientColorStops?: (string | number)[]; // [pos1, color1, pos2, color2, ...]
+  originalText?: string; // To store original text before transformations
+  // Add other new properties here as needed
 }
 
 const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
@@ -20,6 +52,8 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
   const [uploadedImages, setUploadedImages] = useState<Array<Konva.ImageConfig & { image: HTMLImageElement }>>([]);
   const [texts, setTexts] = useState<Array<Konva.TextConfig>>([]);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [selectedTextColor, setSelectedTextColor] = useState<string>('#000000');
+  const [selectedTextFont, setSelectedTextFont] = useState<string>(AVAILABLE_FONTS[0]);
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -53,6 +87,16 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
         const selectedNode = stageRef.current.findOne('.' + selectedShapeId);
         if (selectedNode) {
           tr.nodes([selectedNode]);
+          if (selectedNode.getClassName() === 'Text') {
+            const textNode = selectedNode as Konva.Text;
+            const fillValue = textNode.fill();
+            if (typeof fillValue === 'string') {
+              setSelectedTextColor(fillValue || '#000000');
+            } else {
+              setSelectedTextColor('#000000');
+            }
+            setSelectedTextFont(textNode.fontFamily() || AVAILABLE_FONTS[0]);
+          }
         } else {
           tr.nodes([]);
         }
@@ -104,7 +148,8 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
       x: stage ? stage.width() / 2 - 50 : 100,
       y: stage ? stage.height() / 2 - 10 : 100,
       fontSize: 20,
-      fill: '#000000',
+      fill: selectedTextColor, // Use current selected or default
+      fontFamily: selectedTextFont, // Use current selected or default
       draggable: true,
     };
     setTexts([...texts, newTextObj]);
@@ -144,17 +189,19 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
   const handleSaveDesign = () => {
     if (stageRef.current) {
       setSelectedShapeId(null); 
-      setTimeout(() => { 
-        const dataURL = stageRef.current?.toDataURL({ mimeType: 'image/png' });
-        if (dataURL) {
-          const link = document.createElement('a');
-          link.download = `${product?.name || 'custom-design'}.png`;
-          link.href = dataURL;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      }, 100);
+      // Deselect to hide transformer before saving
+      // Use a timeout to ensure the deselection (and transformer hiding) is processed before toDataURL
+      // setTimeout(() => { 
+      //   const dataURL = stageRef.current?.toDataURL({ mimeType: 'image/png' });
+      //   if (dataURL) {
+      //     const link = document.createElement('a');
+      //     link.download = `${product?.name || 'custom-design'}.png`;
+      //     link.href = dataURL;
+      //     document.body.appendChild(link);
+      //     link.click();
+      //     document.body.removeChild(link);
+      //   }
+      // }, 100);
     }
   };
   
@@ -212,10 +259,10 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     textarea.style.outline = 'none';
     textarea.style.resize = 'none';
     textarea.style.lineHeight = String(textNode.lineHeight());
-    textarea.style.fontFamily = textNode.fontFamily();
+    textarea.style.fontFamily = textNode.fontFamily(); // Apply font family
     textarea.style.transformOrigin = 'left top';
     textarea.style.textAlign = textNode.align();
-    textarea.style.color = String(textNode.fill() || 'black');
+    textarea.style.color = String(textNode.fill() || 'black'); // Apply color
     // textarea.style.verticalAlign = 'top'; // Removed, not effective for internal text alignment
     const rotation = textNode.rotation();
     let transform = '';
@@ -293,64 +340,87 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
   };
 
   if (!product || !backgroundImage) {
-    return <div className="flex justify-center items-center h-screen">Loading customizer...</div>;
+    return <div className="flex justify-center items-center h-screen">
+      <Loader/>
+    </div>;
   }
 
   const canvasWidth = backgroundImage.width;
   const canvasHeight = backgroundImage.height;
 
+  const selectedItemIsText = selectedShapeId && texts.some(t => t.id === selectedShapeId);
+  const currentSelectedTextNode = selectedItemIsText ? texts.find(t => t.id === selectedShapeId) : null;
+
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-6 text-center md:text-left">Customize {product.name}</h2>
-      <div className="flex flex-col md:flex-row-reverse gap-6">
+    <div className="p-4 md:p-5 lg:p-6 bg-slate-50 font-sans flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}> 
+      <h2 className="text-2xl font-semibold mb-4 text-center text-slate-700 shrink-0">Customize Your {product.name}</h2>
+      <div className="flex flex-col lg:flex-row-reverse gap-5 lg:gap-6 flex-grow overflow-hidden"> {/* Flex grow and overflow hidden for children */}
         
-        <Card className="w-full md:w-auto md:min-w-[300px] lg:min-w-[350px] self-start"> 
-          <CardHeader>
-            <CardTitle>Customization Tools</CardTitle>
+        {/* Customization Tools Panel (Right Side) */}
+        <Card className="w-full lg:w-[380px] flex flex-col shadow-lg rounded-lg border border-slate-200 bg-white overflow-hidden"> {/* Removed self-start */}
+          <CardHeader className="bg-slate-50 border-b border-slate-200 rounded-t-lg px-4 py-3 shrink-0">
+            <CardTitle className="text-xl font-medium text-slate-800">Customization Tools</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="file-upload-input-label" className="text-sm font-medium">Upload Image</Label>
-              <Button asChild variant="outline" className="w-full mt-1">
+          <CardContent className="p-4 md:p-5 space-y-3 overflow-y-auto flex-grow"> {/* Scrollable content */}
+            {/* Image Upload Section */}
+            <div className="space-y-2 pb-4 border-b border-slate-100">
+              <Label htmlFor="file-upload-input-label" className="text-sm font-medium text-slate-700">Upload Image</Label>
+              <Button asChild variant="outline" className="w-full py-3 border-2 border-dashed border-blue-400 hover:border-blue-500 hover:bg-blue-50 text-blue-600 transition-all duration-150 rounded-lg focus:ring-2 focus:ring-blue-300">
                 <Label htmlFor="file-upload-input" className="cursor-pointer flex items-center justify-center w-full">
-                  <Upload className="mr-2 h-4 w-4" /> Upload Image
+                  <Upload className="mr-2 h-5 w-5" /> Upload Your Image
                   <Input id="file-upload-input" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" />
                 </Label>
               </Button>
             </div>
 
-            <div>
-              <Label className="text-sm font-medium">Add Text</Label>
-              <Button onClick={handleAddText} variant="outline" className="w-full mt-1">
-                <Plus className="mr-2 h-4 w-4" /> Add Text
+            {/* Add Text Section */}
+            <div className="space-y-2 pb-4 border-b border-slate-100">
+              <Label className="text-sm font-medium text-slate-700">Add Text</Label>
+              <Button onClick={handleAddText} variant="outline" className="w-full py-3 border-slate-300 hover:border-green-500 hover:bg-green-50 text-green-700 transition-all duration-150 rounded-lg focus:ring-2 focus:ring-green-300">
+                <Plus className="mr-2 h-5 w-5" /> Add Text Element
               </Button>
             </div>
 
+            {/* Selected Item Controls Section */}
             {selectedShapeId && (
-              <div className="space-y-2 pt-4 mt-4 border-t">
-                <Label className="text-sm font-medium">Selected Item Controls</Label>
-                <Button onClick={handleDelete} variant="destructive" className="w-full">
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
-                </Button>
-                <Button onClick={() => handleLayerChange('forward')} variant="outline" className="w-full">
-                  <ArrowUp className="mr-2 h-4 w-4" /> Bring Forward
-                </Button>
-                <Button onClick={() => handleLayerChange('backward')} variant="outline" className="w-full">
-                  <ArrowDown className="mr-2 h-4 w-4" /> Send Backward
-                </Button>
+              <div className="pt-4 space-y-4">
+                <h3 className="text-base font-medium text-slate-700 mb-2">Selected Item Controls</h3>
+                
+                {/* Text Styling Sub-section */}
+                {selectedItemIsText && currentSelectedTextNode && (
+                  <TextCustomizationOptions
+                    currentSelectedTextNode={currentSelectedTextNode as CustomTextConfig}
+                    handleObjectManipulation={handleObjectManipulation}
+                  />
+                )}
+
+                {/* General Item Controls (Layering, Delete) */}
+                <div className="space-y-2 pt-2">
+                  <Button onClick={() => handleLayerChange('forward')} variant="outline" className="w-full justify-start text-slate-700 hover:bg-slate-100 border-slate-300 rounded-md py-2.5 focus:ring-2 focus:ring-slate-300">
+                    <ArrowUp className="mr-2 h-4 w-4 text-slate-500" /> Bring Forward
+                  </Button>
+                  <Button onClick={() => handleLayerChange('backward')} variant="outline" className="w-full justify-start text-slate-700 hover:bg-slate-100 border-slate-300 rounded-md py-2.5 focus:ring-2 focus:ring-slate-300">
+                    <ArrowDown className="mr-2 h-4 w-4 text-slate-500" /> Send Backward
+                  </Button>
+                  <Button onClick={handleDelete}  variant="outline" className="w-full justify-start text-red-600 hover:bg-red-50 border-red-400 hover:border-red-500 rounded-md py-2.5 mt-2 focus:ring-2 focus:ring-red-300">
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+                  </Button>
+                </div>
               </div>
             )}
             
-            <div className="pt-4 mt-4 border-t">
-              <Button onClick={handleSaveDesign} className="w-full bg-green-600 hover:bg-green-700 text-white">
-                <Save className="mr-2 h-4 w-4" /> Save Design
+            {/* Save Design Section */}
+            <div className="pt-4 mt-3 border-t border-slate-200 shrink-0">
+              <Button onClick={handleSaveDesign} className="w-full py-3 bg-green-500 hover:bg-green-600 text-white text-base font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
+                <Save className="mr-2 h-5 w-5" /> Save Your Design
               </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Canvas Area (Left Side) */}
         <div 
-          className="canvas-container border border-gray-300 rounded-lg overflow-hidden flex-grow flex justify-center items-center bg-gray-50 shadow-inner"
+          className="canvas-container border border-gray-200 rounded-xl overflow-hidden flex-grow flex justify-center items-center bg-white shadow-lg p-2 md:p-4 relative"
         >
           <Stage 
             width={canvasWidth} 

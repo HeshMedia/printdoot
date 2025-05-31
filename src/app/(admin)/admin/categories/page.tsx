@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Edit, ChevronDown, ChevronUp, X } from "lucide-react";
 import { categoriesApi, type Category } from "@/lib/api/admin/categories";
 import CategoryForm from "@/components/admin/category-form";
+import Loader from "@/components/ui/loader";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -87,7 +88,9 @@ export default function CategoriesPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading categories...</p>
+            <div className="h-screen flex items-center justify-center">
+              <Loader/>
+            </div>
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">{error}</div>

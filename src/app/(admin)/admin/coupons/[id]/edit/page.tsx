@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, AlertTriangle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Loader from "@/components/ui/loader"
 
 export default function EditCouponPage() {
   const params = useParams()
@@ -83,7 +84,9 @@ export default function EditCouponPage() {
       {loading ? (
         <div className="p-8 text-center bg-white rounded-xl shadow-sm">
           <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading coupon...</p>
+            <div className="h-screen flex items-center justify-center">
+              <Loader/>
+            </div>
         </div>
       ) : error ? (
         <div className="p-8 text-center bg-white rounded-xl shadow-sm">

@@ -2,10 +2,13 @@
 
 import { Suspense, use } from 'react';
 import dynamic from 'next/dynamic';
+import Loader from '@/components/ui/loader';
 
 const ProductCustomizer = dynamic(() => import('@/components/product/ProductCustomizerNew'), {
   ssr: false,
-  loading: () => <p>Loading Customizer...</p>, // Optional: a loading component specific to the dynamic import
+  loading: () => <div className='h-screen flex items-center justify-center'> 
+    <Loader />
+  </div>
 });
 
 interface CustomizePageProps {
@@ -18,8 +21,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const { id } = use(params);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Suspense fallback={<div>Loading product details...</div>}>
+    <div className="container mx-auto px-4 pb-8 h-screen">
+      <Suspense fallback={<div className='h-screen'>
+        <Loader/>
+      </div>}>
         <ProductCustomizer productId={id} />
       </Suspense>
     </div>

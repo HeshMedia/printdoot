@@ -12,6 +12,7 @@ import { Edit, ArrowLeft, Trash2, AlertTriangle } from "lucide-react"
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
+import Loader from "@/components/ui/loader"
 
 export default function CouponDetailsPage() {
   const params = useParams()
@@ -123,7 +124,9 @@ export default function CouponDetailsPage() {
       {loading ? (
         <div className="p-8 text-center bg-white rounded-xl shadow-sm">
           <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading coupon details...</p>
+            <div className="h-screen flex items-center justify-center">
+              <Loader/>
+            </div>
         </div>
       ) : error ? (
         <div className="p-8 text-center bg-white rounded-xl shadow-sm">

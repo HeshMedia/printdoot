@@ -12,6 +12,7 @@ import CouponTable from "@/components/admin/coupons/coupon-table"
 import CouponForm from "@/components/admin/coupons/coupon-form"
 import { couponsApi, CouponResponse, CouponCreate, CouponUpdate } from "@/lib/api/admin/coupons"
 import PaginationControl from "@/components/ui/pagination-control"
+import Loader from "@/components/ui/loader"
 
 export default function CouponsPage() {
   const { toast } = useToast()
@@ -246,7 +247,9 @@ export default function CouponsPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading coupons...</p>
+              <div className="h-screen flex items-center justify-center">
+              <Loader/>
+            </div>
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">{error}</div>
