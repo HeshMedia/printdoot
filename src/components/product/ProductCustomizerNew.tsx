@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Stage, Layer, Image as KonvaImage, Text as KonvaText, Transformer } from 'react-konva';
 import Konva from 'konva';
 import { productsApi, Product } from '@/lib/api/products';
@@ -57,6 +57,12 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+  const [scaledStageDimensions, setScaledStageDimensions] = useState({ width: 300, height: 150 });
+  const [stageContentScale, setStageContentScale] = useState(1);
+  const [baseDesignSize, setBaseDesignSize] = useState({ width: 0, height: 0 });
+
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -68,6 +74,7 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
           img.src = productData.side_images_url[0];
           img.onload = () => {
             setBackgroundImage(img);
+            setBaseDesignSize({ width: img.width, height: img.height });
           };
           img.onerror = (e) => {
             console.error('Failed to load background image (check CORS headers on the server):', e, img.src);
@@ -79,6 +86,41 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     };
     fetchProductData();
   }, [productId]);
+
+  useLayoutEffect(() => {
+    if (!backgroundImage || !canvasContainerRef.current || baseDesignSize.width === 0 || baseDesignSize.height === 0) {
+      return;
+    }
+
+    const calculateSize = () => {
+      if (canvasContainerRef.current && baseDesignSize.width > 0 && baseDesignSize.height > 0) {
+        const containerWidth = canvasContainerRef.current.clientWidth;
+        const containerHeight = canvasContainerRef.current.clientHeight;
+
+        if (containerWidth === 0 || containerHeight === 0) return; // Avoid division by zero if container not rendered
+
+        const scaleToFitWidth = containerWidth / baseDesignSize.width;
+        const scaleToFitHeight = containerHeight / baseDesignSize.height;
+        const newScale = Math.min(scaleToFitWidth, scaleToFitHeight);
+
+        setScaledStageDimensions({
+          width: baseDesignSize.width * newScale,
+          height: baseDesignSize.height * newScale,
+        });
+        setStageContentScale(newScale);
+      }
+    };
+
+    calculateSize(); // Initial calculation
+
+    const resizeObserver = new ResizeObserver(calculateSize);
+    resizeObserver.observe(canvasContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [backgroundImage, baseDesignSize]);
+
 
   useEffect(() => {
     if (transformerRef.current && stageRef.current) {
@@ -213,14 +255,14 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
   };
 
   // Text editing logic (double click)
-  const handleTextDblClick = (e: Konva.KonvaEventObject<MouseEvent>, textId: string) => {
+  const handleTextDblClick = (e: Konva.KonvaEventObject<Event>, textId: string) => {
     const textNode = e.target as Konva.Text;
 
     // Get position and stage box BEFORE hiding node, just in case hiding affects measurements.
     const textPosition = textNode.getAbsolutePosition();
     const stage = stageRef.current;
     if (!stage) return;
-    const stageBox = stage.container().getBoundingClientRect();
+    const stageBox = stage.container().getBoundingClientRect(); // This is the on-screen position of the stage
 
     textNode.hide();
     transformerRef.current?.hide();
@@ -243,22 +285,22 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     textarea.style.boxSizing = 'content-box'; 
     
     // Apply Konva node's padding to the textarea
-    const konvaPadding = textNode.padding();
-    textarea.style.padding = konvaPadding + 'px';
+    const konvaPadding = textNode.padding() || 0; // Default to 0 if undefined
+    textarea.style.padding = konvaPadding * stageContentScale + 'px';
 
-    // Set content width and height
-    textarea.style.width = (textNode.width() - konvaPadding * 2) + 'px';
-    textarea.style.height = (textNode.height() - konvaPadding * 2) + 'px'; 
+    // Set content width and height, accounting for scale and padding
+    textarea.style.width = (textNode.width() - konvaPadding * 2) * stageContentScale + 'px';
+    textarea.style.height = (textNode.height() - konvaPadding * 2) * stageContentScale + 'px'; 
     
-    textarea.style.fontSize = textNode.fontSize() + 'px';
+    textarea.style.fontSize = textNode.fontSize() * stageContentScale + 'px';
     textarea.style.border = 'none';
-    // textarea.style.padding = '0px'; // Replaced by konvaPadding
+    // textarea.style.padding = '0px'; // Handled above
     textarea.style.margin = '0px';
     textarea.style.overflow = 'hidden';
     textarea.style.background = 'none';
     textarea.style.outline = 'none';
     textarea.style.resize = 'none';
-    textarea.style.lineHeight = String(textNode.lineHeight());
+    textarea.style.lineHeight = String(textNode.lineHeight()); // LineHeight is usually a multiplier, independent of scale here
     textarea.style.fontFamily = textNode.fontFamily(); // Apply font family
     textarea.style.transformOrigin = 'left top';
     textarea.style.textAlign = textNode.align();
@@ -275,8 +317,9 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     textarea.value = textNode.text(); 
 
     // Initial auto-height adjustment (more precise)
+    // Consider scale for scrollHeight and fontSize if issues arise
     textarea.style.height = 'auto'; 
-    textarea.style.height = textarea.scrollHeight + 'px'; 
+    textarea.style.height = textarea.scrollHeight + (textNode.fontSize()* stageContentScale / 2) + 'px'; // Add some buffer
     
     textarea.focus();
 
@@ -317,10 +360,10 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
       if (ev.key === 'Escape') {
         removeTextarea();
       }
-      const scale = textNode.getAbsoluteScale().x;
-      setTextareaWidth(textNode.width() * scale);
+    
+      setTextareaWidth(textNode.width() * stageContentScale); 
       textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + textNode.fontSize() + 'px';
+      textarea.style.height = textarea.scrollHeight + (textNode.fontSize() * stageContentScale / 2) + 'px';
     });
 
     function handleOutsideClick(ev: MouseEvent) {
@@ -345,19 +388,107 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     </div>;
   }
 
-  const canvasWidth = backgroundImage.width;
-  const canvasHeight = backgroundImage.height;
-
   const selectedItemIsText = selectedShapeId && texts.some(t => t.id === selectedShapeId);
   const currentSelectedTextNode = selectedItemIsText ? texts.find(t => t.id === selectedShapeId) : null;
 
   return (
-    <div className="p-4 md:p-5 lg:p-6 bg-slate-50 font-sans flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}> 
+    <div className="p-4 md:p-5 lg:p-6 bg-slate-50 font-sans flex flex-col lg:h-[80vh]" > 
       <h2 className="text-2xl font-semibold mb-4 text-center text-slate-700 shrink-0">Customize Your {product.name}</h2>
-      <div className="flex flex-col lg:flex-row-reverse gap-5 lg:gap-6 flex-grow overflow-hidden"> {/* Flex grow and overflow hidden for children */}
+      {/* Changed to flex-col lg:flex-row. Canvas is now first in DOM order. */}
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 flex-grow overflow-hidden"> 
         
-        {/* Customization Tools Panel (Right Side) */}
-        <Card className="w-full lg:w-[380px] flex flex-col shadow-lg rounded-lg border border-slate-200 bg-white overflow-hidden"> {/* Removed self-start */}
+        {/* Canvas Area (Now first for mobile layout: top, left for desktop) */}
+        <div 
+          ref={canvasContainerRef}
+          className="canvas-container border border-gray-200 rounded-xl overflow-hidden flex-grow flex justify-center items-center bg-white shadow-lg p-2 md:p-4 relative"
+          style={{ minHeight: '300px' }} // Ensure container has some minimum height
+        >
+          <Stage 
+            width={scaledStageDimensions.width} 
+            height={scaledStageDimensions.height} 
+            scaleX={stageContentScale}
+            scaleY={stageContentScale}
+            ref={stageRef}
+            onMouseDown={checkDeselect}
+            onTouchStart={checkDeselect}
+            className="shadow-lg"
+          >
+            <Layer>
+              <KonvaImage 
+                image={backgroundImage} 
+                width={baseDesignSize.width} 
+                height={baseDesignSize.height} 
+                x={0}
+                y={0}
+              />
+              {uploadedImages.map((imgProps) => (
+                <KonvaImage
+                  key={imgProps.id}
+                  {...imgProps}
+                  onClick={() => setSelectedShapeId(imgProps.id!)}
+                  onTap={() => setSelectedShapeId(imgProps.id!)}
+                  onDragEnd={(e) => {
+                    handleObjectManipulation(imgProps.id!, { x: e.target.x(), y: e.target.y() });
+                  }}
+                  onTransformEnd={(e) => {
+                    const node = e.target;
+                    const scaleX = node.scaleX();
+                    const scaleY = node.scaleY();
+                    node.scaleX(1);
+                    node.scaleY(1);
+                    handleObjectManipulation(imgProps.id!, {
+                      x: node.x(),
+                      y: node.y(),
+                      width: Math.max(5, node.width() * scaleX),
+                      height: Math.max(5, node.height() * scaleY),
+                      rotation: node.rotation(),
+                    });
+                  }}
+                />
+              ))}
+              {texts.map((textProps) => (
+                <KonvaText
+                  key={textProps.id}
+                  {...textProps}
+                  onClick={() => setSelectedShapeId(textProps.id!)}
+                  onTap={() => setSelectedShapeId(textProps.id!)}
+                  onDblClick={(e) => handleTextDblClick(e, textProps.id!)}
+                  onDblTap={(e) => handleTextDblClick(e, textProps.id!)} // Added for mobile
+                  onDragEnd={(e) => {
+                    handleObjectManipulation(textProps.id!, { x: e.target.x(), y: e.target.y() });
+                  }}
+                  onTransformEnd={(e) => {
+                    const node = e.target as Konva.Text;
+                    const scaleX = node.scaleX();
+                    const scaleY = node.scaleY();
+                    node.scaleX(1);
+                    node.scaleY(1);
+                    handleObjectManipulation(textProps.id!, {
+                      x: node.x(),
+                      y: node.y(),
+                      fontSize: Math.max(5, (node.fontSize() || 20) * scaleY), // Use scaleY for font size typically
+                      width: Math.max(5, node.width() * scaleX),
+                      // height: Math.max(5, node.height() * scaleY), // Height is often auto for text
+                      rotation: node.rotation(),
+                    });
+                  }}
+                />
+              ))}
+              <Transformer
+                ref={transformerRef}
+                boundBoxFunc={(oldBox, newBox) => {
+                  if (newBox.width < 5 || newBox.height < 5) {
+                    return oldBox;
+                  }
+                  return newBox;
+                }}
+              />
+            </Layer>
+          </Stage>
+        </div>
+
+        {/* Customization Tools Panel (Now second for mobile layout: bottom, right for desktop) */}
+        <Card className="w-full lg:w-[380px] flex flex-col shadow-lg rounded-lg border border-slate-200 bg-white overflow-hidden flex-grow  lg:flex-grow-0">
           <CardHeader className="bg-slate-50 border-b border-slate-200 rounded-t-lg px-4 py-3 shrink-0">
             <CardTitle className="text-xl font-medium text-slate-800">Customization Tools</CardTitle>
           </CardHeader>
@@ -417,88 +548,6 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Canvas Area (Left Side) */}
-        <div 
-          className="canvas-container border border-gray-200 rounded-xl overflow-hidden flex-grow flex justify-center items-center bg-white shadow-lg p-2 md:p-4 relative"
-        >
-          <Stage 
-            width={canvasWidth} 
-            height={canvasHeight} 
-            ref={stageRef}
-            onMouseDown={checkDeselect}
-            onTouchStart={checkDeselect}
-            className="shadow-lg"
-          >
-            <Layer>
-              <KonvaImage image={backgroundImage} width={canvasWidth} height={canvasHeight} />
-              {uploadedImages.map((imgProps) => (
-                <KonvaImage
-                  key={imgProps.id}
-                  {...imgProps}
-                  onClick={() => setSelectedShapeId(imgProps.id!)}
-                  onTap={() => setSelectedShapeId(imgProps.id!)}
-                  onDragEnd={(e) => {
-                    handleObjectManipulation(imgProps.id!, { x: e.target.x(), y: e.target.y() });
-                  }}
-                  onTransformEnd={(e) => {
-                    const node = e.target;
-                    const scaleX = node.scaleX();
-                    const scaleY = node.scaleY();
-                    node.scaleX(1);
-                    node.scaleY(1);
-                    handleObjectManipulation(imgProps.id!, {
-                      x: node.x(),
-                      y: node.y(),
-                      width: Math.max(5, node.width() * scaleX),
-                      height: Math.max(5, node.height() * scaleY),
-                      rotation: node.rotation(),
-                    });
-                  }}
-                />
-              ))}
-              {texts.map((textProps) => (
-                <KonvaText
-                  key={textProps.id}
-                  {...textProps}
-                  onClick={() => setSelectedShapeId(textProps.id!)}
-                  onTap={() => setSelectedShapeId(textProps.id!)}
-                  onDblClick={(e) => handleTextDblClick(e, textProps.id!)}
-                  onDragEnd={(e) => {
-                    handleObjectManipulation(textProps.id!, { x: e.target.x(), y: e.target.y() });
-                  }}
-                  onTransformEnd={(e) => {
-                    const node = e.target as Konva.Text;
-                    const scaleX = node.scaleX();
-                    const scaleY = node.scaleY();
-                    node.scaleX(1);
-                    node.scaleY(1);
-                    handleObjectManipulation(textProps.id!, {
-                      x: node.x(),
-                      y: node.y(),
-                      fontSize: Math.max(5, (node.fontSize() || 20) * scaleY), // Use scaleY for font size typically
-                      width: Math.max(5, node.width() * scaleX),
-                      // height: Math.max(5, node.height() * scaleY), // Height is often auto for text
-                      rotation: node.rotation(),
-                    });
-                  }}
-                />
-              ))}
-              <Transformer
-                ref={transformerRef}
-                boundBoxFunc={(oldBox, newBox) => {
-                  if (newBox.width < 5 || newBox.height < 5) {
-                    return oldBox;
-                  }
-                  return newBox;
-                }}
-                // Optionally, enable more resize anchors
-                // enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right']}
-                // rotateEnabled={true}
-              />
-            </Layer>
-          </Stage>
-        </div>
       </div>
     </div>
   );
