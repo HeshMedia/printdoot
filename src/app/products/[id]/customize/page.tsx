@@ -21,7 +21,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const { id } = use(params);
 
   return (
-    <div className="container mx-auto px-4 pb-8 h-screen">
+    <div className="container mx-auto px-4 pb-8 ">
       <Suspense fallback={<div className='h-screen'>
         <Loader/>
       </div>}>
