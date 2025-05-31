@@ -7,7 +7,6 @@ import { OnsaleSection } from "@/components/features/home/onsale-section"
 import { TrendingSection } from "@/components/features/home/trending-section"
 import { NewArrivalsSection } from "@/components/features/home/newarrivals-section"
 import { TextBannerProvider } from "@/lib/context/text-banner-context"
-import Topbar from "@/components/topbar"
 
 export default function Home() {
   return (

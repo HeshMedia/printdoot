@@ -22,6 +22,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useTopbarData, TransformedTopbarTitle, TransformedCategory, TransformedProduct } from "@/lib/hooks/useTopbarData";
+import { ChevronDown, ChevronRight } from "lucide-react" // Added
+
 import Topbar from "./topbar"
 
 export default function Navbar() {
@@ -29,6 +32,8 @@ export default function Navbar() {
   const { totalItems } = useCart()
   const router = useRouter() // Next.js router instance
   const { user } = useUser() // Get user information from Clerk
+  const { topbarData, isLoading: isTopbarLoading, error: topbarError } = useTopbarData();
+  const [openMobileSubmenu, setOpenMobileSubmenu] = useState<number | null>(null);
 
   useEffect(() => {
     // Check if the user is an admin
@@ -49,24 +54,77 @@ export default function Navbar() {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-              <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/" className="text-lg font-medium transition-colors hover:text-foreground/80">
+            <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
+              <nav className="flex flex-col gap-2 mt-8">
+                <Link href="/" className="text-lg font-medium transition-colors hover:text-foreground/80 px-2 py-1">
                   Home
                 </Link>
-                <Link href="/products" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                <Link href="/products" className="text-lg font-medium transition-colors hover:text-foreground/80 px-2 py-1">
                   Products
                 </Link>
                 <Link href="/categories" className="text-lg font-medium transition-colors hover:text-foreground/80">
                   Categories
                 </Link>
                 <div className="border-t my-4"></div>
-                <Link href="/about" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                <Link href="/about" className="text-lg font-medium transition-colors hover:text-foreground/80 px-2 py-1">
                   About
                 </Link>
-                <Link href="/contact" className="text-lg font-medium transition-colors hover:text-foreground/80">
+                <Link href="/contact" className="text-lg font-medium transition-colors hover:text-foreground/80 px-2 py-1">
                   Contact
                 </Link>
+
+                {/* Topbar data integration for mobile */}
+                {!isTopbarLoading && !topbarError && topbarData && topbarData.length > 0 && (
+                  <>
+                    <div className="border-t my-4"></div>
+                    <h3 className="text-md font-semibold px-2 py-1 text-muted-foreground">Shop By Category</h3>
+                    {topbarData.map((titleItem: TransformedTopbarTitle) => (
+                      titleItem.active === 1 && (
+                        <div key={titleItem.id} className="flex flex-col gap-1">
+                          <button
+                            onClick={() => setOpenMobileSubmenu(openMobileSubmenu === titleItem.id ? null : titleItem.id)}
+                            className="flex items-center justify-between w-full text-lg font-medium transition-colors hover:text-foreground/80 px-2 py-1 text-left"
+                          >
+                            {titleItem.title.toUpperCase()}
+                            {openMobileSubmenu === titleItem.id ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                          </button>
+                          {openMobileSubmenu === titleItem.id && (
+                            <div className="flex flex-col gap-1 pl-4 border-l ml-2">
+                              {titleItem.categories.map((category: TransformedCategory) => (
+                                <div key={category.id} className="flex flex-col gap-1">
+                                   <Link
+                                    href={`/products?category=${encodeURIComponent(category.id)}`}
+                                    className="text-md font-medium transition-colors hover:text-foreground/80 px-2 py-1"
+                                  >
+                                    {category.name}
+                                  </Link>
+                                  {/* Optionally, list products under category if needed, for now linking to category page */}
+                                  {/* {category.products.slice(0, 5).map((product: TransformedProduct) => (
+                                    <Link
+                                      key={product.id}
+                                      href={`/products/${product.id}`}
+                                      className="text-sm transition-colors hover:text-foreground/80 px-2 py-1 pl-4"
+                                    >
+                                      {product.name}
+                                    </Link>
+                                  ))}
+                                  {category.products.length > 5 && (
+                                     <Link
+                                      href={`/products?category=${encodeURIComponent(category.id)}`}
+                                      className="text-sm font-medium text-blue-600 hover:underline px-2 py-1 pl-4"
+                                    >
+                                      Shop all {category.name}
+                                    </Link>
+                                  )} */}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    ))}
+                  </>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

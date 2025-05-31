@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { topbarApi } from "@/lib/api/topbar";
+import { useTopbarData } from "@/lib/hooks/useTopbarData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown } from "lucide-react";
 import {
@@ -11,32 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface TransformedProduct {
-  id: string;
-  name: string;
-}
-
-interface TransformedCategory {
-  id: number;
-  name: string;
-  products: TransformedProduct[];
-}
-
-interface TransformedTopbarTitle {
-  id: number;
-  title: string;
-  display_order: number;
-  active: number;
-  categories: TransformedCategory[];
-}
-
-const MAX_CATEGORIES_PER_TITLE = 6;
 const MAX_PRODUCTS_PER_GROUP = 10;
 
 export default function Topbar() {
-  const [topbarData, setTopbarData] = useState<TransformedTopbarTitle[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { topbarData, isLoading, error } = useTopbarData();
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -60,38 +38,6 @@ export default function Topbar() {
   };
 
   useEffect(() => {
-    const fetchTopbarData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await topbarApi.getTopbars();
-        const transformedData = response.titles.map((apiTitle: any) => ({
-          id: apiTitle.id,
-          title: apiTitle.title,
-          display_order: apiTitle.display_order,
-          active: apiTitle.active,
-          categories: (apiTitle.categories || [])
-            .slice(0, MAX_CATEGORIES_PER_TITLE)
-            .map((cat: any) => ({
-              id: cat.id,
-              name: cat.name,
-              products: (cat.products || []).map((prod: any) => ({
-                id: prod.id,
-                name: prod.name,
-              })),
-            })),
-        }));
-
-        setTopbarData(transformedData);
-      } catch (err) {
-        console.error("Error fetching topbar data:", err);
-        setError("Failed to load navigation data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTopbarData();
-
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
@@ -118,7 +64,7 @@ export default function Topbar() {
   }
 
   return (
-    <div className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <div className="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40 hidden md:block">
       <nav className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center space-x-6 overflow-x-auto whitespace-nowrap scrollbar-hide py-2">
@@ -148,7 +94,7 @@ export default function Topbar() {
                                 <Link
                                   href={`/products?category=${encodeURIComponent(category.id)}`}
                                 >
-                                  <h3 className="font-semibold text-gray-900 text-sm border-b border-gray-200 pb-2">
+                                  <h3 className="font-semibold text-gray-900 text-sm  pb-2 whitespace-normal break-words">
                                     {category.name}
                                   </h3>
                                 </Link>
