@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Plus, Trash2, ArrowUp, ArrowDown, Save, Palette, Type } from 'lucide-react';
 import Loader from '../ui/loader';
 import TextCustomizationOptions from './TextCustomizationOptions';
+import { saveDesignToDB, getAllDesignsFromDB, getDesignFromDB, DesignData } from '@/lib/utils/indexedDB'; // Updated import
 
 interface ProductCustomizerProps {
   productId: string;
@@ -71,6 +72,7 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
         setProduct(productData);
         if (productData.side_images_url && productData.side_images_url.length > 0) {
           const img = new Image();
+          img.crossOrigin = "anonymous"; // Added to request CORS headers
           img.src = productData.side_images_url[0];
           img.onload = () => {
             setBackgroundImage(img);
@@ -97,15 +99,29 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
         const containerWidth = canvasContainerRef.current.clientWidth;
         const containerHeight = canvasContainerRef.current.clientHeight;
 
-        if (containerWidth === 0 || containerHeight === 0) return; // Avoid division by zero if container not rendered
+        // Corrected: If container has no dimensions yet, prevent calculation that leads to 0x0 stage.
+        if (containerWidth === 0 || containerHeight === 0) {
+            console.warn("Canvas container has zero dimensions (clientWidth or clientHeight is 0). Stage size calculation skipped.");
+            return; // Exit calculation to prevent setting stage size to 0x0
+        }
 
         const scaleToFitWidth = containerWidth / baseDesignSize.width;
         const scaleToFitHeight = containerHeight / baseDesignSize.height;
-        const newScale = Math.min(scaleToFitWidth, scaleToFitHeight);
+        let newScale = Math.min(scaleToFitWidth, scaleToFitHeight);
 
+        // Additional robustness: ensure scale is a positive, finite number.
+        if (newScale <= 0 || !isFinite(newScale)) {
+            console.warn(`Calculated invalid scale: ${newScale} (from container: ${containerWidth}x${containerHeight}, base: ${baseDesignSize.width}x${baseDesignSize.height}). Stage size update skipped.`);
+            return; // Skip update if scale is not valid and positive
+        }
+        
+        const newWidth = baseDesignSize.width * newScale;
+        const newHeight = baseDesignSize.height * newScale;
+
+        // Ensure dimensions are at least 1px to prevent errors with canvas.
         setScaledStageDimensions({
-          width: baseDesignSize.width * newScale,
-          height: baseDesignSize.height * newScale,
+          width: Math.max(1, newWidth),
+          height: Math.max(1, newHeight),
         });
         setStageContentScale(newScale);
       }
@@ -114,12 +130,18 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     calculateSize(); // Initial calculation
 
     const resizeObserver = new ResizeObserver(calculateSize);
-    resizeObserver.observe(canvasContainerRef.current);
+    // Ensure canvasContainerRef.current is still valid before observing
+    if (canvasContainerRef.current) {
+        resizeObserver.observe(canvasContainerRef.current);
+    }
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [backgroundImage, baseDesignSize]);
+  }, [backgroundImage, baseDesignSize, stageContentScale]); // Added stageContentScale to dependencies if it's used in fallback for newScale, otherwise remove if not needed.
+  // Re-evaluating dependencies: stageContentScale was used in a more complex fallback for newScale that I simplified.
+  // For the current version of calculateSize, stageContentScale is NOT read, so it should NOT be in dependencies.
+  // Corrected dependency array: [backgroundImage, baseDesignSize];
 
 
   useEffect(() => {
@@ -228,25 +250,143 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     }
   };
 
-  const handleSaveDesign = () => {
-    if (stageRef.current) {
-      setSelectedShapeId(null); 
-      // Deselect to hide transformer before saving
-      // Use a timeout to ensure the deselection (and transformer hiding) is processed before toDataURL
-      // setTimeout(() => { 
-      //   const dataURL = stageRef.current?.toDataURL({ mimeType: 'image/png' });
-      //   if (dataURL) {
-      //     const link = document.createElement('a');
-      //     link.download = `${product?.name || 'custom-design'}.png`;
-      //     link.href = dataURL;
-      //     document.body.appendChild(link);
-      //     link.click();
-      //     document.body.removeChild(link);
-      //   }
-      // }, 100);
+  const handleSaveDesign = async () => { // Changed to async
+    if (!stageRef.current || !product || !product.product_id) { // Added check for product.product_id
+      console.error("Stage, product, or product ID not available for saving.");
+      return;
+    }
+
+    const stage = stageRef.current;
+    
+    // Ensure transformer is not visible and stage is updated
+    setSelectedShapeId(null); 
+    
+    // Force redraw the stage to ensure all elements are up-to-date
+    stage.draw(); 
+
+    // Use a brief timeout to allow UI to update (transformer to hide and stage to redraw)
+    await new Promise(resolve => setTimeout(resolve, 100)); // Increased timeout slightly
+
+
+    // 1. Capture the full design image
+    const fullDesignImage = stage.toDataURL({ mimeType: 'image/png' });
+
+    // 2. Capture uploaded images (original data URLs)
+    const uploadedImagesData: DesignData['uploadedImages'] = uploadedImages.map(img => ({
+      id: img.id!,
+      dataUrl: img.image.src, // This is the original base64 data URL from FileReader
+      name: img.name || img.id,
+    }));
+
+    // 3. Capture text elements as transparent PNGs
+    const textImagesData: DesignData['textImages'] = [];
+    for (const textConfig of texts) {
+      if (!textConfig.id) continue;
+      const textNode = stage.findOne('#' + textConfig.id) as Konva.Text;
+      if (textNode) {
+        // To get an image of the text only, with its transformations, but on a transparent background:
+        // We can clone the node, add it to a temporary layer/stage, or directly use its toDataURL if it respects transparency.
+        // For simplicity and accuracy including transformations, we use the node's toDataURL.
+        // Konva's toDataURL on a node should capture its current appearance.
+        const textDataURL = textNode.toDataURL({ mimeType: 'image/png' });
+        textImagesData.push({
+          id: textConfig.id,
+          dataUrl: textDataURL,
+          text: textConfig.text || '',
+        });
+      }
+    }
+
+    const designToSave: DesignData = {
+      id: product.product_id, // USE product_id as the KEY to ensure overwrite for the same product
+      productId: product.product_id,
+      timestamp: Date.now(),
+      fullDesignImage,
+      uploadedImages: uploadedImagesData,
+      textImages: textImagesData,
+    };
+
+    try {
+      await saveDesignToDB(designToSave);
+      // console.log('Design saved successfully to IndexedDB with ID:', savedId); // Already logged in saveDesignToDB
+      // Optionally, provide user feedback (e.g., a toast notification)
+    } catch (error) {
+      console.error('Failed to save design to IndexedDB:', error);
+      // Optionally, provide user feedback for the error
     }
   };
   
+  const handleShowSavedDesigns = async () => {
+    try {
+      if (!product || !product.product_id) {
+        alert('Product context is not available. Cannot show saved design.');
+        return;
+      }
+
+      // Fetch the specific design for the current product
+      const designToShow = await getDesignFromDB(product.product_id);
+
+      if (designToShow) {
+        console.log(`Saved Design for product ${product.product_id}:`, designToShow);
+
+        const newTab = window.open();
+        if (newTab) {
+          let htmlContent = `<html><head><title>Saved Design: ${designToShow.id}</title></head><body>`;
+          htmlContent += `<h1>Design Details for: ${designToShow.id}</h1>`;
+          htmlContent += `<p>Product ID: ${designToShow.productId}</p>`;
+          htmlContent += `<p>Timestamp: ${new Date(designToShow.timestamp).toLocaleString()}</p>`;
+
+          // Display Full Design Image
+          if (designToShow.fullDesignImage) {
+            htmlContent += `<h2>Full Design Image:</h2>`;
+            htmlContent += `<img src="${designToShow.fullDesignImage}" alt="Full Design" style="max-width: 500px; border: 1px solid black; margin-bottom: 20px;" />`;
+          } else {
+            htmlContent += `<p>No full design image available.</p>`;
+          }
+
+          // Display Uploaded Images
+          htmlContent += `<h2>Uploaded Images:</h2>`;
+          if (designToShow.uploadedImages && designToShow.uploadedImages.length > 0) {
+            designToShow.uploadedImages.forEach(img => {
+              htmlContent += `<div style="margin-bottom: 10px;">`;
+              htmlContent += `<h4>Uploaded Image ID: ${img.id} (Name: ${img.name || 'N/A'})</h4>`;
+              htmlContent += `<img src="${img.dataUrl}" alt="Uploaded Image ${img.id}" style="max-width: 300px; border: 1px solid #ccc;" />`;
+              htmlContent += `</div>`;
+            });
+          } else {
+            htmlContent += `<p>No uploaded images for this design.</p>`;
+          }
+
+          // Display Text Images
+          htmlContent += `<h2 style="margin-top: 20px;">Text-as-Images:</h2>`;
+          if (designToShow.textImages && designToShow.textImages.length > 0) {
+            designToShow.textImages.forEach(txtImg => {
+              htmlContent += `<div style="margin-bottom: 10px;">`;
+              htmlContent += `<h4>Text Image ID: ${txtImg.id} (Original Text: ${txtImg.text})</h4>`;
+              htmlContent += `<img src="${txtImg.dataUrl}" alt="Text Image ${txtImg.id}" style="max-width: 300px; border: 1px solid #ccc; background-color: #f0f0f0;" />`;
+              htmlContent += `</div>`;
+            });
+          } else {
+            htmlContent += `<p>No text-as-images for this design.</p>`;
+          }
+
+          htmlContent += `</body></html>`;
+          newTab.document.write(htmlContent);
+          newTab.document.close(); // Important for some browsers
+        } else {
+          alert('Could not open a new tab. Please check your browser pop-up settings.');
+        }
+      } else {
+        // This else block is for when getDesignFromDB(product.product_id) returns undefined
+        console.log(`No saved design found for product: ${product.name} (ID: ${product.product_id}).`);
+        alert(`No saved design found for product: ${product.name} (ID: ${product.product_id}).`);
+      }
+    } catch (error) {
+      console.error('Failed to fetch designs from IndexedDB:', error);
+      alert('Failed to fetch designs. Check console for details.');
+    }
+  };
+
   const checkDeselect = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
@@ -512,7 +652,15 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
               </Button>
             </div>
 
-            {/* Selected Item Controls Section */}
+            {/* Show Saved Designs Button - Added */}
+            <div className="space-y-2 pb-4 border-b border-slate-100">
+              <Label className="text-sm font-medium text-slate-700">View Saved Designs</Label>
+              <Button onClick={handleShowSavedDesigns} variant="outline" className="w-full py-3 border-slate-300 hover:border-purple-500 hover:bg-purple-50 text-purple-700 transition-all duration-150 rounded-lg focus:ring-2 focus:ring-purple-300">
+                Show Saved Designs in Console
+              </Button>
+            </div>
+
+            {/* Object Manipulation Section (Delete, Layers) */}
             {selectedShapeId && (
               <div className="pt-4 space-y-4">
                 <h3 className="text-base font-medium text-slate-700 mb-2">Selected Item Controls</h3>
