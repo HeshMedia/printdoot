@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useClerk } from "@clerk/clerk-react"
 import {
   LayoutDashboard,
   Package,
@@ -51,9 +52,16 @@ function NavLink({ href, icon, label, onClick }: NavLinkProps) {
 
 export default function AdminSidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { signOut } = useClerk()
+  const router = useRouter()
   
   const toggleSidebar = () => setIsOpen(!isOpen)
   const closeSidebar = () => setIsOpen(false)
+  
+  const handleLogout = async () => {
+    await signOut()
+    router.push("/")
+  }
 
   return (
     <>
@@ -104,13 +112,17 @@ export default function AdminSidebar() {
           <NavLink href="/admin/featured/newarrivals" icon={<ShoppingCart />} label="New Arrivals" onClick={closeSidebar} />
           <NavLink href="/admin/featured/shopbyneed" icon={<Heart />} label="Shop By Need" onClick={closeSidebar} />
 
-          <div className="border-t border-gray-200 my-4"></div>
-
-          <NavLink href="/admin/topbar" icon={<LayoutGrid className="h-5 w-5" />} label="Topbar Management" onClick={closeSidebar} />
+          <div className="border-t border-gray-200 my-4"></div>          <NavLink href="/admin/topbar" icon={<LayoutGrid className="h-5 w-5" />} label="Topbar Management" onClick={closeSidebar} />
 
           <div className="border-t border-gray-200 my-4"></div>
 
-          <NavLink href="/logout" icon={<LogOut className="text-red-600" />} label="Logout" onClick={closeSidebar} />
+          <button 
+            className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 transition-colors w-full text-left"
+            onClick={handleLogout}
+          >
+            <div className="w-5 h-5 mr-3"><LogOut className="text-red-600" /></div>
+            Logout
+          </button>
         </nav>
       </aside>
     </>

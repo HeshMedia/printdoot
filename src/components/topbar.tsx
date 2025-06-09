@@ -42,6 +42,7 @@ export default function Topbar() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+  // Using Tailwind classes for text wrapping instead of custom formatting
 
   if (isLoading) {
     return (
@@ -80,13 +81,14 @@ export default function Topbar() {
                     <button
                       className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 border-b-2 border-transparent hover:border-blue-600 relative"
                       onClick={(e) => e.preventDefault()}
-                    >
-                      <span>{titleItem.title.toUpperCase()}</span>
+                    >                      <span className="inline-block max-w-[160px] whitespace-normal text-center leading-tight">
+                        {titleItem.title.toUpperCase()}
+                      </span>
                       <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
                     </button>
 
                     {openDropdown === titleItem.id && (
-                      <div className="fixed left-0 right-0 top-[56px] w-screen bg-white shadow-lg border-t border-gray-200 z-50 animate-fadeIn">
+                      <div className="fixed left-0 right-0 top-[120px] w-screen bg-white shadow-lg border-t border-gray-200 z-50 animate-fadeIn">
                         <div className="max-w-7xl mx-auto px-8 py-8">
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
                             {titleItem.categories.map((category) => (
@@ -140,8 +142,12 @@ export default function Topbar() {
           scrollbar-width: none;
         }
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
         .animate-fadeIn {
           animation: fadeIn 0.2s ease-in-out;
