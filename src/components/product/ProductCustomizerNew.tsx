@@ -8,10 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Plus, Trash2, ArrowUp, ArrowDown, Save, Palette, Type } from 'lucide-react';
+import { Upload, Plus, Trash2, ArrowUp, ArrowDown, Save, Palette, Type, ShoppingCart, AlertCircle } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from 'next/navigation';
+import { useAtom } from 'jotai';
+import { cartItemsAtom, generateCartItemId, findSimilarCartItem, addToCartAtom } from '@/lib/atoms/cartAtoms';
 import Loader from '../ui/loader';
 import TextCustomizationOptions from './TextCustomizationOptions';
-import { saveDesignToDB, getAllDesignsFromDB, getDesignFromDB, DesignData } from '@/lib/utils/indexedDB'; // Updated import
+import { saveDesignToDB, getAllDesignsFromDB, getDesignFromDB, getAllDesignsForProductFromDB, DesignData } from '@/lib/utils/indexedDB'; // Updated import with getAllDesignsForProductFromDB
 
 interface ProductCustomizerProps {
   productId: string;
@@ -49,6 +53,13 @@ export interface CustomTextConfig extends Konva.TextConfig {
 
 const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
   const [product, setProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [cartItems, setCartItems] = useAtom(cartItemsAtom);
+  const [designId, setDesignId] = useState<string | null>(null);
+  const [isAddToCartDialogOpen, setIsAddToCartDialogOpen] = useState(false);
+  const [hasCustomized, setHasCustomized] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null);
   const [uploadedImages, setUploadedImages] = useState<Array<Konva.ImageConfig & { image: HTMLImageElement }>>([]);
   const [texts, setTexts] = useState<Array<Konva.TextConfig>>([]);
@@ -280,6 +291,7 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
 
     // 3. Capture text elements as transparent PNGs
     const textImagesData: DesignData['textImages'] = [];
+    
     for (const textConfig of texts) {
       if (!textConfig.id) continue;
       const textNode = stage.findOne('#' + textConfig.id) as Konva.Text;
@@ -287,7 +299,6 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
         // To get an image of the text only, with its transformations, but on a transparent background:
         // We can clone the node, add it to a temporary layer/stage, or directly use its toDataURL if it respects transparency.
         // For simplicity and accuracy including transformations, we use the node's toDataURL.
-        // Konva's toDataURL on a node should capture its current appearance.
         const textDataURL = textNode.toDataURL({ mimeType: 'image/png' });
         textImagesData.push({
           id: textConfig.id,
@@ -295,10 +306,8 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
           text: textConfig.text || '',
         });
       }
-    }
-
-    const designToSave: DesignData = {
-      id: product.product_id, // USE product_id as the KEY to ensure overwrite for the same product
+    }    const designToSave: DesignData = {
+      id: `${product.product_id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`, // Generate unique ID for each design
       productId: product.product_id,
       timestamp: Date.now(),
       fullDesignImage,
@@ -307,12 +316,20 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     };
 
     try {
-      await saveDesignToDB(designToSave);
-      // console.log('Design saved successfully to IndexedDB with ID:', savedId); // Already logged in saveDesignToDB
-      // Optionally, provide user feedback (e.g., a toast notification)
+      const savedId = await saveDesignToDB(designToSave);
+      setDesignId(savedId);
+      setHasCustomized(true);
+      toast({
+        title: "Design saved",
+        description: "Your customized design has been saved.",
+      });
     } catch (error) {
       console.error('Failed to save design to IndexedDB:', error);
-      // Optionally, provide user feedback for the error
+      toast({
+        title: "Save failed",
+        description: "Failed to save your design. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   
@@ -321,54 +338,56 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
       if (!product || !product.product_id) {
         alert('Product context is not available. Cannot show saved design.');
         return;
-      }
+      }      
+      // Fetch all designs for the current product
+      const designs = await getAllDesignsForProductFromDB(product.product_id.toString());
 
-      // Fetch the specific design for the current product
-      const designToShow = await getDesignFromDB(product.product_id);
-
-      if (designToShow) {
-        console.log(`Saved Design for product ${product.product_id}:`, designToShow);
-
+      if (designs && designs.length > 0) {
+        console.log(`Saved Designs for product ${product.product_id}:`, designs);
+        
+        // Show the most recent design
+        const mostRecentDesign = [...designs].sort((a, b) => b.timestamp - a.timestamp)[0];
+        
         const newTab = window.open();
         if (newTab) {
-          let htmlContent = `<html><head><title>Saved Design: ${designToShow.id}</title></head><body>`;
-          htmlContent += `<h1>Design Details for: ${designToShow.id}</h1>`;
-          htmlContent += `<p>Product ID: ${designToShow.productId}</p>`;
-          htmlContent += `<p>Timestamp: ${new Date(designToShow.timestamp).toLocaleString()}</p>`;
-
-          // Display Full Design Image
-          if (designToShow.fullDesignImage) {
-            htmlContent += `<h2>Full Design Image:</h2>`;
-            htmlContent += `<img src="${designToShow.fullDesignImage}" alt="Full Design" style="max-width: 500px; border: 1px solid black; margin-bottom: 20px;" />`;
-          } else {
-            htmlContent += `<p>No full design image available.</p>`;
-          }
-
-          // Display Uploaded Images
-          htmlContent += `<h2>Uploaded Images:</h2>`;
-          if (designToShow.uploadedImages && designToShow.uploadedImages.length > 0) {
-            designToShow.uploadedImages.forEach(img => {
-              htmlContent += `<div style="margin-bottom: 10px;">`;
-              htmlContent += `<h4>Uploaded Image ID: ${img.id} (Name: ${img.name || 'N/A'})</h4>`;
-              htmlContent += `<img src="${img.dataUrl}" alt="Uploaded Image ${img.id}" style="max-width: 300px; border: 1px solid #ccc;" />`;
-              htmlContent += `</div>`;
-            });
-          } else {
-            htmlContent += `<p>No uploaded images for this design.</p>`;
-          }
-
-          // Display Text Images
-          htmlContent += `<h2 style="margin-top: 20px;">Text-as-Images:</h2>`;
-          if (designToShow.textImages && designToShow.textImages.length > 0) {
-            designToShow.textImages.forEach(txtImg => {
-              htmlContent += `<div style="margin-bottom: 10px;">`;
-              htmlContent += `<h4>Text Image ID: ${txtImg.id} (Original Text: ${txtImg.text})</h4>`;
-              htmlContent += `<img src="${txtImg.dataUrl}" alt="Text Image ${txtImg.id}" style="max-width: 300px; border: 1px solid #ccc; background-color: #f0f0f0;" />`;
-              htmlContent += `</div>`;
-            });
-          } else {
-            htmlContent += `<p>No text-as-images for this design.</p>`;
-          }
+          let htmlContent = `<html><head><title>Saved Designs for Product: ${product.name}</title></head><body>`;
+          htmlContent += `<h1>All Designs for Product: ${product.name} (ID: ${product.product_id})</h1>`;
+          htmlContent += `<p>Total Saved Designs: ${designs.length}</p>`;
+          
+          // Display all designs
+          designs.forEach((design: DesignData, index: number) => {
+            htmlContent += `<hr style="margin: 30px 0;" />`;
+            htmlContent += `<h2>Design #${index + 1}: ${design.id}</h2>`;
+            htmlContent += `<p>Created: ${new Date(design.timestamp).toLocaleString()}</p>`;
+            
+            // Full Design Image
+            if (design.fullDesignImage) {
+              htmlContent += `<h3>Full Design Image:</h3>`;
+              htmlContent += `<img src="${design.fullDesignImage}" alt="Full Design" style="max-width: 500px; border: 1px solid black; margin-bottom: 20px;" />`;
+            }
+            
+            // Uploaded Images
+            if (design.uploadedImages && design.uploadedImages.length > 0) {
+              htmlContent += `<h3>Uploaded Images (${design.uploadedImages.length}):</h3>`;
+              design.uploadedImages.forEach((img: { id: string; dataUrl: string; name?: string }) => {
+                htmlContent += `<div style="margin-bottom: 10px;">`;
+                htmlContent += `<h4>Uploaded Image ID: ${img.id} (Name: ${img.name || 'N/A'})</h4>`;
+                htmlContent += `<img src="${img.dataUrl}" alt="Uploaded Image ${img.id}" style="max-width: 300px; border: 1px solid #ccc;" />`;
+                htmlContent += `</div>`;
+              });
+            }
+            
+            // Text Images
+            if (design.textImages && design.textImages.length > 0) {
+              htmlContent += `<h3>Text-as-Images (${design.textImages.length}):</h3>`;
+              design.textImages.forEach((txtImg: { id: string; dataUrl: string; text: string }) => {
+                htmlContent += `<div style="margin-bottom: 10px;">`;
+                htmlContent += `<h4>Text Image ID: ${txtImg.id} (Original Text: ${txtImg.text})</h4>`;
+                htmlContent += `<img src="${txtImg.dataUrl}" alt="Text Image ${txtImg.id}" style="max-width: 300px; border: 1px solid #ccc; background-color: #f0f0f0;" />`;
+                htmlContent += `</div>`;
+              });
+            }
+          });
 
           htmlContent += `</body></html>`;
           newTab.document.write(htmlContent);
@@ -377,9 +396,9 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
           alert('Could not open a new tab. Please check your browser pop-up settings.');
         }
       } else {
-        // This else block is for when getDesignFromDB(product.product_id) returns undefined
-        console.log(`No saved design found for product: ${product.name} (ID: ${product.product_id}).`);
-        alert(`No saved design found for product: ${product.name} (ID: ${product.product_id}).`);
+        // This else block is for when no designs are found for this product
+        console.log(`No saved designs found for product: ${product.name} (ID: ${product.product_id}).`);
+        alert(`No saved designs found for product: ${product.name} (ID: ${product.product_id}).`);
       }
     } catch (error) {
       console.error('Failed to fetch designs from IndexedDB:', error);
@@ -520,6 +539,99 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
     // setTimeout(() => {
     //   window.addEventListener('click', handleOutsideClick, { capture: true });
     // });
+  };
+  // Set up add to cart atom
+  const [, addToCart] = useAtom(addToCartAtom);
+  const handleAddToCart = async () => {
+    if (!product) {
+      toast({
+        title: "Error",
+        description: "Product information is missing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // First, create and save a new design
+    // This ensures each "Add to Cart" action creates a unique design
+    if (!stageRef.current) {
+      toast({
+        title: "Error",
+        description: "Canvas not available. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Similar to handleSaveDesign but we'll generate a new design every time
+    const stage = stageRef.current;
+    const fullDesignImage = stage.toDataURL({ mimeType: 'image/png' });
+    
+    // Capture uploaded images and text elements just like in handleSaveDesign
+    const uploadedImagesData = uploadedImages.map(img => ({
+      id: img.id!,
+      dataUrl: img.image.src,
+      name: img.name || img.id,
+    }));
+    
+    const textImagesData = [];
+    for (const textConfig of texts) {
+      if (!textConfig.id) continue;
+      const textNode = stage.findOne('#' + textConfig.id) as Konva.Text;
+      if (textNode) {
+        const textDataURL = textNode.toDataURL({ mimeType: 'image/png' });
+        textImagesData.push({
+          id: textConfig.id,
+          dataUrl: textDataURL,
+          text: textConfig.text || '',
+        });
+      }
+    }
+    
+    // Create a unique design ID for this cart addition
+    const uniqueDesignId = `${product.product_id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    const designToSave = {
+      id: uniqueDesignId,
+      productId: product.product_id,
+      timestamp: Date.now(),
+      fullDesignImage,
+      uploadedImages: uploadedImagesData,
+      textImages: textImagesData,
+    };
+    
+    try {
+      // Save the design and get the saved ID
+      const savedDesignId = await saveDesignToDB(designToSave);
+      setDesignId(savedDesignId); // Update the component state
+      setHasCustomized(true);
+      
+      // Now add to cart with the new design ID
+      addToCart({
+        product,
+        quantity,
+        selectedCustomizations: {},
+        designId: savedDesignId,
+        customPreviewUrl: fullDesignImage
+      });
+      
+      toast({
+        title: "Added to cart",
+        description: "Your customized product has been added to the cart.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => router.push('/cart')}>
+            View Cart
+          </Button>
+        )
+      });
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!product || !backgroundImage) {
@@ -692,6 +804,58 @@ const ProductCustomizer: React.FC<ProductCustomizerProps> = ({ productId }) => {
             <div className="pt-4 mt-3 border-t border-slate-200 shrink-0">
               <Button onClick={handleSaveDesign} className="w-full py-3 bg-green-500 hover:bg-green-600 text-white text-base font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
                 <Save className="mr-2 h-5 w-5" /> Save Your Design
+              </Button>
+            </div>
+
+            {/* Add To Cart Section */}
+            <div className="pt-4 mt-3 border-t border-slate-200 space-y-3 shrink-0">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="quantity" className="font-medium text-slate-700">Quantity:</Label>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 w-8 p-0" 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </Button>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number.parseInt(e.target.value) || 1)}
+                    className="w-14 h-8 text-center"
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+              
+              {product && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Total Price:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    ₹{(product.price * quantity).toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              <Button 
+                onClick={handleAddToCart} 
+                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white text-base font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 mt-2"
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
               </Button>
             </div>
           </CardContent>

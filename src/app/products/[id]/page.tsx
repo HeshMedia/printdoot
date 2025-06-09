@@ -19,7 +19,8 @@ import ProductGallery from "@/components/product/ProductGallery"
 import ProductPricing from "@/components/product/ProductPricing" 
 import ProductDelivery from "@/components/product/ProductDelivery"
 import ProductDimensions from "@/components/product/ProductDimensions"
-
+import { useAtom } from "jotai"
+import { addToCartAtom } from "@/lib/atoms/cartAtoms"
 
 import Link from "next/link"
 import {
@@ -96,7 +97,9 @@ export default function ProductDetailPage() {
     }
     fetchData()
   }, [productId])
-  
+    // Set up addToCart atom
+  const [, addToCart] = useAtom(addToCartAtom)
+
   // Handle adding to cart with selected options
   const handleAddToCart = () => {
     if (!product) return
@@ -117,7 +120,28 @@ export default function ProductDetailPage() {
         })
         return
       }
+      
+      // For customized products, suggest using the customize page
+      toast({
+        title: "Customization Required",
+        description: "This product can be customized. Would you like to customize it?",
+        action: (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/products/${product.product_id}/customize`}>
+              Customize
+            </Link>
+          </Button>
+        ),
+      })
+      return
     }
+    
+    // Add to cart without customization
+    addToCart({
+      product,
+      quantity,
+      selectedCustomizations: {},
+    })
     
     toast({
       title: "Product added to cart",
@@ -128,9 +152,6 @@ export default function ProductDetailPage() {
         </Button>
       ),
     })
-    
-    // In a real app, this would dispatch to your cart state management
-    // e.g., dispatch(addToCart({ product, quantity, customizations: selectedCustomizations }))
   }
   
   // Handle share product functionality
@@ -294,23 +315,33 @@ export default function ProductDetailPage() {
                     ₹{calculateTotalPrice(product, quantity).toFixed(2)}
                   </span>
                 </div>
-              </div>
-                {/* Action Buttons */}
+              </div>                {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 pt-2">
-                {/* Remove the Add to Cart button and only show the Customize button */}
-                <Button 
-                  size="lg" 
-                  className="sm:col-span-5 bg-green-500 hover:bg-green-600 text-white"
-                  asChild
-                >
-                  <Link href={`/products/${product.product_id}/customize`}>
-                    <Pencil className="mr-2 h-5 w-5" />
-                    Customize Now
-                  </Link>
-                </Button>
+                {/* Show both Add to Cart and Customize buttons */}
+                <div className="sm:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button 
+                    size="lg" 
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    asChild
+                  >
+                    <Link href={`/products/${product.product_id}/customize`}>
+                      <Pencil className="mr-2 h-5 w-5" />
+                      Customize Now
+                    </Link>
+                  </Button>
+                  
+                  <Button 
+                    size="lg" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Add to Cart
+                  </Button>
+                </div>
                 
                 <button 
-                  className="inline-flex items-center hover:text-black hover:bg-blue-100 justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="sm:col-span-2 inline-flex items-center hover:text-black hover:bg-blue-100 justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onClick={handleShareProduct}
                 >
                   <Share2 className="h-5 w-5 font-thin text-muted-foreground" />
