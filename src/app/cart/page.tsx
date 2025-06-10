@@ -12,7 +12,9 @@ import {
   removeCartItemAtom, 
   applyDiscountCodeAtom,
   getImageFromIndexedDBAtom,
-  clearCartAtom
+  clearCartAtom,
+  discountCodeAtom,
+  removeDiscountCodeAtom
 } from "@/lib/atoms/cartAtoms"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,7 +49,8 @@ import {
   Info,
   RefreshCw,
   AlertCircle,
-  LayoutGrid
+  LayoutGrid,
+  Check
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -56,8 +59,7 @@ import { Badge } from "@/components/ui/badge" // Import Badge component
 export default function CartPage() {
   const router = useRouter()
   const { toast } = useToast()
-  
-  // Atoms
+    // Atoms
   const [cartItems, setCartItems] = useAtom(cartItemsAtom)
   const [cartTotal] = useAtom(cartTotalAtom)
   const [, updateCartItemQuantity] = useAtom(updateCartItemQuantityAtom)
@@ -65,6 +67,8 @@ export default function CartPage() {
   const [, applyDiscount] = useAtom(applyDiscountCodeAtom) 
   const [, getImageFromIndexedDB] = useAtom(getImageFromIndexedDBAtom)
   const [, clearCart] = useAtom(clearCartAtom)
+  const [discountCodeInfo] = useAtom(discountCodeAtom)
+  const [, removeDiscountCode] = useAtom(removeDiscountCodeAtom)
   
   // Local state
   const [loadingImages, setLoadingImages] = useState(true)
@@ -73,6 +77,7 @@ export default function CartPage() {
   const [showDesignImages, setShowDesignImages] = useState(true)
   const [showGroupedView, setShowGroupedView] = useState(false)
   const [itemImagesToShow, setItemImagesToShow] = useState<Record<string, string>>({})
+  const [currentDiscountInfo, setCurrentDiscountInfo] = useState<{code: string, percentage: number} | null>(null)
   
   // Load design images from IndexedDB
   useEffect(() => {
@@ -113,6 +118,18 @@ export default function CartPage() {
     loadImages()
   }, [cartItems, getImageFromIndexedDB])
   
+  // Initialize current discount info from atom state
+  useEffect(() => {
+    if (discountCodeInfo.isValid && discountCodeInfo.code && discountCodeInfo.discountPercentage > 0) {
+      setCurrentDiscountInfo({
+        code: discountCodeInfo.code,
+        percentage: discountCodeInfo.discountPercentage
+      });
+    } else {
+      setCurrentDiscountInfo(null);
+    }
+  }, [discountCodeInfo]);
+  
   // Functions to handle cart actions
   const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
     updateCartItemQuantity({ itemId, quantity: newQuantity })
@@ -127,6 +144,17 @@ export default function CartPage() {
     })
   }
   
+  const handleRemoveDiscount = () => {
+    removeDiscountCode();
+    setCurrentDiscountInfo(null);
+    
+    toast({
+      title: "Discount removed",
+      description: "The discount code has been removed from your cart.",
+      duration: 3000
+    });
+  }
+  
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) {
       toast({
@@ -139,22 +167,55 @@ export default function CartPage() {
     }
     
     setApplyingDiscount(true)
-    const success = await applyDiscount(discountCode.trim())
-    setApplyingDiscount(false)
     
-    if (success) {
-      toast({
-        title: "Discount applied",
-        description: `Discount code ${discountCode} has been applied to your cart.`,
-        duration: 3000
-      })
-    } else {
+    try {
+      // Store the code being applied for reference
+      const codeBeingApplied = discountCode.trim();
+      const success = await applyDiscount(codeBeingApplied);
+      
+      if (success) {
+        // Get the updated discount information after successful application
+        // In a real application, we'd get this from the API response or cartTotalAtom
+        // Here we're assuming the code has been applied via the atom
+        const discountPercentage = cartTotal.discountAmount / cartTotal.subtotal * 100;
+        
+        // Update the current discount info
+        setCurrentDiscountInfo({
+          code: codeBeingApplied,
+          percentage: Math.round(discountPercentage)
+        });
+        
+        toast({
+          title: "Discount applied",
+          description: `Discount code ${codeBeingApplied} has been applied to your cart.`,
+          duration: 3000
+        });
+        
+        // Clear the input field after successful application
+        setDiscountCode("");
+      } else {
+        // Reset the current discount info if application failed
+        setCurrentDiscountInfo(null);
+        
+        toast({
+          variant: "destructive",
+          title: "Invalid code",
+          description: "The discount code you entered is invalid or not applicable to items in your cart.",
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error("Error applying discount:", error);
+      setCurrentDiscountInfo(null);
+      
       toast({
         variant: "destructive",
-        title: "Invalid code",
-        description: "The discount code you entered is invalid.",
+        title: "Error",
+        description: "An error occurred while applying the discount. Please try again.",
         duration: 3000
-      })
+      });
+    } finally {
+      setApplyingDiscount(false);
     }
   }
   
@@ -571,16 +632,33 @@ export default function CartPage() {
               <div className="flex justify-between py-2">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>₹{cartTotal.subtotal.toFixed(2)}</span>
-              </div>
-              
-              {/* Discount */}
+              </div>              {/* Discount */}
               <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">Discount</span>
-                <span className="text-green-600">
-                  {cartTotal.discountAmount > 0 
-                    ? `-₹${cartTotal.discountAmount.toFixed(2)}` 
-                    : '₹0.00'}
-                </span>
+                <div className="flex items-center">
+                  <span className="text-muted-foreground">Discount</span>
+                  {cartTotal.discountAmount > 0 && currentDiscountInfo && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {currentDiscountInfo.code}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  <span className={cartTotal.discountAmount > 0 ? "text-green-600 font-medium" : ""}>
+                    {cartTotal.discountAmount > 0 
+                      ? `-₹${cartTotal.discountAmount.toFixed(2)}` 
+                      : '₹0.00'}
+                  </span>
+                  {cartTotal.discountAmount > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 ml-1 text-gray-400 hover:text-gray-600"
+                      onClick={handleRemoveDiscount}
+                    >
+                      <AlertCircle className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
               
               {/* Tax */}
@@ -597,27 +675,68 @@ export default function CartPage() {
                 <span className="text-muted-foreground">Shipping</span>
                 <span>₹{cartTotal.shippingCost.toFixed(2)}</span>
               </div>
-              
-              {/* Discount Code Input */}
+                {/* Discount Code Input */}
               <div className="pt-4">
-                <div className="flex space-x-2">
-                  <div className="relative flex-1">
-                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Discount code"
-                      value={discountCode}
-                      onChange={e => setDiscountCode(e.target.value)}
-                      className="pl-9"
-                    />
+                {cartTotal.discountAmount > 0 && currentDiscountInfo ? (
+                  <div className="bg-green-50 border border-green-100 rounded-md p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 text-green-600 mr-2" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            Discount applied: {currentDiscountInfo.percentage}% off
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Code: {currentDiscountInfo.code}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRemoveDiscount}
+                        className="h-8 text-xs"
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   </div>
-                  <Button 
-                    onClick={handleApplyDiscount} 
-                    disabled={applyingDiscount}
-                    variant="secondary"
-                  >
-                    {applyingDiscount ? 'Applying...' : 'Apply'}
-                  </Button>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex space-x-2">
+                      <div className="relative flex-1">
+                        <Tag className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Discount code"
+                          value={discountCode}
+                          onChange={e => setDiscountCode(e.target.value)}
+                          className="pl-9"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyDiscount();
+                            }
+                          }}
+                          disabled={applyingDiscount}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleApplyDiscount} 
+                        disabled={applyingDiscount}
+                        variant="secondary"
+                      >
+                        {applyingDiscount ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : 'Apply'}
+                      </Button>
+                    </div>                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter a discount code if you have one
+                    </p>
+                  </>
+                )}
               </div>
               
               <div className="border-t border-b py-4 my-4">

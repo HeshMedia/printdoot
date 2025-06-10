@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { Product } from '../api/products';
+import type { VerifyCouponRequest, VerifyCouponResponse } from '../api/coupon';
 
 // Define types
 export interface CustomizationOption {
@@ -187,27 +188,45 @@ export const clearCartAtom = atom(
 export const applyDiscountCodeAtom = atom(
   null,
   async (get, set, code: string) => {
-    // Mock API call to validate discount code
-    // In a real app, you would call an API endpoint
+    // Import the verifyCoupon function from our API
+    const { verifyCoupon } = await import('../api/coupon');
+    
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Call the actual API endpoint with cart information
+      const cartItems = get(cartItemsAtom);
       
-      // Mock discount codes for testing
-      const discountCodes: Record<string, number> = {
-        'WELCOME10': 10,
-        'SUMMER20': 20,
-        'SPECIAL50': 50
-      };
+      // Get category IDs and product IDs from cart for better coupon validation
+      // Prioritize first item for simplicity (could be enhanced to check all items)
+      let category_id: number | undefined = undefined;
+      let product_id: string | undefined = undefined;
       
-      if (code in discountCodes) {
+      if (cartItems.length > 0) {
+        const firstItem = cartItems[0];
+        if (firstItem.product.category_id) {
+          category_id = firstItem.product.category_id;
+        }
+        if (firstItem.product.product_id) {
+          product_id = String(firstItem.product.product_id);
+        }
+      }
+      
+      // Call the coupon verification API
+      const response = await verifyCoupon({
+        code,
+        category_id,
+        product_id
+      });
+      
+      if (response.valid) {
+        // If valid, update the discount code atom with the verified info
         set(discountCodeAtom, {
           code,
-          discountPercentage: discountCodes[code],
+          discountPercentage: response.discount_percentage,
           isValid: true
         });
         return true;
       } else {
+        // If invalid, clear the discount code atom
         set(discountCodeAtom, {
           code: '',
           discountPercentage: 0,
@@ -217,8 +236,26 @@ export const applyDiscountCodeAtom = atom(
       }
     } catch (error) {
       console.error('Error applying discount code:', error);
+      // On error, clear the discount code atom
+      set(discountCodeAtom, {
+        code: '',
+        discountPercentage: 0,
+        isValid: false
+      });
       return false;
     }
+  }
+);
+
+export const removeDiscountCodeAtom = atom(
+  null,
+  (get, set) => {
+    set(discountCodeAtom, {
+      code: '',
+      discountPercentage: 0,
+      isValid: false
+    });
+    return true;
   }
 );
 

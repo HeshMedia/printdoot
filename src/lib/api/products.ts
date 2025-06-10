@@ -3,6 +3,7 @@ import { config } from "../config"
 export type ProductStatus = "in_stock" | "out_of_stock" | "discontinued"
 
 export interface Product {
+  category_id: any;
   // Existing fields
   product_id: string;
   name: string;
