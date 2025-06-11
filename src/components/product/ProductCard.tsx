@@ -61,15 +61,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             </div>
           </Link>
 
-          <Link href={`/products/${product.product_id}/customize`} passHref className="mt-2 block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full rounded-md bg-green-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:text-sm"
-            >
-              Customize Now
-            </motion.button>
-          </Link>
+      
         </div>
       </div>
     </motion.div>
