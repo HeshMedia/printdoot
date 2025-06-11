@@ -15,7 +15,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useCart } from "@/lib/context/cart-context"
+import { useAtom } from "jotai"
+import { cartCountAtom } from "@/lib/atoms/cartAtoms"
 import {
   Tooltip,
   TooltipContent,
@@ -29,7 +30,7 @@ import Topbar from "./topbar"
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const { totalItems } = useCart()
+  const [cartItemCount] = useAtom(cartCountAtom)
   const router = useRouter() // Next.js router instance
   const { user } = useUser() // Get user information from Clerk
   const { topbarData, isLoading: isTopbarLoading, error: topbarError } = useTopbarData();
@@ -176,12 +177,11 @@ export default function Navbar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link href="/cart">
-                  <Button variant="ghost" className="relative flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">
-                    <div className="relative">
+                  <Button variant="ghost" className="relative flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2">                    <div className="relative">
                       <ShoppingCart className="h-5 w-5" />
-                      {totalItems > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                          {totalItems}
+                      {cartItemCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {cartItemCount > 99 ? '99+' : cartItemCount}
                         </span>
                       )}
                     </div>

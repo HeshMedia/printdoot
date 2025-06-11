@@ -73,3 +73,18 @@ export const clearAllDesignsFromDB = async (): Promise<void> => {
   await tx.done;
   console.log('All designs cleared from IndexedDB.');
 };
+
+/**
+ * Gets just the full design image URL from a saved design
+ * @param designId The ID of the design to retrieve
+ * @returns The image URL as a string, or null if design not found
+ */
+export const getDesignImageFromDB = async (designId: string): Promise<string | null> => {
+  try {
+    const design = await getDesignFromDB(designId);
+    return design?.fullDesignImage || null;
+  } catch (error) {
+    console.error('Error retrieving design image from IndexedDB:', error);
+    return null;
+  }
+};

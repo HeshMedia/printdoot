@@ -91,18 +91,65 @@ export const productsApi = {
   
   // ✅ Used for basic product fetching
   async getProducts(skip = 0, limit = 0): Promise<{ products: Product[]; total: number }> {
-    const response = await fetch(`${config.apiUrl}/products?skip=${skip}&limit=${limit}`);
-    if (!response.ok) throw new Error("Failed to fetch products");
-    return response.json(); // returns { products, total }
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
+
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/products?skip=${skip}&limit=${limit}`, {
+          cache: "no-store", // Don't cache to always get fresh data
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying products fetch (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+      }
+    }
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to fetch products after multiple attempts");
   },
 
   // ✅ Fetch single product by ID (used in edit page)
   async getProduct(productId: string): Promise<Product> {
-    const response = await fetch(`${config.apiUrl}/products/${productId}`);
-    if (!response.ok) throw new Error("Failed to fetch product");
-    return response.json(); // returns Product
-  },
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
 
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/products/${productId}`, {
+          cache: "no-store", // Don't cache to always get fresh data
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch product");
+        }
+        
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying product fetch (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+      }
+    }
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to fetch product after multiple attempts");
+  },
   // ✅ Filtered fetching with pagination
   async filterProducts(params: ProductsFilterParams): Promise<{ products: Product[]; total: number }> {
     const queryParams = new URLSearchParams();
@@ -114,58 +161,156 @@ export const productsApi = {
     if (params.skip) queryParams.append("skip", params.skip.toString());
     if (params.limit) queryParams.append("limit", params.limit.toString());
 
-    const response = await fetch(`${config.apiUrl}/products/filter?${queryParams.toString()}`);
-    if (!response.ok) throw new Error("Failed to filter products");
-    return response.json(); // returns { products, total }
-  },
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
 
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/products/filter?${queryParams.toString()}`, {
+          cache: "no-store", // Don't cache to always get fresh data
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to filter products");
+        }
+        
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying products filter (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+      }
+    }
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to filter products after multiple attempts");
+  },
   // ✅ Create new product
   async createProduct(product: ProductCreateInput): Promise<Product> {
-    const response = await fetch(`${config.apiUrl}/admin/products`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(product),
-    });
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to create product");
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/admin/products`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(product),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || "Failed to create product");
+        }
+
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying product creation (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+        
+        // If this is a validation error (e.g., duplicate product), don't retry
+        if (error instanceof Error && 
+            (error.message.includes("duplicate") || 
+             error.message.includes("already exists") ||
+             error.message.includes("validation"))) {
+          break;
+        }
+      }
     }
-
-    return response.json();
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to create product after multiple attempts");
   },
-
   // ✅ Update existing product
   async updateProduct(productId: string, product: Partial<ProductCreateInput>): Promise<Product> {
-    const response = await fetch(`${config.apiUrl}/admin/products/${productId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(product),
-    });
-    console.log("Update product response:", response);
-    console.log("Update product body:", JSON.stringify(product));
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to update product");
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
+
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/admin/products/${productId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(product),
+        });
+        
+        console.log("Update product response:", response);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || "Failed to update product");
+        }
+
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying product update (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+        
+        // If this is a validation error, don't retry
+        if (error instanceof Error && 
+            (error.message.includes("validation") || 
+             error.message.includes("not found"))) {
+          break;
+        }
+      }
     }
-
-    return response.json();
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to update product after multiple attempts");
   },
-
   // ✅ Delete a product
   async deleteProduct(productId: string): Promise<void> {
-    const response = await fetch(`${config.apiUrl}/admin/products/${productId}`, {
-      method: "DELETE",
-    });
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to delete product");
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/admin/products/${productId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || "Failed to delete product");
+        }
+        
+        return; // Success, exit the retry loop
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying product deletion (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+        
+        // If product doesn't exist, don't retry
+        if (error instanceof Error && error.message.includes("not found")) {
+          break;
+        }
+      }
     }
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to delete product after multiple attempts");
   },
 
   // ✅ Upload product images
@@ -309,13 +454,34 @@ export const productsApi = {
       throw new Error("Side images update error: " + (err instanceof Error ? err.message : String(err)));
     }
   },
-
   // ✅ Get categories (optional helper in product forms)
   async getCategories(): Promise<any[]> {
-    const response = await fetch(`${config.apiUrl}/categories`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch categories");
+    const maxRetries = 3;
+    let retries = 0;
+    let lastError;
+
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(`${config.apiUrl}/categories`, {
+          cache: "no-store", // Don't cache to always get fresh data
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        retries++;
+        console.log(`Retrying admin categories fetch (${retries}/${maxRetries})...`);
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 300 * retries));
+      }
     }
-    return response.json();
+    
+    // If we've exhausted all retries, throw the last error
+    throw lastError || new Error("Failed to fetch categories after multiple attempts");
   },
 };

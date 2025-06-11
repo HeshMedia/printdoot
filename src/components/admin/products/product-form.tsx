@@ -45,6 +45,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     weight: initialData?.weight || 0,
     standard_delivery_time: initialData?.standard_delivery_time || "",
     express_delivery_time: initialData?.express_delivery_time || "",
+    hsn_code: initialData?.hsn_code || "",
+    gst_percentage: initialData?.gst_percentage || 0,
   });
 
   useEffect(() => {

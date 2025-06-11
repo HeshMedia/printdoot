@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { CartProvider } from "@/lib/context/cart-context"
+import CartProvider from "@/lib/providers/cart-provider"
 import { UserProvider } from "@/lib/context/user-context"
 import { Toaster } from "@/components/toaster"
 import { WhatsApp } from "@/components/floatingwhatsapp"
@@ -27,8 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider> 
-      <html lang="en">
-        <body className={`${inter.className} flex flex-col min-h-screen overflow-x-hidden`}>
+      <html lang="en">        <body className={`${inter.className} flex flex-col min-h-screen overflow-x-hidden`}>
           <UserProvider>
             <CartProvider>           
               <TextBannerProvider>

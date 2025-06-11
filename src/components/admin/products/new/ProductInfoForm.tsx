@@ -36,6 +36,8 @@ interface ProductFormData {
   weight: number;
   standard_delivery_time: string;
   express_delivery_time: string;
+  hsn_code?: string;
+  gst_percentage?: number;
 }
 
 interface ProductInfoFormProps {
@@ -666,9 +668,7 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           placeholder="e.g. 2-3 business days"
           className="w-full border rounded-xl px-3 py-2"
         />
-      </div>
-
-      {/* Express Delivery Time */}
+      </div>      {/* Express Delivery Time */}
       <div>
         <label htmlFor="express_delivery_time" className="block text-sm font-medium text-gray-700 mb-1">
           Express Delivery Time
@@ -682,6 +682,42 @@ export const ProductInfoForm: React.FC<ProductInfoFormProps> = ({
           placeholder="e.g. 1-2 business days"
           className="w-full border rounded-xl px-3 py-2"
         />
+      </div>
+      
+      {/* HSN Code - Admin Only */}
+      <div>
+        <label htmlFor="hsn_code" className="block text-sm font-medium text-gray-700 mb-1">
+          HSN Code
+        </label>
+        <input
+          type="text"
+          id="hsn_code"
+          name="hsn_code"
+          value={formData.hsn_code || ""}
+          onChange={handleInputChange}
+          placeholder="e.g. 1234"
+          className="w-full border rounded-xl px-3 py-2"
+        />
+        <p className="text-xs text-gray-400 mt-1">For tax classification purposes</p>
+      </div>
+
+      {/* GST Percentage - Admin Only */}
+      <div>
+        <label htmlFor="gst_percentage" className="block text-sm font-medium text-gray-700 mb-1">
+          GST Percentage (%)
+        </label>
+        <input
+          type="number"
+          id="gst_percentage"
+          name="gst_percentage"
+          min="0"
+          max="100"
+          value={formData.gst_percentage === 0 || formData.gst_percentage === undefined ? "" : formData.gst_percentage}
+          onChange={handleInputChange}
+          placeholder="e.g. 18"
+          className="w-full border rounded-xl px-3 py-2"
+        />
+        <p className="text-xs text-gray-400 mt-1">Applicable GST rate for this product</p>
       </div>
 
       {/* Description */}
