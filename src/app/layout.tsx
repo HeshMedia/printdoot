@@ -32,9 +32,8 @@ export default function RootLayout({
           <UserProvider>
             <CartProvider>           
               <TextBannerProvider>
-                <TextBanner />
                 <Navbar />
-                
+                <TextBanner />
                 <main className="flex-grow">{children}</main>
                 <WhatsApp/>
                 <Footer />
