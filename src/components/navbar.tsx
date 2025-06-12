@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation" // Next.js router
-import { Menu, Search, ShoppingCart } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Menu, Search, ShoppingCart, Headphones, ChevronDown, ChevronRight } from "lucide-react"
 import {
   SignedOut,
   SignInButton,
@@ -24,29 +24,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useTopbarData, TransformedTopbarTitle, TransformedCategory, TransformedProduct } from "@/lib/hooks/useTopbarData";
-import { ChevronDown, ChevronRight } from "lucide-react" // Added
 
 import Topbar from "./topbar"
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [cartItemCount] = useAtom(cartCountAtom)
-  const router = useRouter() // Next.js router instance
-  const { user } = useUser() // Get user information from Clerk
+  const router = useRouter() 
+  const { user } = useUser()
   const { topbarData, isLoading: isTopbarLoading, error: topbarError } = useTopbarData();
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState<number | null>(null);
 
   useEffect(() => {
-    // Check if the user is an admin
     if (user && user.publicMetadata?.role === "ADMIN") {
-      router.push('/admin') // Redirect to admin dashboard
+      router.push('/admin') 
     }
   }, [user, router])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        {/* Left section: Logo and mobile menu */}
         <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
@@ -99,24 +96,7 @@ export default function Navbar() {
                                   >
                                     {category.name}
                                   </Link>
-                                  {/* Optionally, list products under category if needed, for now linking to category page */}
-                                  {/* {category.products.slice(0, 5).map((product: TransformedProduct) => (
-                                    <Link
-                                      key={product.id}
-                                      href={`/products/${product.id}`}
-                                      className="text-sm transition-colors hover:text-foreground/80 px-2 py-1 pl-4"
-                                    >
-                                      {product.name}
-                                    </Link>
-                                  ))}
-                                  {category.products.length > 5 && (
-                                     <Link
-                                      href={`/products?category=${encodeURIComponent(category.id)}`}
-                                      className="text-sm font-medium text-blue-600 hover:underline px-2 py-1 pl-4"
-                                    >
-                                      Shop all {category.name}
-                                    </Link>
-                                  )} */}
+                                
                                 </div>
                               ))}
                             </div>
@@ -171,6 +151,35 @@ export default function Navbar() {
             <Search className="h-5 w-5" />
             <span className="text-[10px] font-medium">Search</span>
           </Button>
+          
+          {/* Help/WhatsApp button - desktop only */}
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="relative hidden md:flex flex-col items-center gap-1 h-auto py-1 md:flex-row md:gap-2"
+                  onClick={() => {
+                    const phoneNumber = "7827303575";
+                    const formattedNumber = `+91${phoneNumber}`;
+                    const whatsappUrl = `https://wa.me/${formattedNumber.replace(/\D/g, '')}`;
+                    window.open(whatsappUrl, "_blank");
+                  }}
+                >
+                  <div className="relative">
+                    <Headphones className="h-5 w-5 text-emerald-600" />
+                    <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      ?
+                    </span>
+                  </div>
+                  <span className="sr-only md:not-sr-only md:text-xs">Help</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-black">Chat with us: +91-7827303575</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           {/* Cart button */}
           <TooltipProvider delayDuration={100}>
