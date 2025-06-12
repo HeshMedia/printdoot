@@ -49,11 +49,13 @@
 }
 
 @layer base {
-  * {
+ * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-family);
+    font-weight: 300; /* Setting Light weight as default */
   }
   :root {
   --background: 0 0% 100%;
